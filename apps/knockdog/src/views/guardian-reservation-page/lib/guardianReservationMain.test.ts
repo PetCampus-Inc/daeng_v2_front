@@ -13,9 +13,11 @@ import {
   groupManageTickets,
   KINDERGARTEN_LINK,
   listUsableTickets,
+  pickUpcomingReservation,
   RESERVATION_EMPTY,
   resolveReservationEmpty,
   resolveReserveStep,
+  toReservationKindergartenLink,
   type ReservationTicket,
 } from './guardianReservationMain';
 
@@ -93,7 +95,7 @@ describe('formatManageTicket', () => {
         createTicket({ status: TICKET_STATUS.expired, remainingCount: 0, totalCount: 1, endsOn: '2026-04-12' })
       )
     ).toEqual({
-      period: '2026.04.12 만료',
+      period: '2026.04.12 소진',
       count: '0회',
       total: '/ 1회',
     });
@@ -106,6 +108,16 @@ describe('formatManageTicket', () => {
       count: '2회',
       total: '/ 5회 (기간 만료로 예약 불가)',
     });
+    expect(
+      formatManageTicket(
+        createTicket({
+          status: TICKET_STATUS.expired,
+          remainingCount: 0,
+          endReason: 'periodEnded',
+          endsOn: '2026-03-09',
+        })
+      ).period
+    ).toBe('2026.03.09 이용 기간 만료');
   });
 });
 
@@ -130,6 +142,26 @@ describe('groupManageTickets', () => {
   });
 });
 
+describe('pickUpcomingReservation', () => {
+  const now = new Date(2026, 10, 14, 17, 30);
+
+  it('등원 시각이 지난 예약은 처리 상태와 상관없이 빼고 다음 예약을 고른다', () => {
+    const next = pickUpcomingReservation(
+      [
+        { id: 'past', startsAt: '2026-11-14T17:30', status: 'confirmed' },
+        { id: 'later', startsAt: '2026-11-15T09:00', status: 'attended' },
+        { id: 'sooner', startsAt: '2026-11-14T18:00', status: 'absent' },
+      ],
+      now
+    );
+
+    expect(next?.id).toBe('sooner');
+    expect(
+      pickUpcomingReservation([{ id: 'past', startsAt: '2026-11-14T17:30', status: 'confirmed' }], now)
+    ).toBeNull();
+  });
+});
+
 describe('resolveReservationEmpty', () => {
   it('연결·예약·이용권이 없을 때만 빈 화면을 고른다', () => {
     expect(resolveReservationEmpty(KINDERGARTEN_LINK.none, false, 0)).toBe(RESERVATION_EMPTY.unlinked);
@@ -137,6 +169,16 @@ describe('resolveReservationEmpty', () => {
     expect(resolveReservationEmpty(KINDERGARTEN_LINK.connected, false, 0)).toBe(RESERVATION_EMPTY.noPass);
     expect(resolveReservationEmpty(KINDERGARTEN_LINK.connected, true, 0)).toBeNull();
     expect(resolveReservationEmpty(KINDERGARTEN_LINK.connected, false, 1)).toBeNull();
+  });
+});
+
+describe('toReservationKindergartenLink', () => {
+  it('미연결과 승인 대기, 연결됨만 예약 빈 화면으로 연결한다', () => {
+    expect(toReservationKindergartenLink('none')).toBe(KINDERGARTEN_LINK.none);
+    expect(toReservationKindergartenLink('disconnected')).toBe(KINDERGARTEN_LINK.none);
+    expect(toReservationKindergartenLink('pending')).toBe(KINDERGARTEN_LINK.pending);
+    expect(toReservationKindergartenLink('approved')).toBe(KINDERGARTEN_LINK.connected);
+    expect(toReservationKindergartenLink('connected')).toBe(KINDERGARTEN_LINK.connected);
   });
 });
 

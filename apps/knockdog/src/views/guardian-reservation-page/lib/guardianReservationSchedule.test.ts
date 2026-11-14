@@ -5,6 +5,7 @@ import {
   formatReserveClock,
   formatReserveDay,
   formatSelectedPass,
+  isOwnerHoursUnset,
   isSlotBookable,
   listDisabledDates,
   listScheduleSlots,
@@ -27,6 +28,14 @@ describe('listScheduleSlots', () => {
   it('예약된 날의 오후 1:30에 점을 찍는다', () => {
     const reserved = listScheduleSlots(new Date(2026, 9, 13), now, true).find((slot) => slot.label === '01:30');
     expect(reserved?.isReserved).toBe(true);
+  });
+});
+
+describe('isOwnerHoursUnset', () => {
+  it('원장 운영시간 미설정만 안내 화면으로 본다', () => {
+    expect(isOwnerHoursUnset('settingNotReady')).toBe(true);
+    expect(isOwnerHoursUnset('notConnected')).toBe(false);
+    expect(isOwnerHoursUnset(null)).toBe(false);
   });
 });
 

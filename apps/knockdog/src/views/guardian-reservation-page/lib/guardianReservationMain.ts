@@ -1,4 +1,9 @@
-import { formatHourClock, formatVisitDate, parseVisitKey, toVisitKey } from '@views/guardian-reservation-page/lib/visitClock';
+import {
+  formatHourClock,
+  formatVisitDate,
+  parseVisitKey,
+  toVisitKey,
+} from '@views/guardian-reservation-page/lib/visitClock';
 
 const EXPIRING_BADGE_DAYS = 3;
 const MS_PER_DAY = 86_400_000;
@@ -31,6 +36,13 @@ interface TicketBadge {
   label: string;
 }
 
+const TICKET_END_REASON = {
+  exhausted: 'exhausted',
+  periodEnded: 'periodEnded',
+} as const;
+
+type TicketEndReason = (typeof TICKET_END_REASON)[keyof typeof TICKET_END_REASON];
+
 interface ReservationTicket {
   id: string;
   name: string;
@@ -40,6 +52,7 @@ interface ReservationTicket {
   endsOn: string | null;
   chargedAt: string;
   status: TicketStatus;
+  endReason?: TicketEndReason | null;
 }
 
 interface UpcomingReservation {
@@ -68,6 +81,7 @@ interface ReservationKindergarten {
   name: string;
   address: string;
   phone: string;
+  imageUrl?: string;
 }
 
 interface ReservationDog {
@@ -185,15 +199,21 @@ function formatTicketRange(startsOn: string, endsOn: string | null) {
   return `${toDotDate(startsOn)} ~ ${toDotDate(endsOn)}`;
 }
 
+function isTicketExhausted(ticket: ReservationTicket) {
+  if (ticket.status !== TICKET_STATUS.expired) return false;
+  if (ticket.endReason === TICKET_END_REASON.exhausted) return true;
+  if (ticket.endReason === TICKET_END_REASON.periodEnded) return false;
+  return ticket.remainingCount === 0;
+}
+
 function formatManageTicket(ticket: ReservationTicket): ManageTicketCopy {
   const count = `${ticket.remainingCount}회`;
   const bookable = `/ ${ticket.totalCount}회 예약 가능`;
   const isExpired = ticket.status === TICKET_STATUS.expired;
-  const isUsedUp = isExpired && ticket.remainingCount === 0;
 
-  if (isUsedUp) {
+  if (isTicketExhausted(ticket)) {
     return {
-      period: ticket.endsOn ? `${toDotDate(ticket.endsOn)} 만료` : '만료',
+      period: ticket.endsOn ? `${toDotDate(ticket.endsOn)} 소진` : '소진',
       count,
       total: `/ ${ticket.totalCount}회`,
     };
@@ -246,10 +266,26 @@ function groupManageTickets(tickets: ReservationTicket[]): TicketSection[] {
   });
 }
 
+function pickUpcomingReservation<T extends { startsAt: string }>(items: readonly T[], now: Date) {
+  const nowKey = toVisitKey(now);
+  return (
+    items
+      .filter((item) => item.startsAt > nowKey)
+      .sort((left, right) => left.startsAt.localeCompare(right.startsAt))[0] ?? null
+  );
+}
+
 function resolveReservationEmpty(link: KindergartenLink, hasUpcoming: boolean, usableCount: number) {
   if (link === KINDERGARTEN_LINK.none) return RESERVATION_EMPTY.unlinked;
   if (link === KINDERGARTEN_LINK.pending) return RESERVATION_EMPTY.pending;
   if (!hasUpcoming && usableCount === 0) return RESERVATION_EMPTY.noPass;
+  return null;
+}
+
+function toReservationKindergartenLink(status: string) {
+  if (status === 'none' || status === 'disconnected') return KINDERGARTEN_LINK.none;
+  if (status === 'pending') return KINDERGARTEN_LINK.pending;
+  if (status === 'approved' || status === 'connected') return KINDERGARTEN_LINK.connected;
   return null;
 }
 
@@ -265,12 +301,15 @@ export {
   formatDogWeight,
   formatReservationWhen,
   formatManageTicket,
+  isTicketExhausted,
   formatTicketPeriod,
   getTicketBadge,
   groupManageTickets,
   listUsableTickets,
+  pickUpcomingReservation,
   resolveReservationEmpty,
   resolveReserveStep,
+  toReservationKindergartenLink,
   toDateKey,
   toDateTimeKey,
 };

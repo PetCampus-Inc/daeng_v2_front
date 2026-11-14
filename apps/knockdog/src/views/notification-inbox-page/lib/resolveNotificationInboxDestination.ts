@@ -58,7 +58,6 @@ const KINDERGARTEN_NEWS_TYPES = new Set([
 
 /** 보호자 이용권 알림 — 예약 탭. petId가 있으면 그 강아지를 맞춘다. */
 const GUARDIAN_TICKET_TYPES = new Set([
-  'PET_TICKET_CHARGED',
   'PET_TICKET_HOLD_CANCELED',
   'PET_TICKET_HOLD_ENDED',
   'PET_TICKET_EXPIRY_EXTENDED',
@@ -67,8 +66,8 @@ const GUARDIAN_TICKET_TYPES = new Set([
   'PET_TICKET_STARTED',
 ]);
 
-/** 이용권을 모두 쓴 알림 — 그 이용권 상세 */
-const TICKET_DETAIL_TYPES = new Set(['PET_TICKET_EXHAUSTED']);
+/** 이용권 충전·소진 — 그 이용권 상세 */
+const TICKET_DETAIL_TYPES = new Set(['PET_TICKET_CHARGED', 'PET_TICKET_EXHAUSTED']);
 
 /** 등원 전날 리마인드 — 예약 상세 */
 const RESERVATION_DETAIL_TYPES = new Set(['RESERVATION_REMINDER']);

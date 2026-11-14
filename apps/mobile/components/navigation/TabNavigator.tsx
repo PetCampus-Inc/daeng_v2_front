@@ -1,5 +1,6 @@
-import ExploreIcon from '@/assets/icons/explore_basic.svg';
+import GuardianArchiveIcon from '@/assets/icons/guardian_archive.svg';
 import GuardianLogIcon from '@/assets/icons/guardian_log.svg';
+import GuardianMapIcon from '@/assets/icons/guardian_map.svg';
 import GuardianMyIcon from '@/assets/icons/guardian_my.svg';
 import GuardianReserveIcon from '@/assets/icons/guardian_reserve.svg';
 import OwnerAlbumIcon from '@/assets/icons/owner_album.svg';
@@ -7,7 +8,6 @@ import OwnerDailyIcon from '@/assets/icons/owner_daily.svg';
 import OwnerHomeIcon from '@/assets/icons/owner_home.svg';
 import OwnerMembersIcon from '@/assets/icons/owner_members.svg';
 import OwnerMypageIcon from '@/assets/icons/owner_mypage.svg';
-import SaveIcon from '@/assets/icons/save_basic.svg';
 import { useMainTabModeStore } from '@/bridges/model/mainTabModeStore';
 import { useBottomTabBarVisibilityStore } from '@/bridges/model/bottomTabBarVisibilityStore';
 import { tabWebViewStore } from '@/bridges/model/tabWebViewStore';
@@ -113,19 +113,29 @@ export default function TabNavigator() {
           return {
             tabBarIcon: ({ focused }) => {
               const tint = focused ? '#FF6E0C' : isOwnerMode ? '#B4B4BB' : '#8C8C94';
-              // fill을 루트에 주면 stroke·마스크 아이콘이 면으로 채워진다. 색만 넘긴다.
-              const fillIconProps = { fill: tint, color: tint };
               const strokeIconProps = { color: tint };
 
               switch (route.name) {
                 case 'Explore':
-                  return <ExploreIcon width={21} height={21} {...fillIconProps} />;
+                  return (
+                    <GuardianMapIcon width={22} height={22} color={focused ? '#FF6E0C' : '#B4B4BB'} />
+                  );
                 case 'Save':
-                  return <SaveIcon width={21} height={21} {...fillIconProps} />;
+                  return (
+                    <GuardianArchiveIcon width={21} height={21} color={focused ? '#FF6E0C' : '#B4B4BB'} />
+                  );
                 case 'Reserve':
-                  return <GuardianReserveIcon width={21} height={21} {...strokeIconProps} />;
+                  return (
+                    <GuardianReserveIcon
+                      width={20}
+                      height={20}
+                      color={focused ? '#FF6E0C' : '#B4B4BB'}
+                    />
+                  );
                 case 'Kindergarten':
-                  return <GuardianLogIcon width={23} height={20} {...strokeIconProps} />;
+                  return (
+                    <GuardianLogIcon width={23} height={20} color={focused ? '#FF6E0C' : '#B4B4BB'} />
+                  );
                 case 'OwnerHome':
                   return <OwnerHomeIcon width={21} height={21} {...strokeIconProps} />;
                 case 'OwnerDaily':
@@ -138,7 +148,7 @@ export default function TabNavigator() {
                   return isOwnerMode ? (
                     <OwnerMypageIcon width={21} height={21} {...strokeIconProps} />
                   ) : (
-                    <GuardianMyIcon width={21} height={21} {...strokeIconProps} />
+                    <GuardianMyIcon width={21} height={21} color={focused ? '#FF6E0C' : '#B4B4BB'} />
                   );
                 default:
                   console.warn('❗ tabBarIcon: Unknown route name', route.name);

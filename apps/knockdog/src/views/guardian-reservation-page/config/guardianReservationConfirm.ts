@@ -4,7 +4,7 @@ const RESERVATION_CONFIRM_COPY = {
   date: '날짜',
   time: '시간',
   ticket: '이용권',
-  noteLabel: '유치원에 전달 내용이 있나요?',
+  noteLabel: '유치원에 전할 내용이 있나요?',
   noteOptional: '(선택)',
   notePlaceholder: '전달하고자 하는 메모를 남겨주세요.',
   book: '예약하기',
@@ -12,9 +12,9 @@ const RESERVATION_CONFIRM_COPY = {
   leaveBody: '작성한 내용이 저장되지 않아요.',
   stay: '닫기',
   leave: '나가기',
-  closedPrefix: '마감된 시간이에요. ',
-  closedAccent: '다른 시간',
-  closedSuffix: '을 선택해 주세요',
+  closedPrefix: '마감된 날이에요. ',
+  closedAccent: '다른 날짜',
+  closedSuffix: '를 선택해 주세요',
   failed: '예약을 만들지 못했어요',
 } as const;
 

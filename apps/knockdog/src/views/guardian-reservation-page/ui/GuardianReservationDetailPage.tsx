@@ -9,8 +9,9 @@ import { ActionButton } from '@knockdog/ui';
 
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 import { RESERVATION_DETAIL_COPY } from '@views/guardian-reservation-page/config/guardianReservationDetail';
+import { RESERVATION_ACTION_TOAST_VIEWPORT } from '@views/guardian-reservation-page/config/guardianReservationToast';
 import { leaveReservationTab } from '@views/guardian-reservation-page/lib/leaveReservationTab';
-import { NOTE_LIMIT, isNoteFilled } from '@views/guardian-reservation-page/lib/guardianReservationConfirm';
+import { isNoteFilled } from '@views/guardian-reservation-page/lib/guardianReservationConfirm';
 import {
   formatCancelWhen,
   formatDeadlineLead,
@@ -108,6 +109,7 @@ function GuardianReservationDetailPage() {
           position: 'bottom',
           title: copy.phoneCopied,
           nativeTitle: copy.phoneCopied,
+          viewportClassName: RESERVATION_ACTION_TOAST_VIEWPORT,
         });
       })
       .catch(() => undefined);
@@ -133,7 +135,14 @@ function GuardianReservationDetailPage() {
         onError: (error) => {
           setIsCancelOpen(false);
           const message = error instanceof ApiError && error.message ? error.message : copy.cancelFailed;
-          toast({ type: 'default', shape: 'rounded', position: 'bottom', title: message, nativeTitle: message });
+          toast({
+            type: 'default',
+            shape: 'rounded',
+            position: 'bottom',
+            title: message,
+            nativeTitle: message,
+            viewportClassName: RESERVATION_ACTION_TOAST_VIEWPORT,
+          });
         },
       }
     );
@@ -149,62 +158,56 @@ function GuardianReservationDetailPage() {
       </Header>
 
       <div className='flex min-h-0 flex-1 flex-col overflow-y-auto'>
-        <section className='px-x4 pt-x5 pb-x5 gap-x4 flex flex-col'>
-          <DetailInfoRow label={copy.kindergarten} value={detail.schoolName} />
-          <DetailInfoRow label={copy.date} value={formatDetailDate(detail.startsAt)} />
-          <DetailInfoRow label={copy.time} value={formatDetailClock(detail.startsAt)} />
+        <section className='px-x4 pt-x7 pb-x5 gap-x2 flex flex-col'>
+          <div className='px-x2 gap-x2 flex flex-col'>
+            <DetailInfoRow label={copy.kindergarten} value={detail.schoolName} />
+            <DetailInfoRow label={copy.date} value={formatDetailDate(detail.startsAt)} />
+            <DetailInfoRow label={copy.time} value={formatDetailClock(detail.startsAt)} />
+          </div>
           {canCancel ? (
-            <div className='gap-x1 flex items-center'>
-              <InfoLine className='text-text-accent size-4 shrink-0' />
-              <p className='body2-regular'>
+            <div className='radius-r2 px-x1 py-x2 gap-x1 flex items-center'>
+              <InfoLine className='text-text-accent size-[14px] shrink-0' />
+              <p className='caption1-regular'>
                 <span className='text-text-accent whitespace-pre'>{formatDeadlineLead(detail.startsAt)}</span>
                 <span className='text-text-tertiary'>{copy.deadlineSuffix}</span>
               </p>
             </div>
           ) : (
-            <div className='gap-x1 px-x1 py-x2 flex items-center'>
-              <RsvInfoCircle className='text-error shrink-0' />
+            <div className='radius-r2 px-x1 py-x2 gap-x1 flex items-center'>
+              <RsvInfoCircle className='text-error size-[14px] shrink-0' />
               <p className='caption1-regular text-error'>{copy.deadlinePassed}</p>
             </div>
           )}
         </section>
 
-        <div className='bg-line-100 h-x2 w-full shrink-0' />
-
-        <section className='px-x4 pt-x5 pb-x5 gap-x3 flex flex-col'>
+        <section className='px-x4 py-x5 gap-x2 flex flex-col'>
           <h2 className='body2-bold text-text-primary'>{copy.noteLabel}</h2>
           {hasNote ? (
             <>
-              <div className='bg-fill-secondary-50 radius-r2 px-x4 py-x4 gap-x2 flex flex-col'>
+              <div className='bg-bg-50 radius-r2 px-x4 py-x4'>
                 <p className='body2-regular text-text-primary'>{detail.note}</p>
-                <p className='body2-regular text-right'>
-                  <span className='text-text-accent'>{detail.note.length}</span>
-                  <span className='text-text-caption'>/{NOTE_LIMIT}</span>
-                </p>
               </div>
               <p className='body2-regular text-text-tertiary'>{copy.noteHint}</p>
             </>
           ) : (
-            <div className='bg-fill-secondary-50 radius-r2 px-x4 py-x4 flex items-center justify-center'>
-              <p className='body2-regular text-text-tertiary'>{copy.noteEmpty}</p>
+            <div className='bg-bg-50 radius-r2 p-x4 flex items-center justify-center'>
+              <p className='label-semibold text-text-tertiary'>{copy.noteEmpty}</p>
             </div>
           )}
         </section>
 
-        <div className='bg-line-100 h-x2 w-full shrink-0' />
-
-        <section className='px-x4 pt-x5 pb-x5 gap-x3 flex flex-col'>
+        <section className='px-x4 py-x5 gap-x2 flex flex-col'>
           <h2 className='body2-bold text-text-primary'>{copy.placeLabel}</h2>
-          <div className='border-line-200 radius-r4 bg-bg-50 h-[150px] w-full' />
-          <div className='gap-x1 flex items-start'>
+          <div className='border-line-200 radius-r4 bg-bg-0 h-[150px] w-full border border-solid' />
+          <div className='gap-x1 py-x0_5 flex items-start'>
             <LocationFill className='text-text-secondary size-5 shrink-0' />
-            <div className='min-w-0 flex-1'>
+            <div className='gap-x0_5 flex min-w-0 flex-1 flex-col'>
               <p className='body2-semibold text-text-primary'>{detail.schoolName}</p>
-              <p className='body2-regular text-text-secondary'>{detail.schoolAddress}</p>
+              <p className='body2-regular text-text-primary'>{detail.schoolAddress}</p>
             </div>
           </div>
           {detail.schoolPhone ? (
-            <div className='gap-x1 flex items-start'>
+            <div className='gap-x1 py-x0_5 flex items-start'>
               <Call className='text-text-secondary size-5 shrink-0' />
               <div className='gap-x2 flex items-center'>
                 <p className='body2-regular text-text-primary'>{detail.schoolPhone}</p>
@@ -217,7 +220,7 @@ function GuardianReservationDetailPage() {
         </section>
       </div>
 
-      <div className='bg-bg-0 px-x4 pt-x4 pb-x8 webview:pb-x5 shrink-0'>
+      <div className='bg-bg-0 p-x4 webview:pb-[calc(var(--safe-area-inset-bottom,0px)+16px)] shrink-0'>
         <ActionButton
           type='button'
           variant={canCancel ? 'secondaryLine' : 'primaryFill'}

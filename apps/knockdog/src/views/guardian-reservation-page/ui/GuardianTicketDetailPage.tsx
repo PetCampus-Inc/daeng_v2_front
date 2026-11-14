@@ -6,7 +6,13 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { InfoLine, TrashV4 } from '@knockdog/icons';
 import { MembershipCard, MembershipCardStatusBadge } from '@knockdog/ui';
 
-import { TICKET_STATUS, formatManageTicket, getTicketBadge, type ReservationTicket } from '@views/guardian-reservation-page/lib/guardianReservationMain';
+import {
+  TICKET_STATUS,
+  formatManageTicket,
+  getTicketBadge,
+  isTicketExhausted,
+  type ReservationTicket,
+} from '@views/guardian-reservation-page/lib/guardianReservationMain';
 import type { TicketHistory } from '@views/guardian-reservation-page/lib/guardianTicketHistory';
 import { toCardState } from '@views/guardian-reservation-page/ui/ticketCardState';
 import { GuardianTicketDeleteDialog } from '@views/guardian-reservation-page/ui/GuardianTicketDeleteDialog';
@@ -37,6 +43,7 @@ function asManageTicket(ticket: GuardianTicket): ReservationTicket {
     endsOn: ticket.status === TICKET_STATUS.expired ? (ticket.expiredOn ?? ticket.endsOn) : (hold?.endsOn ?? ticket.endsOn),
     chargedAt: ticket.startsOn,
     status: ticket.status,
+    endReason: ticket.endReason,
   };
 }
 
@@ -142,7 +149,11 @@ function GuardianTicketDetailPage() {
   }
 
   const copy = formatManageTicket(ticket);
-  const badge = ticket.status === TICKET_STATUS.active ? getTicketBadge(ticket.endsOn, today) : null;
+  const badge = isTicketExhausted(ticket)
+    ? { status: 'expired' as const, label: '소진' }
+    : ticket.status === TICKET_STATUS.active
+      ? getTicketBadge(ticket.endsOn, today)
+      : null;
 
   return (
     <div className='bg-bg-50 flex h-full min-h-0 flex-1 flex-col overflow-hidden'>

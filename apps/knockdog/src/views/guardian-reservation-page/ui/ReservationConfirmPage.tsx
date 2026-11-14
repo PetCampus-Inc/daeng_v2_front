@@ -8,6 +8,7 @@ import { ActionButton, BottomSheet, RsvConfirmedSheet, SelectDogCard, Textarea, 
 
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 import { RESERVATION_CONFIRM_COPY } from '@views/guardian-reservation-page/config/guardianReservationConfirm';
+import { RESERVATION_CONFIRM_TOAST_VIEWPORT } from '@views/guardian-reservation-page/config/guardianReservationToast';
 import {
   clipNote,
   formatConfirmDate,
@@ -41,7 +42,7 @@ const FULL_CODE = 'RESERVATION-409-4';
 
 function ConfirmInfoRow({ label, value, extra }: { label: string; value: string; extra?: string }) {
   return (
-    <div className='py-x3 flex items-start justify-between'>
+    <div className='px-x4 py-x3 flex items-start justify-between'>
       <p className='body2-regular text-text-secondary shrink-0'>{label}</p>
       <div className='gap-x0_5 flex flex-col items-end text-right'>
         <p className='body2-semibold text-text-primary'>{value}</p>
@@ -68,6 +69,7 @@ function showFailedToast(message: string) {
     shape: 'rounded',
     position: 'bottom',
     title: message,
+    viewportClassName: RESERVATION_CONFIRM_TOAST_VIEWPORT,
   });
 }
 
@@ -86,6 +88,7 @@ function showClosedToast() {
         <span className='body1-medium text-text-primary-inverse'>{copy.closedSuffix}</span>
       </>
     ),
+    viewportClassName: RESERVATION_CONFIRM_TOAST_VIEWPORT,
   });
 }
 
@@ -227,44 +230,49 @@ function ReservationConfirmPage() {
         <Header.Title>{copy.title}</Header.Title>
       </Header>
 
-      <div className='flex min-h-0 flex-1 flex-col overflow-y-auto'>
-        <SelectDogCard
-          variant='list'
-          name={dogName}
-          breed={breed}
-          age={age}
-          weight={weight}
-          showIcon={false}
-        >
-          <ConfirmDogAvatar name={dogName} imageUrl={pet.profileImage} />
-        </SelectDogCard>
+      <div className='pt-x4 flex min-h-0 flex-1 flex-col overflow-y-auto'>
         <div className='px-x4 flex flex-col'>
+          <div className='px-x4 py-x3'>
+            <SelectDogCard
+              variant='list'
+              name={dogName}
+              breed={breed}
+              age={age}
+              weight={weight}
+              showIcon={false}
+              className='border-line-200 !px-0 border-b border-solid py-x3'
+            >
+              <ConfirmDogAvatar name={dogName} imageUrl={pet.profileImage} />
+            </SelectDogCard>
+          </div>
           <ConfirmInfoRow label={copy.kindergarten} value={kindergartenName} />
           <ConfirmInfoRow label={copy.date} value={formatConfirmDate(date)} />
           <ConfirmInfoRow label={copy.time} value={formatReserveClock(selection.minutes)} />
           <ConfirmInfoRow label={copy.ticket} value={ticketLabel} extra={remainingLabel} />
         </div>
         <div className='bg-line-100 h-x2 w-full shrink-0' />
-        <div className='px-x4 py-x5 gap-x3 flex flex-col'>
-          <div className='gap-x1 flex items-center'>
+        <div className='gap-x2 py-x5 flex flex-col'>
+          <div className='gap-x0_5 px-x4 flex items-center'>
             <p className='h3-semibold text-text-primary'>{copy.noteLabel}</p>
             <p className='label-medium text-text-tertiary'>{copy.noteOptional}</p>
           </div>
-          <Textarea className='gap-x8 flex min-h-[120px] flex-col' disabled={isPending || isConfirmed}>
-            <TextareaInput
-              value={note}
-              maxLength={NOTE_LIMIT}
-              rows={3}
-              placeholder={copy.notePlaceholder}
-              disabled={isPending || isConfirmed}
-              className='h-auto min-h-[72px]'
-              onChange={(event) => setNote(clipNote(event.target.value))}
-            />
-            <p className='body2-regular text-right'>
-              <span className={note.length > 0 ? 'text-text-accent' : 'text-text-caption'}>{note.length}</span>
-              <span className='text-text-caption'>/{NOTE_LIMIT}</span>
-            </p>
-          </Textarea>
+          <div className='px-x4 py-x3'>
+            <Textarea className='gap-x8 flex min-h-[120px] flex-col' disabled={isPending || isConfirmed}>
+              <TextareaInput
+                value={note}
+                maxLength={NOTE_LIMIT}
+                rows={3}
+                placeholder={copy.notePlaceholder}
+                disabled={isPending || isConfirmed}
+                className='h-auto min-h-[72px]'
+                onChange={(event) => setNote(clipNote(event.target.value))}
+              />
+              <p className='body2-regular text-right'>
+                <span className={note.length > 0 ? 'text-text-accent' : 'text-text-caption'}>{note.length}</span>
+                <span className='text-text-caption'>/{NOTE_LIMIT}</span>
+              </p>
+            </Textarea>
+          </div>
         </div>
       </div>
 

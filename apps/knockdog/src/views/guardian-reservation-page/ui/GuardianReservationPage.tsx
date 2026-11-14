@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 
 import { ChevronRight, Notification, RsvHistory } from '@knockdog/icons';
@@ -8,11 +8,21 @@ import { ActionButton, MembershipCard, MembershipCardStatusBadge, SelectDogCard,
 import { cn } from '@knockdog/ui/lib';
 
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
-import { formatReservationWhen } from '@views/guardian-reservation-page/lib/guardianReservationMain';
+import {
+  KINDERGARTEN_LINK,
+  formatReservationWhen,
+  pickUpcomingReservation,
+  resolveReservationEmpty,
+  toReservationKindergartenLink,
+  type ReservationKindergarten,
+} from '@views/guardian-reservation-page/lib/guardianReservationMain';
+import { ReservationEmptyState } from '@views/guardian-reservation-page/ui/ReservationEmptyState';
 
+import { useGuardianHomeQuery } from '@entities/guardian-home';
 import { RESERVATION_SCOPE, useGuardianReservationQuery } from '@entities/guardian-reservation';
 import { useGuardianTicketCardQuery, type GuardianTicket } from '@entities/guardian-ticket';
 import { formatAge, type Pet } from '@entities/pet';
+import { useUserStore } from '@entities/user';
 
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
@@ -38,7 +48,7 @@ function ReservationNoPetState() {
   };
 
   return (
-    <div className='px-x5 pt-x5 pb-[calc(var(--bottom-bar-height)+20px)] webview:pb-x5 flex min-h-0 w-full flex-1 flex-col items-center justify-between'>
+    <div className='px-x5 pt-x5 webview:pb-x5 flex min-h-0 w-full flex-1 flex-col items-center justify-between pb-[calc(var(--bottom-bar-height)+20px)]'>
       <div className='flex w-full flex-1 flex-col items-center justify-center gap-1'>
         <Image
           src={RESERVATION_NO_PET.imageSrc}
@@ -109,10 +119,11 @@ function PetAvatar({ pet }: { pet: Pet }) {
 
 function ReservationDogList({ pets, onSelect }: { pets: Pet[]; onSelect: (petId: string) => void }) {
   return (
-    <div className='bg-bg-0 flex flex-col'>
+    <div className='bg-bg-50 flex flex-col pb-x4'>
       {pets.map((pet) => (
         <SelectDogCard
           key={pet.id}
+          variant='list'
           showIcon={false}
           name={pet.name}
           breed={pet.breed}
@@ -127,19 +138,61 @@ function ReservationDogList({ pets, onSelect }: { pets: Pet[]; onSelect: (petId:
   );
 }
 
+function toReservationKindergarten(
+  school: { placeId: string | null; name: string; address: string; imageUrl?: string } | null | undefined
+): ReservationKindergarten | null {
+  if (!school?.name) return null;
+  return {
+    placeId: school.placeId ?? '',
+    name: school.name,
+    address: school.address,
+    phone: '',
+    imageUrl: school.imageUrl,
+  };
+}
+
 function GuardianReservationPage() {
   const { push } = useStackNavigation();
+  const userId = useUserStore((state) => state.user?.userId);
   const { pets, selectedPet, setSelectedPetId, isPetsReady, isPetsError, hasNoPet } = useGuardianSelectedPet();
   const [isChevronOpen, setIsChevronOpen] = useState(false);
+  const [now, setNow] = useState(() => new Date());
   const petId = selectedPet?.id ?? '';
+  const homeQuery = useGuardianHomeQuery({ userId, petId, enabled: Boolean(petId) });
   const upcomingQuery = useGuardianReservationQuery(petId, RESERVATION_SCOPE.upcoming);
   const ticketQuery = useGuardianTicketCardQuery(petId);
-  const upcoming = upcomingQuery.data?.[0];
+  const upcoming = pickUpcomingReservation(upcomingQuery.data ?? [], now);
   const tickets = ticketQuery.data?.tickets ?? [];
+  const link = ticketQuery.data ? toReservationKindergartenLink(ticketQuery.data.connection) : null;
+  const isTicketLoading = Boolean(petId) && ticketQuery.isPending;
+  const isUpcomingLoading = link === KINDERGARTEN_LINK.connected && upcomingQuery.isLoading;
+  const isUpcomingFailed = link === KINDERGARTEN_LINK.connected && upcomingQuery.isError;
+  const emptyKind =
+    link == null || isUpcomingLoading || isUpcomingFailed
+      ? null
+      : resolveReservationEmpty(link, Boolean(upcoming), tickets.length);
+
+  useEffect(() => {
+    const timerId = window.setInterval(() => setNow(new Date()), 60_000);
+    return () => window.clearInterval(timerId);
+  }, []);
+
+  const homeSchool = homeQuery.data?.school;
+  const ticketSchool = ticketQuery.data?.school;
+  const kindergarten = toReservationKindergarten(
+    link === KINDERGARTEN_LINK.none
+      ? null
+      : homeSchool?.placeId
+        ? homeSchool
+        : ticketSchool
+          ? { placeId: null, name: ticketSchool.name, address: ticketSchool.address, imageUrl: ticketSchool.imageUrl }
+          : null
+  );
   const canOpenDogList = pets.length > 1;
   const isDogListOpen = isChevronOpen && canOpenDogList;
 
   const handleToggleDogList = () => {
+    if (!canOpenDogList) return;
     setIsChevronOpen((isOpen) => !isOpen);
   };
 
@@ -189,12 +242,12 @@ function GuardianReservationPage() {
                 <RsvHistory />
               </button>
               <button type='button' aria-label='알림' className='text-text-primary' onClick={handleOpenNotification}>
-                <Notification unread className='translate-y-[3px]' />
+                <Notification unread className='translate-y-[0.5px]' />
               </button>
             </div>
           </header>
           <div className='gap-x4 px-x6 py-x5 flex items-center'>
-            <DogProfileAvatar name='강아지' className='size-[52px] border-line-100' />
+            <DogProfileAvatar name='강아지' className='border-line-100 size-[52px]' />
             <p className='h3-extrabold text-text-primary'>{RESERVATION_NO_PET.prompt}</p>
           </div>
         </div>
@@ -214,29 +267,27 @@ function GuardianReservationPage() {
                 <RsvHistory />
               </button>
               <button type='button' aria-label='알림' className='text-text-primary' onClick={handleOpenNotification}>
-                <Notification unread className='translate-y-[3px]' />
+                <Notification unread className='translate-y-[1px]' />
               </button>
             </div>
           </header>
           <SelectDogCard
-            isExpanded={isChevronOpen}
-            showIcon={false}
+            variant={isDogListOpen ? 'open' : 'closed'}
+            isExpanded={isDogListOpen}
+            showIcon={canOpenDogList}
             name={selectedPet.name}
             breed={selectedPet.breed}
             age={petAgeLabel(selectedPet.birthYear)}
             weight={petWeightLabel(selectedPet.weight)}
             className='rounded-none shadow-none'
-            onClick={handleToggleDogList}
+            onClick={canOpenDogList ? handleToggleDogList : undefined}
           >
             <PetAvatar pet={selectedPet} />
           </SelectDogCard>
         </div>
         {isDogListOpen ? (
-          <div className='bg-bg-0 absolute inset-x-0 top-full z-20 overflow-hidden rounded-b-[24px] shadow-[0_11px_24px_rgba(235,213,189,0.1)]'>
-            <ReservationDogList
-              pets={pets.filter((pet) => pet.id !== selectedPet.id)}
-              onSelect={handleSelectDog}
-            />
+          <div className='bg-bg-50 absolute inset-x-0 top-full z-20 overflow-hidden rounded-b-[24px] shadow-[0_11px_24px_rgba(235,213,189,0.1)]'>
+            <ReservationDogList pets={pets.filter((pet) => pet.id !== selectedPet.id)} onSelect={handleSelectDog} />
           </div>
         ) : null}
       </div>
@@ -250,52 +301,60 @@ function GuardianReservationPage() {
         />
       ) : null}
 
-      <div className='px-x4 py-x8 gap-x9 webview:pb-x8 flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain pb-[calc(var(--bottom-bar-height)+32px)]'>
-        <section className='gap-x2_5 flex flex-col'>
-          <h2 className='body1-bold text-text-primary'>다가오는 예약</h2>
-          {upcomingQuery.isLoading ? (
-            <DelayedLoadingSpinner isLoading layout='content' className='py-6' />
-          ) : upcomingQuery.isError ? (
-            <p className='body2-regular text-text-secondary py-6 text-center'>예약을 불러오지 못했어요</p>
-          ) : upcoming ? (
-            <UpcomingRsvCard
-              title={formatReservationWhen(upcoming.startsAt)}
-              place={upcoming.schoolName}
-              onClick={handleOpenList}
-            />
-          ) : (
-            <ReservationEmptySchedule />
-          )}
-        </section>
-
-        <section className='gap-x2_5 flex flex-col'>
-          <h2 className='body1-bold text-text-primary'>사용 가능 이용권</h2>
-          {ticketQuery.isLoading ? (
-            <DelayedLoadingSpinner isLoading layout='content' className='py-6' />
-          ) : ticketQuery.isError ? (
-            <p className='body2-regular text-text-secondary py-6 text-center'>이용권을 불러오지 못했어요</p>
-          ) : tickets.length === 0 ? (
-            <MembershipCard state='empty' />
-          ) : (
-            tickets.map((ticket) => (
-              <MembershipCard
-                key={ticket.id}
-                state='reservation'
-                title={ticket.name}
-                period={ticketPeriod(ticket)}
-                remainingCount={ticket.remainingCount}
-                badge={
-                  <MembershipCardStatusBadge status={ticket.showDDay ? 'soon' : 'active'}>
-                    {ticket.showDDay && ticket.daysLeft != null ? `D-${ticket.daysLeft}` : '사용 중'}
-                  </MembershipCardStatusBadge>
-                }
-                onReserve={ticket.reservable ? () => handleReserve(ticket.id) : undefined}
+      {isTicketLoading || isUpcomingLoading ? (
+        <DelayedLoadingSpinner isLoading layout='content' className='py-10' />
+      ) : ticketQuery.isError && !ticketQuery.data ? (
+        <p className='body2-regular text-text-secondary py-10 text-center'>이용권을 불러오지 못했어요</p>
+      ) : emptyKind ? (
+        <ReservationEmptyState kind={emptyKind} kindergarten={kindergarten} />
+      ) : (
+        <div className='px-x4 py-x8 gap-x9 webview:pb-x8 flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain pb-[calc(var(--bottom-bar-height)+32px)]'>
+          <section className='gap-x2_5 flex flex-col'>
+            <h2 className='body1-bold text-text-primary'>다가오는 예약</h2>
+            {upcomingQuery.isLoading ? (
+              <DelayedLoadingSpinner isLoading layout='content' className='py-6' />
+            ) : upcomingQuery.isError ? (
+              <p className='body2-regular text-text-secondary py-6 text-center'>예약을 불러오지 못했어요</p>
+            ) : upcoming ? (
+              <UpcomingRsvCard
+                title={formatReservationWhen(upcoming.startsAt)}
+                place={upcoming.schoolName}
+                onClick={handleOpenList}
               />
-            ))
-          )}
-          <ReservationTicketManageRow onClick={handleOpenTickets} />
-        </section>
-      </div>
+            ) : (
+              <ReservationEmptySchedule />
+            )}
+          </section>
+
+          <section className='gap-x2_5 flex flex-col'>
+            <h2 className='body1-bold text-text-primary'>사용 가능 이용권</h2>
+            {ticketQuery.isLoading ? (
+              <DelayedLoadingSpinner isLoading layout='content' className='py-6' />
+            ) : ticketQuery.isError ? (
+              <p className='body2-regular text-text-secondary py-6 text-center'>이용권을 불러오지 못했어요</p>
+            ) : tickets.length === 0 ? (
+              <MembershipCard state='empty' />
+            ) : (
+              tickets.map((ticket) => (
+                <MembershipCard
+                  key={ticket.id}
+                  state='reservation'
+                  title={ticket.name}
+                  period={ticketPeriod(ticket)}
+                  remainingCount={ticket.remainingCount}
+                  badge={
+                    <MembershipCardStatusBadge status={ticket.showDDay ? 'soon' : 'active'}>
+                      {ticket.showDDay && ticket.daysLeft != null ? `D-${ticket.daysLeft}` : '사용 중'}
+                    </MembershipCardStatusBadge>
+                  }
+                  onReserve={ticket.reservable ? () => handleReserve(ticket.id) : undefined}
+                />
+              ))
+            )}
+            <ReservationTicketManageRow onClick={handleOpenTickets} />
+          </section>
+        </div>
+      )}
     </main>
   );
 }

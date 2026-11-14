@@ -8,6 +8,7 @@ import { ActionButton, Divider, StatusFilterChip, Tabs, TabsList, TabsTrigger } 
 import { cn } from '@knockdog/ui/lib';
 
 import { RESERVATION_LIST_COPY } from '@views/guardian-reservation-page/config/guardianReservationList';
+import { RESERVATION_ACTION_TOAST_VIEWPORT } from '@views/guardian-reservation-page/config/guardianReservationToast';
 import { leaveReservationTab } from '@views/guardian-reservation-page/lib/leaveReservationTab';
 import {
   LIST_STATUS,
@@ -88,6 +89,7 @@ function showCancelToast(startsAt: string) {
         <span className='body1-medium text-text-primary-inverse'>{suffix}</span>
       </>
     ),
+    viewportClassName: RESERVATION_ACTION_TOAST_VIEWPORT,
   });
 }
 
@@ -213,7 +215,7 @@ function GuardianReservationListPage() {
             </div>
             )
           ) : (
-            <div className='px-x4 pt-x5 gap-x2 flex flex-col'>
+            <div className='px-x4 pt-x5 flex flex-col'>
               <div className='gap-x2 flex items-center'>
                 {PAST_FILTERS.map((filter) => (
                   <StatusFilterChip
@@ -225,20 +227,22 @@ function GuardianReservationListPage() {
                   </StatusFilterChip>
                 ))}
               </div>
-              {showSpinner ? (
-                <DelayedLoadingSpinner isLoading layout='content' className='py-10' />
-              ) : showLoadError ? (
-                <p className='body2-regular text-text-secondary py-10 text-center'>{copy.loadError}</p>
-              ) : (
-                <>
-                  <div className='flex flex-col'>
-                    {items.map((item) => (
-                      <PastRow key={item.id} item={item} />
-                    ))}
-                  </div>
-                  <p className='body2-regular text-text-tertiary py-x8 text-center'>{copy.pastHint}</p>
-                </>
-              )}
+              <div className='mt-x5 gap-x2 flex flex-col'>
+                {showSpinner ? (
+                  <DelayedLoadingSpinner isLoading layout='content' className='py-10' />
+                ) : showLoadError ? (
+                  <p className='body2-regular text-text-secondary py-10 text-center'>{copy.loadError}</p>
+                ) : (
+                  <>
+                    <div className='flex flex-col'>
+                      {items.map((item) => (
+                        <PastRow key={item.id} item={item} />
+                      ))}
+                    </div>
+                    <p className='body2-regular text-text-tertiary py-x8 text-center'>{copy.pastHint}</p>
+                  </>
+                )}
+              </div>
             </div>
           )}
         </div>

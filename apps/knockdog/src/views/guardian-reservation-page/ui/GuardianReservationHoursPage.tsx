@@ -6,6 +6,7 @@ import { ActionButton } from '@knockdog/ui';
 
 import { RESERVATION_HOURS_COPY } from '@views/guardian-reservation-page/config/guardianReservationHours';
 import { leaveReservationTab } from '@views/guardian-reservation-page/lib/leaveReservationTab';
+import { type ReservationKindergarten } from '@views/guardian-reservation-page/lib/guardianReservationMain';
 import { useReservationDogs } from '@views/guardian-reservation-page/model/useReservationDogs';
 import { ReservationKindergartenCard } from '@views/guardian-reservation-page/ui/ReservationKindergartenCard';
 
@@ -13,14 +14,21 @@ import { Header } from '@widgets/Header';
 
 import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 
-function GuardianReservationHoursPage() {
+function GuardianReservationHoursPage({
+  kindergarten: kindergartenFromParent,
+}: {
+  kindergarten?: ReservationKindergarten | null;
+}) {
   const copy = RESERVATION_HOURS_COPY;
   const searchParams = useSearchParams();
   const dogId = searchParams.get('dogId') ?? '';
   const { back } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
   const { dogs } = useReservationDogs();
-  const kindergarten = dogs.find((dog) => dog.id === dogId)?.kindergarten ?? null;
+  const kindergarten =
+    kindergartenFromParent !== undefined
+      ? kindergartenFromParent
+      : (dogs.find((dog) => dog.id === dogId)?.kindergarten ?? null);
 
   const handleBack = () => {
     leaveReservationTab(back, navigateToTab);
@@ -47,7 +55,7 @@ function GuardianReservationHoursPage() {
         {kindergarten ? <ReservationKindergartenCard kindergarten={kindergarten} /> : null}
       </div>
 
-      <div className='bg-bg-0 shrink-0 p-x4'>
+      <div className='bg-bg-0 p-x4 shrink-0'>
         <ActionButton type='button' variant='primaryFill' size='large' className='body1-bold' disabled>
           {copy.action}
         </ActionButton>

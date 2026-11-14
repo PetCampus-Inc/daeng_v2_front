@@ -21,6 +21,13 @@ interface GuardianTicketHold {
   endsOn: string;
 }
 
+const EXPIRED_REASON = {
+  EXHAUSTED: 'exhausted',
+  PERIOD_ENDED: 'periodEnded',
+} as const;
+
+type GuardianTicketEndReason = (typeof EXPIRED_REASON)[keyof typeof EXPIRED_REASON];
+
 interface GuardianTicket {
   id: string;
   name: string;
@@ -34,12 +41,14 @@ interface GuardianTicket {
   reservable: boolean;
   hold: GuardianTicketHold | null;
   expiredOn: string | null;
+  endReason: GuardianTicketEndReason | null;
 }
 
 interface GuardianTicketSchool {
   id: string;
   name: string;
   address: string;
+  imageUrl?: string;
 }
 
 interface GuardianTicketCard {
@@ -245,12 +254,20 @@ const toGuardianTicket = (dto: TicketDto): GuardianTicket => ({
   reservable: dto.reservable,
   hold: dto.hold ? { startsOn: dto.hold.startDate, endsOn: dto.hold.endDate } : null,
   expiredOn: dto.expiredOn,
+  endReason: dto.expiredReason ? EXPIRED_REASON[dto.expiredReason] : null,
 });
 
 const toGuardianTicketCard = (dto: ReturnType<typeof parseGuardianTicketCard>): GuardianTicketCard => ({
   connection: CONNECTION[dto.connection],
   manageCount: dto.manageCount,
-  school: dto.school ? { id: String(dto.school.schoolId), name: dto.school.name, address: dto.school.address } : null,
+  school: dto.school
+    ? {
+        id: String(dto.school.schoolId),
+        name: dto.school.name,
+        address: dto.school.address,
+        ...(dto.school.thumbnailImageUrl ? { imageUrl: dto.school.thumbnailImageUrl } : {}),
+      }
+    : null,
   tickets: dto.tickets.map(toGuardianTicket),
 });
 
