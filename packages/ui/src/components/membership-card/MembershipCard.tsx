@@ -111,9 +111,9 @@ function MembershipCard({
         <div className='gap-x2 flex min-w-0 flex-1 flex-col items-start'>
           {badge ?? <MembershipCardStatusBadge status={MEMBERSHIP_BADGE_STATUS.reservation} />}
           <div className='gap-x1 flex w-full flex-col pl-x0_5'>
-            <div className='gap-x1 flex items-center'>
-              <p className='h3-semibold text-text-primary'>{title ?? copy.title}</p>
-              <p className='body2-regular text-text-secondary'>
+            <div className='gap-x1 flex min-w-0 items-center'>
+              <p className='h3-semibold text-text-primary max-w-[140px] min-w-0 truncate'>{title ?? copy.title}</p>
+              <p className='body2-regular text-text-secondary shrink-0'>
                 (잔여 <span className='text-text-accent'>{remainingCount}</span>회)
               </p>
             </div>
@@ -147,7 +147,7 @@ function MembershipCard({
       <span className='gap-x1 flex w-full flex-col'>
         <span className='pr-x2 flex w-full items-center justify-between'>
           <span className='gap-x2_5 flex min-w-0 items-center'>
-            <span className='h3-semibold text-text-primary'>{title ?? copy.title}</span>
+            <span className='h3-semibold text-text-primary max-w-[200px] min-w-0 truncate'>{title ?? copy.title}</span>
             {badge ?? <MembershipCardStatusBadge status={MEMBERSHIP_BADGE_STATUS[state]} />}
           </span>
           {showIcon ? (
