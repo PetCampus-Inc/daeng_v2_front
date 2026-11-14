@@ -152,7 +152,7 @@ function MemberTicketDetailPage() {
   };
 
   return (
-    <div className='bg-bg-100 flex h-full flex-col'>
+    <div className='bg-bg-0 flex h-full flex-col'>
       <Header>
         <Header.LeftSection>
           <Header.BackButton />
@@ -181,7 +181,7 @@ function MemberTicketDetailPage() {
           <DelayedLoadingSpinner isLoading layout='content' className='py-10' />
         )
       ) : (
-      <div className='flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pb-[calc(var(--bottom-bar-height)+40px)] webview:pb-[calc(var(--safe-area-inset-bottom,0px)+32px)]'>
+      <div className='flex min-h-0 flex-1 flex-col overflow-y-auto pb-[calc(var(--bottom-bar-height)+40px)] webview:pb-[calc(var(--safe-area-inset-bottom,0px)+32px)]'>
         <section className='bg-bg-0 flex flex-col gap-4 px-4 py-5'>
           <div className='px-1'>
             <TicketLifecycleBadge status={detail.status} />
@@ -213,6 +213,7 @@ function MemberTicketDetailPage() {
           </div>
         </section>
 
+        <div className='bg-bg-100 h-3 shrink-0' />
         <section className='bg-bg-0 flex flex-col gap-5 px-4 py-5'>
           <div className='flex flex-col gap-3 px-1'>
             <h2 className='h3-extrabold text-text-primary'>{content.manageTitle}</h2>
@@ -239,25 +240,29 @@ function MemberTicketDetailPage() {
         </section>
 
         {isHistoryLoading || isHistoryError || history.length > 0 ? (
-          <section className='bg-bg-0 flex flex-col gap-3 px-4 py-5'>
-            <h2 className='h3-extrabold text-text-primary px-1'>{content.historyTitle}</h2>
-            {isHistoryLoading ? (
-              <DelayedLoadingSpinner isLoading layout='content' className='py-6' />
-            ) : isHistoryError ? (
-              <p className='body2-regular text-text-secondary px-1'>{content.historyErrorText}</p>
-            ) : (
-              <div className='px-2'>
-                {history.map((line, index) => (
-                  <div key={line.id}>
-                    {index === 0 ? <Divider /> : null}
-                    <HistoryLine line={line} />
-                    {index < history.length - 1 ? <Divider /> : null}
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        ) : null}
+          <>
+            <div className='bg-bg-100 h-3 shrink-0' />
+            <section className='bg-bg-0 flex flex-1 flex-col gap-3 px-4 py-5'>
+              <h2 className='h3-extrabold text-text-primary px-1'>{content.historyTitle}</h2>
+              {isHistoryLoading ? (
+                <DelayedLoadingSpinner isLoading layout='content' className='py-6' />
+              ) : isHistoryError ? (
+                <p className='body2-regular text-text-secondary px-1'>{content.historyErrorText}</p>
+              ) : (
+                <div className='px-2'>
+                  {history.map((line, index) => (
+                    <div key={line.id}>
+                      <HistoryLine line={line} />
+                      {index < history.length - 1 ? <Divider /> : null}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          </>
+        ) : (
+          <div className='bg-bg-0 flex-1' />
+        )}
       </div>
       )}
       <TicketHoldSheet isOpen={isHoldOpen} onOpenChange={setIsHoldOpen} onConfirm={handleConfirmHold} />
