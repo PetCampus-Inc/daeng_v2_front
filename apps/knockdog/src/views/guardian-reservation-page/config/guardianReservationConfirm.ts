@@ -4,7 +4,7 @@ const RESERVATION_CONFIRM_COPY = {
   date: '날짜',
   time: '시간',
   ticket: '이용권',
-  noteLabel: '유치원에 전달 내용이 있나요?',
+  noteLabel: '유치원에 전할 내용이 있나요?',
   noteOptional: '(선택)',
   notePlaceholder: '전달하고자 하는 메모를 남겨주세요.',
   book: '예약하기',

@@ -11,7 +11,7 @@ import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/
 import { RESERVATION_DETAIL_COPY } from '@views/guardian-reservation-page/config/guardianReservationDetail';
 import { RESERVATION_ACTION_TOAST_VIEWPORT } from '@views/guardian-reservation-page/config/guardianReservationToast';
 import { leaveReservationTab } from '@views/guardian-reservation-page/lib/leaveReservationTab';
-import { NOTE_LIMIT, isNoteFilled } from '@views/guardian-reservation-page/lib/guardianReservationConfirm';
+import { isNoteFilled } from '@views/guardian-reservation-page/lib/guardianReservationConfirm';
 import {
   formatCancelWhen,
   formatDeadlineLead,
@@ -184,12 +184,8 @@ function GuardianReservationDetailPage() {
           <h2 className='body2-bold text-text-primary'>{copy.noteLabel}</h2>
           {hasNote ? (
             <>
-              <div className='bg-bg-50 radius-r2 px-x4 py-x4 gap-x2 flex flex-col'>
+              <div className='bg-bg-50 radius-r2 px-x4 py-x4'>
                 <p className='body2-regular text-text-primary'>{detail.note}</p>
-                <p className='body2-regular text-right'>
-                  <span className='text-text-accent'>{detail.note.length}</span>
-                  <span className='text-text-caption'>/{NOTE_LIMIT}</span>
-                </p>
               </div>
               <p className='body2-regular text-text-tertiary'>{copy.noteHint}</p>
             </>
