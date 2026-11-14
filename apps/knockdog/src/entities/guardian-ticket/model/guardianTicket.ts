@@ -21,6 +21,13 @@ interface GuardianTicketHold {
   endsOn: string;
 }
 
+const EXPIRED_REASON = {
+  EXHAUSTED: 'exhausted',
+  PERIOD_ENDED: 'periodEnded',
+} as const;
+
+type GuardianTicketEndReason = (typeof EXPIRED_REASON)[keyof typeof EXPIRED_REASON];
+
 interface GuardianTicket {
   id: string;
   name: string;
@@ -34,6 +41,7 @@ interface GuardianTicket {
   reservable: boolean;
   hold: GuardianTicketHold | null;
   expiredOn: string | null;
+  endReason: GuardianTicketEndReason | null;
 }
 
 interface GuardianTicketSchool {
@@ -246,6 +254,7 @@ const toGuardianTicket = (dto: TicketDto): GuardianTicket => ({
   reservable: dto.reservable,
   hold: dto.hold ? { startsOn: dto.hold.startDate, endsOn: dto.hold.endDate } : null,
   expiredOn: dto.expiredOn,
+  endReason: dto.expiredReason ? EXPIRED_REASON[dto.expiredReason] : null,
 });
 
 const toGuardianTicketCard = (dto: ReturnType<typeof parseGuardianTicketCard>): GuardianTicketCard => ({

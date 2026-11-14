@@ -36,6 +36,13 @@ interface TicketBadge {
   label: string;
 }
 
+const TICKET_END_REASON = {
+  exhausted: 'exhausted',
+  periodEnded: 'periodEnded',
+} as const;
+
+type TicketEndReason = (typeof TICKET_END_REASON)[keyof typeof TICKET_END_REASON];
+
 interface ReservationTicket {
   id: string;
   name: string;
@@ -45,6 +52,7 @@ interface ReservationTicket {
   endsOn: string | null;
   chargedAt: string;
   status: TicketStatus;
+  endReason?: TicketEndReason | null;
 }
 
 interface UpcomingReservation {
@@ -191,15 +199,21 @@ function formatTicketRange(startsOn: string, endsOn: string | null) {
   return `${toDotDate(startsOn)} ~ ${toDotDate(endsOn)}`;
 }
 
+function isTicketExhausted(ticket: ReservationTicket) {
+  if (ticket.status !== TICKET_STATUS.expired) return false;
+  if (ticket.endReason === TICKET_END_REASON.exhausted) return true;
+  if (ticket.endReason === TICKET_END_REASON.periodEnded) return false;
+  return ticket.remainingCount === 0;
+}
+
 function formatManageTicket(ticket: ReservationTicket): ManageTicketCopy {
   const count = `${ticket.remainingCount}회`;
   const bookable = `/ ${ticket.totalCount}회 예약 가능`;
   const isExpired = ticket.status === TICKET_STATUS.expired;
-  const isUsedUp = isExpired && ticket.remainingCount === 0;
 
-  if (isUsedUp) {
+  if (isTicketExhausted(ticket)) {
     return {
-      period: ticket.endsOn ? `${toDotDate(ticket.endsOn)} 만료` : '만료',
+      period: ticket.endsOn ? `${toDotDate(ticket.endsOn)} 소진` : '소진',
       count,
       total: `/ ${ticket.totalCount}회`,
     };
@@ -287,6 +301,7 @@ export {
   formatDogWeight,
   formatReservationWhen,
   formatManageTicket,
+  isTicketExhausted,
   formatTicketPeriod,
   getTicketBadge,
   groupManageTickets,

@@ -11,6 +11,7 @@ import {
   TICKET_STATUS,
   formatManageTicket,
   getTicketBadge,
+  isTicketExhausted,
   type ReservationTicket,
   type TicketSectionId,
 } from '@views/guardian-reservation-page/lib/guardianReservationMain';
@@ -30,7 +31,7 @@ import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 const SECTION_LABEL = {
   [TICKET_SECTION.active]: '사용 중',
   [TICKET_SECTION.inactive]: '비활성화',
-  [TICKET_SECTION.expired]: '만료',
+  [TICKET_SECTION.expired]: '사용 종료',
 } as const satisfies Record<TicketSectionId, string>;
 
 function asManageTicket(ticket: GuardianTicket): ReservationTicket {
@@ -45,6 +46,7 @@ function asManageTicket(ticket: GuardianTicket): ReservationTicket {
     endsOn: ticket.status === TICKET_STATUS.expired ? (ticket.expiredOn ?? ticket.endsOn) : (hold?.endsOn ?? ticket.endsOn),
     chargedAt: ticket.startsOn,
     status: ticket.status,
+    endReason: ticket.endReason,
   };
 }
 
@@ -109,7 +111,11 @@ function GuardianTicketManagePage() {
               <h2 className='body2-bold text-text-secondary'>{SECTION_LABEL[section.id]}</h2>
               {section.tickets.map((ticket) => {
                 const copy = formatManageTicket(ticket);
-                const badge = ticket.status === TICKET_STATUS.active ? getTicketBadge(ticket.endsOn, today) : null;
+                const badge = isTicketExhausted(ticket)
+                  ? { status: 'expired' as const, label: '소진' }
+                  : ticket.status === TICKET_STATUS.active
+                    ? getTicketBadge(ticket.endsOn, today)
+                    : null;
 
                 return (
                   <MembershipCard

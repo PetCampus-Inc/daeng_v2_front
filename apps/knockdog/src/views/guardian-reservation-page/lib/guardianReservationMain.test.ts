@@ -95,7 +95,7 @@ describe('formatManageTicket', () => {
         createTicket({ status: TICKET_STATUS.expired, remainingCount: 0, totalCount: 1, endsOn: '2026-04-12' })
       )
     ).toEqual({
-      period: '2026.04.12 만료',
+      period: '2026.04.12 소진',
       count: '0회',
       total: '/ 1회',
     });
@@ -108,6 +108,16 @@ describe('formatManageTicket', () => {
       count: '2회',
       total: '/ 5회 (기간 만료로 예약 불가)',
     });
+    expect(
+      formatManageTicket(
+        createTicket({
+          status: TICKET_STATUS.expired,
+          remainingCount: 0,
+          endReason: 'periodEnded',
+          endsOn: '2026-03-09',
+        })
+      ).period
+    ).toBe('2026.03.09 이용 기간 만료');
   });
 });
 
