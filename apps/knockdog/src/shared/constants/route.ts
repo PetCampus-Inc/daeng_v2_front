@@ -172,6 +172,8 @@ const route = {
     },
   },
   owner: {
+    /** 원장 홈 */
+    root: '/owner',
     /** 원장 일과 탭 */
     daily: {
       root: '/owner/daily',

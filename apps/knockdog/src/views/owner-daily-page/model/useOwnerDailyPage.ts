@@ -34,24 +34,38 @@ const NOW_REFRESH_INTERVAL_MS = 10_000;
  * - 조회: 현황(summary)은 항상, 등원 대상(candidates)은 오늘·미래, 등원목록(today)은 오늘·지난 날짜만 한다.
  *   전체 등록 원생 수는 오늘·미래 날짜에 구성원 목록의 전체 집계로 조회한다.
  */
-const useOwnerDailyPage = ({ initialLateOnly = false }: { initialLateOnly?: boolean } = {}) => {
+interface DailyEntryOptions {
+  initialLateOnly?: boolean;
+  initialTab?: OwnerDailyTab;
+  initialTodayFilter?: TodayAttendanceFilter;
+  initialEntryId?: string;
+}
+
+const useOwnerDailyPage = ({
+  initialLateOnly = false,
+  initialTab,
+  initialTodayFilter,
+  initialEntryId,
+}: DailyEntryOptions = {}) => {
   const userId = useUserStore((state) => state.user?.userId);
   const [now, setNow] = useState(() => new Date());
   const [selectedDateOverride, setSelectedDateOverride] = useState<Date | null>(null);
-  const [selectedTabOverride, setSelectedTabOverride] = useState<OwnerDailyTab | null>(null);
+  const [selectedTabOverride, setSelectedTabOverride] = useState<OwnerDailyTab | null>(initialTab ?? null);
   const [keyword, setKeyword] = useState('');
   const [lateOnly, setLateOnly] = useState(initialLateOnly);
-  const [todayFilter, setTodayFilter] = useState<TodayAttendanceFilter | undefined>(undefined);
+  const [todayFilter, setTodayFilter] = useState<TodayAttendanceFilter | undefined>(initialTodayFilter);
 
-  // 이미 열려 있는 화면에 지각 알림 쿼리가 새로 들어오면(false → true) 오늘의 `등원처리` 탭을 지각 토글을 켠 채로 연다.
-  const [handledLateOnlyRequest, setHandledLateOnlyRequest] = useState(initialLateOnly);
-  if (initialLateOnly !== handledLateOnlyRequest) {
-    setHandledLateOnlyRequest(initialLateOnly);
-    if (initialLateOnly) {
+  // 홈·알림에서 새 진입 상태가 전달되면 오늘 날짜와 지정 탭·필터를 함께 적용한다.
+  const entryKey = `${initialLateOnly}:${initialTab ?? ''}:${initialTodayFilter ?? ''}:${initialEntryId ?? ''}`;
+  const [handledEntryKey, setHandledEntryKey] = useState(entryKey);
+  if (entryKey !== handledEntryKey) {
+    setHandledEntryKey(entryKey);
+    if (initialLateOnly || initialTab) {
+      setNow(new Date());
       setSelectedDateOverride(null);
-      setSelectedTabOverride('attendance-check');
-      setTodayFilter(undefined);
-      setLateOnly(true);
+      setSelectedTabOverride(initialTab ?? 'attendance-check');
+      setTodayFilter(initialTodayFilter);
+      setLateOnly(initialLateOnly);
     }
   }
 
