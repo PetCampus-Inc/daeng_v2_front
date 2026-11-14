@@ -41,10 +41,12 @@ const useOwnerHomePage = () => {
   const handleLatePetsClick = () => navigateToOwnerDaily({ tab: 'attendance-check', lateOnly: true });
   const handleNoticebookStatusClick = () =>
     navigateToOwnerDaily({ tab: 'attendance-list', todayFilter: 'UNSENT_RECORD' });
+  const navigateToOwnerMembers = (query: Query) =>
+    push({ pathname: route.owner.members.root, query: { ...query, homeEntry: String(Date.now()) } });
   const handleConnectionClick = () =>
-    push({ pathname: route.owner.members.root, query: { [OWNER_MEMBERS_TAB_QUERY_KEY]: OWNER_MEMBERS_TAB.pending } });
+    navigateToOwnerMembers({ [OWNER_MEMBERS_TAB_QUERY_KEY]: OWNER_MEMBERS_TAB.pending });
   const handleTicketsClick = () =>
-    push({ pathname: route.owner.members.root, query: { tab: OWNER_MEMBERS_TAB.registered, filter: 'expiring' } });
+    navigateToOwnerMembers({ tab: OWNER_MEMBERS_TAB.registered, filter: 'expiring' });
   const handleNewsClick = () => push({ pathname: route.owner.news.root });
 
   const handleRefresh = useCallback(async () => {

@@ -46,6 +46,22 @@ function useOwnerMembersPage() {
   const { isOwner, isResolved } = useOwnerRole();
   /** 서버에 보내는 검색어. 입력 중인 글자가 덜 만들어졌을 땐 바뀌지 않는다 */
   const [keyword, setKeyword] = useState('');
+
+  // 같은 탭이 열린 상태에서도 홈·알림에서 전달한 새 진입 조건을 적용한다.
+  const entryTab = searchParams.get(OWNER_MEMBERS_TAB_QUERY_KEY);
+  const entryFilter = searchParams.get('filter');
+  const entryKey = JSON.stringify([entryTab, entryFilter, searchParams.get('homeEntry')]);
+  const [handledEntryKey, setHandledEntryKey] = useState(entryKey);
+  if (entryKey !== handledEntryKey) {
+    setHandledEntryKey(entryKey);
+    if (entryTab !== null || entryFilter !== null) {
+      setSelectedTab(resolveInitialTab(entryTab));
+      setSelectedFilter(resolveInitialFilter(entryFilter));
+      setSearchQuery('');
+      setKeyword('');
+    }
+  }
+
   const ownerMembersQuery = useOwnerMembersQuery({
     userId,
     keyword,
