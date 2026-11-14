@@ -47,7 +47,7 @@ function MemberTicketListPage() {
   };
 
   return (
-    <div className='bg-bg-50 flex h-full flex-col'>
+    <div className='bg-bg-50 flex h-full min-h-0 flex-1 flex-col overflow-hidden'>
       <Header>
         <Header.LeftSection>
           <Header.BackButton />
@@ -91,24 +91,26 @@ function MemberTicketListPage() {
               <div className='bg-line-100 h-px w-full' />
             </div>
           ) : null}
-          <div className='flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 py-4'>
-            {visibleTickets.length === 0 ? (
-              <p className='body1-bold text-text-primary py-10 text-center'>{content.emptyFilter(filterLabel)}</p>
-            ) : null}
-            {visibleTickets.map((ticket) => (
-              <TicketSummaryCard
-                key={ticket.id}
-                title={ticket.name}
-                status={ticket.status}
-                remainingCount={ticket.remainingCount}
-                totalCount={ticket.totalCount}
-                period={ticket.period}
-                remainingDays={ticket.remainingDays ?? undefined}
-                highlightRemaining={false}
-                className='cursor-pointer'
-                onClick={() => handleOpenDetail(ticket.id)}
-              />
-            ))}
+          <div className='min-h-0 flex-1 overflow-y-auto px-4 py-4'>
+            <div className='flex flex-col gap-4'>
+              {visibleTickets.length === 0 ? (
+                <p className='body1-bold text-text-primary py-10 text-center'>{content.emptyFilter(filterLabel)}</p>
+              ) : null}
+              {visibleTickets.map((ticket) => (
+                <TicketSummaryCard
+                  key={ticket.id}
+                  title={ticket.name}
+                  status={ticket.status}
+                  remainingCount={ticket.remainingCount}
+                  totalCount={ticket.totalCount}
+                  period={ticket.period}
+                  remainingDays={ticket.remainingDays ?? undefined}
+                  highlightRemaining={false}
+                  className='cursor-pointer'
+                  onClick={() => handleOpenDetail(ticket.id)}
+                />
+              ))}
+            </div>
           </div>
         </>
       )}
