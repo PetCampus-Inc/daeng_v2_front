@@ -252,6 +252,15 @@ function groupManageTickets(tickets: ReservationTicket[]): TicketSection[] {
   });
 }
 
+function pickUpcomingReservation<T extends { startsAt: string }>(items: readonly T[], now: Date) {
+  const nowKey = toVisitKey(now);
+  return (
+    items
+      .filter((item) => item.startsAt > nowKey)
+      .sort((left, right) => left.startsAt.localeCompare(right.startsAt))[0] ?? null
+  );
+}
+
 function resolveReservationEmpty(link: KindergartenLink, hasUpcoming: boolean, usableCount: number) {
   if (link === KINDERGARTEN_LINK.none) return RESERVATION_EMPTY.unlinked;
   if (link === KINDERGARTEN_LINK.pending) return RESERVATION_EMPTY.pending;
@@ -282,6 +291,7 @@ export {
   getTicketBadge,
   groupManageTickets,
   listUsableTickets,
+  pickUpcomingReservation,
   resolveReservationEmpty,
   resolveReserveStep,
   toReservationKindergartenLink,

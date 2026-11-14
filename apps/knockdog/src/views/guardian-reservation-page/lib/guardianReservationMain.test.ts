@@ -13,6 +13,7 @@ import {
   groupManageTickets,
   KINDERGARTEN_LINK,
   listUsableTickets,
+  pickUpcomingReservation,
   RESERVATION_EMPTY,
   resolveReservationEmpty,
   resolveReserveStep,
@@ -128,6 +129,26 @@ describe('groupManageTickets', () => {
     expect(sections[0]?.tickets.map((ticket) => ticket.id)).toEqual(['earlier', 'later']);
     expect(sections[1]?.tickets.map((ticket) => ticket.id)).toEqual(['planned', 'held']);
     expect(groupManageTickets([]).map((section) => section.id)).toEqual([]);
+  });
+});
+
+describe('pickUpcomingReservation', () => {
+  const now = new Date(2026, 10, 14, 17, 30);
+
+  it('등원 시각이 지난 예약은 처리 상태와 상관없이 빼고 다음 예약을 고른다', () => {
+    const next = pickUpcomingReservation(
+      [
+        { id: 'past', startsAt: '2026-11-14T17:30', status: 'confirmed' },
+        { id: 'later', startsAt: '2026-11-15T09:00', status: 'attended' },
+        { id: 'sooner', startsAt: '2026-11-14T18:00', status: 'absent' },
+      ],
+      now
+    );
+
+    expect(next?.id).toBe('sooner');
+    expect(
+      pickUpcomingReservation([{ id: 'past', startsAt: '2026-11-14T17:30', status: 'confirmed' }], now)
+    ).toBeNull();
   });
 });
 

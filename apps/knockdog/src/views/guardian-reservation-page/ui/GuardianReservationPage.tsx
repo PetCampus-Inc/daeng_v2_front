@@ -11,6 +11,7 @@ import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/
 import {
   KINDERGARTEN_LINK,
   formatReservationWhen,
+  pickUpcomingReservation,
   resolveReservationEmpty,
   toReservationKindergartenLink,
   type ReservationKindergarten,
@@ -158,7 +159,7 @@ function GuardianReservationPage() {
   const homeQuery = useGuardianHomeQuery({ userId, petId, enabled: Boolean(petId) });
   const upcomingQuery = useGuardianReservationQuery(petId, RESERVATION_SCOPE.upcoming);
   const ticketQuery = useGuardianTicketCardQuery(petId);
-  const upcoming = upcomingQuery.data?.[0];
+  const upcoming = pickUpcomingReservation(upcomingQuery.data ?? [], new Date());
   const tickets = ticketQuery.data?.tickets ?? [];
   const link = ticketQuery.data ? toReservationKindergartenLink(ticketQuery.data.connection) : null;
   const isTicketLoading = Boolean(petId) && ticketQuery.isPending;
