@@ -7,7 +7,7 @@ import { TrashV4 } from '@knockdog/icons';
 import { Divider, ExpirationDateRow, TicketLifecycleBadge } from '@knockdog/ui';
 
 import { memberTicketDetailContent } from '@views/owner/member-ticket-detail/config/memberTicketDetailContent';
-import { toTicketDetail } from '@views/owner/member-ticket-detail/model/memberTicketDetail';
+import { isHoldButtonDisabled, toTicketDetail } from '@views/owner/member-ticket-detail/model/memberTicketDetail';
 import { toExpiryApiDate } from '@views/owner/member-ticket-detail/model/memberTicketExpiry';
 
 import { TicketConfirmDialog } from '@views/owner/member-ticket-detail/ui/TicketConfirmDialog';
@@ -71,7 +71,7 @@ function MemberTicketDetailPage() {
   const [isDeleted, setIsDeleted] = useState(false);
   const isCancelAction = detail?.holdAction === 'cancel';
   const isHoldPending = holdTicket.isPending || cancelHold.isPending;
-  const isHoldDisabled = isHoldPending || detail?.holdAction === 'disabled';
+  const isHoldDisabled = isHoldPending || (detail != null && isHoldButtonDisabled(detail));
   const endLabel = detail?.endsOn ?? content.noExpiry;
   const isRemainingAccent = detail?.status === 'active' || detail?.status === 'onHold';
 
@@ -152,7 +152,7 @@ function MemberTicketDetailPage() {
   };
 
   return (
-    <div className='bg-bg-100 flex h-full flex-col'>
+    <div className='bg-bg-0 flex h-full flex-col'>
       <Header>
         <Header.LeftSection>
           <Header.BackButton />
@@ -181,7 +181,7 @@ function MemberTicketDetailPage() {
           <DelayedLoadingSpinner isLoading layout='content' className='py-10' />
         )
       ) : (
-      <div className='flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pb-[calc(var(--bottom-bar-height)+40px)] webview:pb-[calc(var(--safe-area-inset-bottom,0px)+32px)]'>
+      <div className='flex min-h-0 flex-1 flex-col overflow-y-auto pb-[calc(var(--bottom-bar-height)+40px)] webview:pb-[calc(var(--safe-area-inset-bottom,0px)+32px)]'>
         <section className='bg-bg-0 flex flex-col gap-4 px-4 py-5'>
           <div className='px-1'>
             <TicketLifecycleBadge status={detail.status} />
@@ -205,14 +205,15 @@ function MemberTicketDetailPage() {
             <div className='bg-line-100 h-px w-full' />
             <DetailFact label={content.chargedOn} value={detail.chargedOn} />
             <div className='bg-line-100 h-px w-full' />
-            {detail.endsOn ? (
+            {detail.endsOn && detail.status !== 'expired' ? (
               <ExpirationDateRow date={detail.endsOn} onClick={() => setIsExpiryOpen(true)} />
             ) : (
-              <DetailFact label={content.expiresOn} value={content.noExpiry} />
+              <DetailFact label={content.expiresOn} value={detail.endsOn ?? content.noExpiry} />
             )}
           </div>
         </section>
 
+        <div className='bg-bg-100 h-3 shrink-0' />
         <section className='bg-bg-0 flex flex-col gap-5 px-4 py-5'>
           <div className='flex flex-col gap-3 px-1'>
             <h2 className='h3-extrabold text-text-primary'>{content.manageTitle}</h2>
@@ -221,33 +222,47 @@ function MemberTicketDetailPage() {
           <button
             type='button'
             disabled={isHoldDisabled}
-            className={`body1-bold border-line-200 bg-bg-0 radius-r3 flex w-full items-center justify-center border border-solid p-x4 ${isCancelAction || isHoldDisabled ? 'text-text-tertiary' : 'text-fill-secondary-500'}`}
-            onClick={() => (isCancelAction ? setIsCancelOpen(true) : setIsHoldOpen(true))}
+            className={`body1-bold bg-bg-0 radius-r3 flex w-full items-center justify-center border border-solid p-x4 ${
+              isHoldDisabled
+                ? 'border-line-400 text-text-secondary-inverse cursor-not-allowed'
+                : isCancelAction
+                  ? 'border-line-200 text-text-tertiary'
+                  : 'border-line-200 text-fill-secondary-500'
+            }`}
+            onClick={() => {
+              if (isHoldDisabled) return;
+              if (isCancelAction) setIsCancelOpen(true);
+              else setIsHoldOpen(true);
+            }}
           >
             {isCancelAction ? content.cancelHold : content.hold}
           </button>
         </section>
 
         {isHistoryLoading || isHistoryError || history.length > 0 ? (
-          <section className='bg-bg-0 flex flex-col gap-3 px-4 py-5'>
-            <h2 className='h3-extrabold text-text-primary px-1'>{content.historyTitle}</h2>
-            {isHistoryLoading ? (
-              <DelayedLoadingSpinner isLoading layout='content' className='py-6' />
-            ) : isHistoryError ? (
-              <p className='body2-regular text-text-secondary px-1'>{content.historyErrorText}</p>
-            ) : (
-              <div className='px-2'>
-                {history.map((line, index) => (
-                  <div key={line.id}>
-                    {index === 0 ? <Divider /> : null}
-                    <HistoryLine line={line} />
-                    {index < history.length - 1 ? <Divider /> : null}
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        ) : null}
+          <>
+            <div className='bg-bg-100 h-3 shrink-0' />
+            <section className='bg-bg-0 flex flex-1 flex-col gap-3 px-4 py-5'>
+              <h2 className='h3-extrabold text-text-primary px-1'>{content.historyTitle}</h2>
+              {isHistoryLoading ? (
+                <DelayedLoadingSpinner isLoading layout='content' className='py-6' />
+              ) : isHistoryError ? (
+                <p className='body2-regular text-text-secondary px-1'>{content.historyErrorText}</p>
+              ) : (
+                <div className='px-2'>
+                  {history.map((line, index) => (
+                    <div key={line.id}>
+                      <HistoryLine line={line} />
+                      {index < history.length - 1 ? <Divider /> : null}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          </>
+        ) : (
+          <div className='bg-bg-0 flex-1' />
+        )}
       </div>
       )}
       <TicketHoldSheet isOpen={isHoldOpen} onOpenChange={setIsHoldOpen} onConfirm={handleConfirmHold} />

@@ -33,7 +33,7 @@ function TicketSummaryCard({
   return (
     <article
       className={cn(
-        'radius-r4 flex w-full flex-col gap-x1_5 overflow-hidden py-x4 pr-x3 pl-x4',
+        'radius-r4 flex w-full shrink-0 flex-col gap-x1_5 overflow-hidden py-x4 pr-x3 pl-x4',
         isExpired ? 'bg-bg-100' : 'bg-bg-0',
         className
       )}

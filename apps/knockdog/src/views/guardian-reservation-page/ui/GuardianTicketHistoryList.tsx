@@ -10,7 +10,7 @@ function GuardianTicketHistoryList({ entries }: { entries: TicketHistory[] }) {
   const groups = groupTicketHistory(entries);
 
   return (
-    <section className='bg-bg-0 px-x5 pb-x6 flex flex-col'>
+    <section className='bg-bg-0 px-x5 pb-x6 flex flex-1 flex-col'>
       <p className='body2-bold text-text-caption flex h-x8 items-center pt-x2 pb-x1'>{`${entries.length}개의 내역`}</p>
       {groups.map((group) => (
         <div key={group.dateKey} className='border-line-100 pt-x5 pb-x2 flex flex-col border-t'>

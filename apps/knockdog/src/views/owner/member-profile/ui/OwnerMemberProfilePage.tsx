@@ -84,7 +84,7 @@ function OwnerMemberProfilePage() {
 
           <div className='min-h-0 flex-1 overflow-y-auto'>
             <TabsContent value={TAB.USAGE}>
-              <div className='flex flex-col gap-5'>
+              <div className='flex flex-col gap-5 py-5'>
                 <OwnerMemberTicketSection petId={petId} />
                 <DogBasicInfoSection dog={dog} />
                 <OwnerMemberConnectionHistorySection petId={petId} />

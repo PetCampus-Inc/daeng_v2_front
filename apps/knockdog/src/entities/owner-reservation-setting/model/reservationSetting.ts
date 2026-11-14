@@ -31,23 +31,58 @@ interface ReservationSetting {
   closedLine: string | null;
 }
 
-const CLOSED_DAY_ORDER = ['월', '화', '수', '목', '금', '토', '일'] as const;
+const CLOSED_DAY_RANK = [
+  'MONDAY',
+  'TUESDAY',
+  'WEDNESDAY',
+  'THURSDAY',
+  'FRIDAY',
+  'SATURDAY',
+  'SUNDAY',
+  'WEEKEND',
+  'HOLIDAY',
+] as const;
 
-const CLOSED_DAY_LABEL: Record<string, string> = {
-  월: '월요일',
-  화: '화요일',
-  수: '수요일',
-  목: '목요일',
-  금: '금요일',
-  토: '토요일',
-  일: '일요일',
-  월요일: '월요일',
-  화요일: '화요일',
-  수요일: '수요일',
-  목요일: '목요일',
-  금요일: '금요일',
-  토요일: '토요일',
-  일요일: '일요일',
+type ClosedDayRank = (typeof CLOSED_DAY_RANK)[number];
+
+const CLOSED_DAY_LABEL: Record<ClosedDayRank, string> = {
+  MONDAY: '월요일',
+  TUESDAY: '화요일',
+  WEDNESDAY: '수요일',
+  THURSDAY: '목요일',
+  FRIDAY: '금요일',
+  SATURDAY: '토요일',
+  SUNDAY: '일요일',
+  WEEKEND: '주말',
+  HOLIDAY: '공휴일',
+};
+
+const CLOSED_DAY_KEY: Record<string, ClosedDayRank> = {
+  MONDAY: 'MONDAY',
+  TUESDAY: 'TUESDAY',
+  WEDNESDAY: 'WEDNESDAY',
+  THURSDAY: 'THURSDAY',
+  FRIDAY: 'FRIDAY',
+  SATURDAY: 'SATURDAY',
+  SUNDAY: 'SUNDAY',
+  WEEKEND: 'WEEKEND',
+  HOLIDAY: 'HOLIDAY',
+  월: 'MONDAY',
+  화: 'TUESDAY',
+  수: 'WEDNESDAY',
+  목: 'THURSDAY',
+  금: 'FRIDAY',
+  토: 'SATURDAY',
+  일: 'SUNDAY',
+  월요일: 'MONDAY',
+  화요일: 'TUESDAY',
+  수요일: 'WEDNESDAY',
+  목요일: 'THURSDAY',
+  금요일: 'FRIDAY',
+  토요일: 'SATURDAY',
+  일요일: 'SUNDAY',
+  주말: 'WEEKEND',
+  공휴일: 'HOLIDAY',
 };
 
 const normalizeClock = (value: string | null) => {
@@ -73,16 +108,13 @@ const formatHoursLine = (operatingInfo: ReservationSettingDto['operatingInfo']) 
 };
 
 const formatClosedLine = (closedDays: string[]) => {
-  const labels = [...closedDays]
-    .map((day) => ({ day, label: CLOSED_DAY_LABEL[day] }))
-    .filter((day): day is { day: string; label: string } => Boolean(day.label))
-    .sort((left, right) => {
-      const leftRank = CLOSED_DAY_ORDER.indexOf(left.day[0] as (typeof CLOSED_DAY_ORDER)[number]);
-      const rightRank = CLOSED_DAY_ORDER.indexOf(right.day[0] as (typeof CLOSED_DAY_ORDER)[number]);
-      return leftRank - rightRank;
-    })
-    .map((day) => day.label);
+  const ranks = new Set<ClosedDayRank>();
+  for (const day of closedDays) {
+    const rank = CLOSED_DAY_KEY[day];
+    if (rank) ranks.add(rank);
+  }
 
+  const labels = CLOSED_DAY_RANK.filter((rank) => ranks.has(rank)).map((rank) => CLOSED_DAY_LABEL[rank]);
   return labels.length > 0 ? `${labels.join(', ')} 휴무` : null;
 };
 

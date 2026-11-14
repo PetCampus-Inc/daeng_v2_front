@@ -23,9 +23,9 @@ function timeOrderError(start: string | null, end: string | null) {
   return TIME_ORDER_ERROR;
 }
 
-/** 시작과 끝은 둘 다 있거나 둘 다 없어야 한다. */
-function isTimePairComplete(start: string | null, end: string | null) {
-  return Boolean(start) === Boolean(end);
+/** 평일·주말 등원 가능 시간은 시작과 끝이 모두 필수다. */
+function hasRequiredAdmissionTimes(values: ReservationSettingValues) {
+  return Boolean(values.weekdayStart && values.weekdayEnd && values.weekendStart && values.weekendEnd);
 }
 
 function capacityLimitError(value: string, peak: number | null) {
@@ -77,11 +77,7 @@ function canSaveReservationSetting(
       timeOrderError(values.weekendStart, values.weekendEnd) ||
       capacityLimitError(values.dailyCapacity, peak)
   );
-  const hasIncompleteTimePair =
-    !isTimePairComplete(values.weekdayStart, values.weekdayEnd) ||
-    !isTimePairComplete(values.weekendStart, values.weekendEnd);
-
-  return isDirty && !hasFieldError && !hasIncompleteTimePair;
+  return isDirty && !hasFieldError && hasRequiredAdmissionTimes(values);
 }
 
 /** 확인한 칸만 바꾼다. 반대편 시간은 그대로 둔다. */

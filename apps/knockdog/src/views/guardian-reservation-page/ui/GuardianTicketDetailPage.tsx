@@ -156,7 +156,7 @@ function GuardianTicketDetailPage() {
       : null;
 
   return (
-    <div className='bg-bg-50 flex h-full min-h-0 flex-1 flex-col overflow-hidden'>
+    <div className='bg-bg-0 flex h-full min-h-0 flex-1 flex-col overflow-hidden'>
       <DetailHeader onBack={handleBack} />
 
       <div className='webview:pb-x5 flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain pb-[calc(var(--bottom-bar-height)+20px)]'>
@@ -193,7 +193,7 @@ function GuardianTicketDetailPage() {
             </div>
           )}
         </section>
-        <div className='h-x2 shrink-0' />
+        <div className='bg-bg-50 h-x2 shrink-0' />
         <GuardianTicketHistoryList entries={history} />
       </div>
 
