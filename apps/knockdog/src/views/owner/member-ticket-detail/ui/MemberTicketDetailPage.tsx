@@ -205,10 +205,10 @@ function MemberTicketDetailPage() {
             <div className='bg-line-100 h-px w-full' />
             <DetailFact label={content.chargedOn} value={detail.chargedOn} />
             <div className='bg-line-100 h-px w-full' />
-            {detail.endsOn ? (
+            {detail.endsOn && detail.status !== 'expired' ? (
               <ExpirationDateRow date={detail.endsOn} onClick={() => setIsExpiryOpen(true)} />
             ) : (
-              <DetailFact label={content.expiresOn} value={content.noExpiry} />
+              <DetailFact label={content.expiresOn} value={detail.endsOn ?? content.noExpiry} />
             )}
           </div>
         </section>
