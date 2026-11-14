@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 
 import { ChevronRight, Notification, RsvHistory } from '@knockdog/icons';
@@ -156,17 +156,27 @@ function GuardianReservationPage() {
   const userId = useUserStore((state) => state.user?.userId);
   const { pets, selectedPet, setSelectedPetId, isPetsReady, isPetsError, hasNoPet } = useGuardianSelectedPet();
   const [isChevronOpen, setIsChevronOpen] = useState(false);
+  const [now, setNow] = useState(() => new Date());
   const petId = selectedPet?.id ?? '';
   const homeQuery = useGuardianHomeQuery({ userId, petId, enabled: Boolean(petId) });
   const upcomingQuery = useGuardianReservationQuery(petId, RESERVATION_SCOPE.upcoming);
   const ticketQuery = useGuardianTicketCardQuery(petId);
-  const upcoming = pickUpcomingReservation(upcomingQuery.data ?? [], new Date());
+  const upcoming = pickUpcomingReservation(upcomingQuery.data ?? [], now);
   const tickets = ticketQuery.data?.tickets ?? [];
   const link = ticketQuery.data ? toReservationKindergartenLink(ticketQuery.data.connection) : null;
   const isTicketLoading = Boolean(petId) && ticketQuery.isPending;
   const isUpcomingLoading = link === KINDERGARTEN_LINK.connected && upcomingQuery.isLoading;
+  const isUpcomingFailed = link === KINDERGARTEN_LINK.connected && upcomingQuery.isError;
   const emptyKind =
-    link == null || isUpcomingLoading ? null : resolveReservationEmpty(link, Boolean(upcoming), tickets.length);
+    link == null || isUpcomingLoading || isUpcomingFailed
+      ? null
+      : resolveReservationEmpty(link, Boolean(upcoming), tickets.length);
+
+  useEffect(() => {
+    const timerId = window.setInterval(() => setNow(new Date()), 60_000);
+    return () => window.clearInterval(timerId);
+  }, []);
+
   const homeSchool = homeQuery.data?.school;
   const ticketSchool = ticketQuery.data?.school;
   const kindergarten = toReservationKindergarten(
