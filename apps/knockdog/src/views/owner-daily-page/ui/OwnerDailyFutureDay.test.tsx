@@ -126,20 +126,20 @@ describe('미래 날짜 일과', () => {
     expect(screen.queryByRole('group', { name: '필터' })).toBeNull();
   });
 
-  test('미래 날짜 배너에도 하루 정원 유무와 무관하게 전체 등록 원생 수를 보여 준다', async () => {
+  test('미래 날짜 배너의 분모는 하루 정원이고, 정원이 없으면 분모를 보여 주지 않는다', async () => {
     seedFutureDay();
     fakeAttendanceServer.setSettings({ dailyCapacity: 5, totalMemberCount: 10 });
     await openFutureDay();
     await findCard('콩이');
 
-    expect(screen.getByRole('region', { name: '등원 현황' }).textContent).toContain('2 / 10 ');
+    expect(screen.getByRole('region', { name: '등원 현황' }).textContent).toContain('2 / 5 ');
 
     cleanup();
     fakeAttendanceServer.setSettings({ dailyCapacity: null });
     await openFutureDay();
     await findCard('콩이');
 
-    expect(screen.getByRole('region', { name: '등원 현황' }).textContent).toContain('2 / 10 ');
+    expect(screen.getByRole('region', { name: '등원 현황' }).textContent).not.toContain('/');
   });
 
   test('미래 날짜에서 `등원처리` 탭을 누르면 목록 대신 안내가 보인다', async () => {

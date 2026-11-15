@@ -274,22 +274,22 @@ describe('등원 현황 배너와 집계', () => {
     vi.useRealTimers();
   });
 
-  test('배너의 분모는 하루 정원이 아닌 전체 등록 원생 수다', async () => {
+  test('배너의 분모는 전체 등록 원생 수가 아닌 하루 정원이다', async () => {
     fakeAttendanceServer.setSettings({ dailyCapacity: 5, totalMemberCount: 12 });
     renderOwnerDaily(<OwnerDailyPage />);
 
     const banner = await screen.findByRole('region', { name: '등원 현황' });
 
-    expect(banner.textContent).toContain('4 / 12');
+    expect(banner.textContent).toContain('4 / 5');
   });
 
-  test('하루 정원이 없어도 전체 등록 원생 수를 분모로 보여 준다', async () => {
+  test('하루 정원이 없으면 분모를 보여 주지 않는다', async () => {
     fakeAttendanceServer.setSettings({ dailyCapacity: null, totalMemberCount: 12 });
     renderOwnerDaily(<OwnerDailyPage />);
 
     const banner = await screen.findByRole('region', { name: '등원 현황' });
 
-    expect(banner.textContent).toContain('4 / 12');
+    expect(banner.textContent).not.toContain('/');
   });
 
   test('집계에 등원 완료·결석 확정·하원 완료 수치가 보인다', async () => {
