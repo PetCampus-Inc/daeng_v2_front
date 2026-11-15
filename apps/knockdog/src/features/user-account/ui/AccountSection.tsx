@@ -153,11 +153,11 @@ function AccountSection({
   if (!accountInfo) return null;
 
   const guardianMenuItems = [
-    { label: '보호자 프로필', icon: 'User' as const, caption: '보호자의 프로필 정보를 설정할 수 있어요.', onClick: onProfileClick },
+    { label: '보호자 프로필', icon: 'UserLine' as const, caption: '보호자의 프로필 정보를 설정할 수 있어요.', onClick: onProfileClick },
     { label: '내 장소 관리', icon: 'LocationLine' as const, caption: '집 외 1개의 주소를 등록하고 관리할 수 있어요.', onClick: onLocationClick },
-    { label: '유치원 연결 내역', icon: 'Kindergarten' as const, caption: '유치원 연결 내역을 보고 관리할 수 있어요.', onClick: onConnectionHistoryClick },
+    { label: '유치원 연결 내역', icon: 'KindergartenLine' as const, caption: '유치원 연결 내역을 보고 관리할 수 있어요.', onClick: onConnectionHistoryClick },
     { label: '연결 신청 현황', icon: 'Note' as const, caption: '보낸 연결 신청의 처리 상태를 확인할 수 있어요.', onClick: onConnectionApplicationsClick },
-    { label: '내 리뷰 관리', icon: 'Note' as const, caption: '작성한 유치원 리뷰를 보고 관리할 수 있어요.', onClick: onMyReviewsClick },
+    { label: '내 리뷰 관리', icon: 'ReviewLine' as const, caption: '작성한 유치원 리뷰를 보고 관리할 수 있어요.', onClick: onMyReviewsClick },
   ];
 
   const guardianSocialProvider = socialProvider ?? socialUser?.provider;
