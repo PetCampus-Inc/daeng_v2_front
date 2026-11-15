@@ -1,6 +1,7 @@
 'use client';
 
 import { overlay } from 'overlay-kit';
+import { AlarmBellDot } from '@knockdog/icons';
 import { Icon } from '@knockdog/ui';
 
 import { guardianKindergartenApprovedContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenApprovedContent';
@@ -150,7 +151,7 @@ function GuardianKindergartenHeader({
           className='bg-bg-0 shrink-0 rounded-full p-1.5'
         >
           {hasUnreadAlarm ? (
-            <Icon icon='AlarmLineActive' className='text-text-primary size-6' aria-hidden='true' />
+            <AlarmBellDot aria-hidden='true' />
           ) : (
             <Icon icon='AlarmNone' className='text-text-primary size-6' aria-hidden='true' />
           )}
