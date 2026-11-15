@@ -16,9 +16,7 @@ import { toast } from '@shared/ui/toast';
 
 import {
   DIARY_PHOTO_LIMIT,
-  dismissDiaryImport,
   formatDiaryNoticeDate,
-  hasDismissedDiaryImport,
   hasMockArrivedNotice,
   isDiaryImportVisible,
   isDiaryOpenedFromNotice,
@@ -57,10 +55,6 @@ function GuardianDiaryWritePage() {
   const hasNotice = dateStatus ? Boolean(dateStatus.attendance) : hasMockArrivedNotice(date) || Boolean(dailyNotice);
 
   useEffect(() => {
-    setIsImportDismissed(hasDismissedDiaryImport());
-  }, []);
-
-  useEffect(() => {
     if (!opensWithNotice || hasClearedNoticeRef.current) return;
     setIsImported(true);
   }, [opensWithNotice]);
@@ -83,7 +77,6 @@ function GuardianDiaryWritePage() {
   }
 
   function handleDismissImport() {
-    dismissDiaryImport();
     setIsImportDismissed(true);
   }
 

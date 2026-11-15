@@ -7,7 +7,6 @@ const DIARY_TEXT_LIMIT = 300;
 const DIARY_PROMPT_INTERVAL_MS = 3000;
 const DIARY_TEXT_PLACEHOLDER =
   '공원에서 신나게 낙엽을 밟았다. 길에서 고구마 냄새를 맡고 흥분한 모습이 귀여웠다.';
-const DIARY_IMPORT_BANNER_KEY = 'diary-import-banner-hidden';
 const DIARY_WEEKDAY = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'] as const;
 
 interface DiaryWritePhoto {
@@ -116,18 +115,7 @@ function formatDiaryNoticeDate(date: Date) {
   return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일 ${DIARY_WEEKDAY[date.getDay()]}`;
 }
 
-function hasDismissedDiaryImport() {
-  if (typeof window === 'undefined') return false;
-  return window.localStorage.getItem(DIARY_IMPORT_BANNER_KEY) === 'dismissed';
-}
-
-function dismissDiaryImport() {
-  if (typeof window === 'undefined') return;
-  window.localStorage.setItem(DIARY_IMPORT_BANNER_KEY, 'dismissed');
-}
-
 export {
-  DIARY_IMPORT_BANNER_KEY,
   DIARY_PHOTO_LIMIT,
   DIARY_PROMPT_INTERVAL_MS,
   DIARY_TEXT_LIMIT,
@@ -136,12 +124,10 @@ export {
   canSubmitDiary,
   isDiaryImportVisible,
   isDiaryOpenedFromNotice,
-  dismissDiaryImport,
   formatDiaryNoticeDate,
   formatDiaryObject,
   formatDiaryTopic,
   getDiaryImportSheetCopy,
-  hasDismissedDiaryImport,
   hasMockArrivedNotice,
   parseDiaryDate,
 };
