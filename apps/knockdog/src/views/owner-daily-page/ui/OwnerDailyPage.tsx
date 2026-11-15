@@ -69,10 +69,6 @@ const OwnerDailyPage = () => {
   });
   const searchParams = useSearchParams();
   const fromHome = searchParams.get('from') === 'home';
-  // 지각 알림으로 열면 `등원처리` 탭이 지각 토글을 켠 채로 시작한다.
-  const initialLateOnly = searchParams.get('lateOnly') === 'true';
-  const initialTab = searchParams.get('tab') === 'attendance-list' ? 'attendance-list' : undefined;
-  const initialTodayFilter = searchParams.get('todayFilter') === 'UNSENT_RECORD' ? 'UNSENT_RECORD' : undefined;
   const {
     now,
     today,
@@ -103,12 +99,7 @@ const OwnerDailyPage = () => {
     handleNextDayClick,
     handleTodayClick,
     handleTabChange,
-  } = useOwnerDailyPage({
-    initialLateOnly,
-    initialTab,
-    initialTodayFilter,
-    initialEntryId: searchParams.get('homeEntry') ?? undefined,
-  });
+  } = useOwnerDailyPage();
   const {
     pendingPetIds,
     handleCheckIn,
