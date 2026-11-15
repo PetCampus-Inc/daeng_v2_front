@@ -2,6 +2,8 @@ import { ChevronRight, Paw } from '@knockdog/icons';
 
 import { cn } from '@knockdog/ui/lib';
 
+import { formatDiaryDogPossessive } from '../diary-note-banner/DiaryNoteBanner';
+
 const DIARY_CALENDAR_BANNER_STATE = {
   today: 'today',
   past: 'past',
@@ -23,8 +25,8 @@ function DiaryCalendarBanner({ state = 'today', dogName = '강아지 이름', cl
   const label = isDisabled
     ? '일기 3번을 모두 썼어요. 내일 다시 만나요!'
     : state === 'past'
-      ? `이 날 ${dogName}의 일기를 써볼까요?`
-      : `오늘 ${dogName}의 일기를 써볼까요?`;
+      ? `이 날 ${formatDiaryDogPossessive(dogName)} 일기를 써볼까요?`
+      : `오늘 ${formatDiaryDogPossessive(dogName)} 일기를 써볼까요?`;
 
   const content = (
     <>

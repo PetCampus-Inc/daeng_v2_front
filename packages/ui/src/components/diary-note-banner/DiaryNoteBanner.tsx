@@ -8,13 +8,22 @@ interface DiaryNoteBannerProps {
   onClick?: () => void;
 }
 
-function formatDiaryDogSubject(dogName: string) {
+function hasBatchim(dogName: string) {
   const lastChar = dogName.at(-1);
-  if (!lastChar) return dogName;
+  if (!lastChar) return false;
 
   const code = lastChar.charCodeAt(0);
-  const hasBatchim = code >= 0xac00 && code <= 0xd7a3 && (code - 0xac00) % 28 !== 0;
-  return `${dogName}${hasBatchim ? '이' : '가'}`;
+  return code >= 0xac00 && code <= 0xd7a3 && (code - 0xac00) % 28 !== 0;
+}
+
+function formatDiaryDogSubject(dogName: string) {
+  if (!dogName) return dogName;
+  return `${dogName}${hasBatchim(dogName) ? '이가' : '가'}`;
+}
+
+function formatDiaryDogPossessive(dogName: string) {
+  if (!dogName) return dogName;
+  return `${dogName}${hasBatchim(dogName) ? '이의' : '의'}`;
 }
 
 /** V4 / Dog Diary / Kindergarten Note Banner */
@@ -35,5 +44,5 @@ function DiaryNoteBanner({ dogName = '콩이', className, onClick }: DiaryNoteBa
   );
 }
 
-export { DiaryNoteBanner, formatDiaryDogSubject };
+export { DiaryNoteBanner, formatDiaryDogPossessive, formatDiaryDogSubject };
 export type { DiaryNoteBannerProps };
