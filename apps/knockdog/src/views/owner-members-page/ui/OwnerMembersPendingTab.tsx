@@ -66,28 +66,28 @@ function ApprovalActions({ member, disabled, onApprove, onReject }: ApprovalActi
   );
 }
 
+/** 신청 목록이 비었을 때 일러스트·제목·본문을 탭과 하단 바 사이 영역의 상하 중앙에 보여준다 */
 function ApprovalEmptyState({ isSearchResult }: { isSearchResult: boolean }) {
   const content = isSearchResult ? ownerMembersEmptyContent.emptySearchResult : approvalEmptyContent;
 
   return (
-    <div className='relative flex min-h-full w-full items-center justify-center'>
-      <div className='px-x4 flex w-full flex-col items-center gap-y-1 text-center'>
-        <p className='h2-extrabold text-text-primary'>{content.title}</p>
-        <p className='body1-regular text-text-secondary'>{content.description}</p>
-      </div>
+    <div className='flex min-h-full w-full items-center justify-center pb-(--bottom-bar-height)'>
       <div
-        className={cn(
-          'absolute',
-          isSearchResult ? 'top-[calc(50%-208px)] h-[160px] w-[180px]' : 'top-[calc(50%-236px)] h-[200px] w-[237px]'
-        )}
+        className={cn('px-x4 flex w-full flex-col items-center text-center', isSearchResult ? 'gap-y-5' : 'gap-y-2')}
       >
-        <Image
-          src={content.imageSrc}
-          alt={content.imageAlt}
-          fill
-          className='object-contain'
-          sizes={isSearchResult ? '180px' : '237px'}
-        />
+        <div className={cn('relative', isSearchResult ? 'h-[160px] w-[180px]' : 'h-[200px] w-[237px]')}>
+          <Image
+            src={content.imageSrc}
+            alt={content.imageAlt}
+            fill
+            className='object-contain'
+            sizes={isSearchResult ? '180px' : '237px'}
+          />
+        </div>
+        <div className='flex flex-col items-center gap-y-1'>
+          <p className='h2-extrabold text-text-primary'>{content.title}</p>
+          <p className='body1-regular text-text-secondary'>{content.description}</p>
+        </div>
       </div>
     </div>
   );
