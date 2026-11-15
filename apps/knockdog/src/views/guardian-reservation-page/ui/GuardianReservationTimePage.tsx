@@ -14,6 +14,7 @@ import {
   formatReserveDay,
   formatSelectedPass,
   isOwnerHoursUnset,
+  listBlockedReserveDates,
 } from '@views/guardian-reservation-page/lib/guardianReservationSchedule';
 import { GuardianReservationHoursPage } from '@views/guardian-reservation-page/ui/GuardianReservationHoursPage';
 import {
@@ -122,20 +123,24 @@ function GuardianReservationTimePage() {
   const homeQuery = useGuardianHomeQuery({ userId, petId, enabled: Boolean(petId) });
   const calendarQuery = useReservationCalendarQuery(petId, monthKey(month), selectedTicketId);
   const calendar = calendarQuery.data;
-  const selectedDateKey = selectedDate ? toDateKey(selectedDate) : '';
-  const slotsQuery = useReservationSlotsQuery(petId, selectedDateKey, selectedTicketId);
-  const slots = slotsQuery.data;
   const ticketQuery = useGuardianTicketCardQuery(petId);
   const ticket = ticketQuery.data?.tickets.find((item) => item.id === selectedTicketId);
+  const disabledDates =
+    calendar?.isReservable === true
+      ? listBlockedReserveDates(month, today, ticket?.endsOn ?? null, calendar.days)
+      : monthDates(month);
+  const disabledKeys = new Set(disabledDates.map((date) => toDateKey(date)));
+  const activeDate = selectedDate && disabledKeys.has(toDateKey(selectedDate)) ? null : selectedDate;
+  const selectedDateKey = activeDate ? toDateKey(activeDate) : '';
+  const slotsQuery = useReservationSlotsQuery(petId, selectedDateKey, selectedTicketId);
+  const slots = slotsQuery.data;
   const selectedDay = calendar?.days.find((day) => day.date === selectedDateKey) ?? null;
   const isReservedDay = Boolean(selectedDay?.reservationId || slots?.reservationId);
   const selectedSlot = slots?.slots.find((slot) => slot.minutes === selectedMinutes) ?? null;
-  const canContinue = Boolean(selectedDate && selectedSlot?.isAvailable && slots?.isSelectable && !isReservedDay);
-  const disabledDates =
-    calendar?.isReservable === true
-      ? calendar.days.filter((day) => !day.isSelectable).map((day) => dateFromKey(day.date))
-      : monthDates(month);
-  const reservedDates = (calendar?.days ?? []).filter((day) => day.reservationId).map((day) => dateFromKey(day.date));
+  const canContinue = Boolean(activeDate && selectedSlot?.isAvailable && slots?.isSelectable && !isReservedDay);
+  const reservedDates = (calendar?.days ?? [])
+    .filter((day) => day.reservationId && !disabledKeys.has(day.date))
+    .map((day) => dateFromKey(day.date));
   const morning = (slots?.slots ?? []).filter((slot) => slot.minutes < NOON_MINUTES);
   const afternoon = (slots?.slots ?? []).filter((slot) => slot.minutes >= NOON_MINUTES);
 
@@ -150,6 +155,7 @@ function GuardianReservationTimePage() {
   };
 
   const handleSelectDate = (date: Date) => {
+    if (disabledKeys.has(toDateKey(date))) return;
     setSelectedDate(date);
     setSelectedMinutes(null);
     saveReserveDraft({ dogId, ticketId, dateKey: toDateKey(date), minutes: null });
@@ -162,8 +168,8 @@ function GuardianReservationTimePage() {
   };
 
   const handleNext = () => {
-    if (!canContinue || !selectedDate || selectedMinutes == null || !dogId || !ticketId) return;
-    const dateKey = toDateKey(selectedDate);
+    if (!canContinue || !activeDate || selectedMinutes == null || !dogId || !ticketId) return;
+    const dateKey = toDateKey(activeDate);
     saveReserveDraft({ dogId, ticketId, dateKey, minutes: selectedMinutes });
     push({
       pathname: route.reservation.confirm.root,
@@ -230,7 +236,7 @@ function GuardianReservationTimePage() {
           <RsvMonthlyCalendar
             month={month}
             onMonthChange={handleMonthChange}
-            value={selectedDate ?? undefined}
+            value={activeDate ?? undefined}
             onValueChange={handleSelectDate}
             today={today}
             reservedDates={reservedDates}
@@ -241,7 +247,7 @@ function GuardianReservationTimePage() {
             {copy.legend}
           </p>
 
-          {selectedDate ? (
+          {activeDate ? (
             slotsQuery.isLoading ? (
               <DelayedLoadingSpinner isLoading layout='content' className='py-6' />
             ) : slotsQuery.isError ? (
@@ -257,8 +263,8 @@ function GuardianReservationTimePage() {
 
         <div className='bg-bg-0 px-x4 py-x4 gap-x3 flex shrink-0 flex-col'>
           <div className='gap-x3 flex items-center'>
-            <RsvDateTime type='date' isFilled={selectedDate != null}>
-              {selectedDate ? formatReserveDay(selectedDate) : undefined}
+            <RsvDateTime type='date' isFilled={activeDate != null}>
+              {activeDate ? formatReserveDay(activeDate) : undefined}
             </RsvDateTime>
             <RsvDateTime type='time' isFilled={selectedMinutes != null}>
               {selectedMinutes != null ? formatReserveClock(selectedMinutes) : undefined}

@@ -53,6 +53,8 @@ function buildWeeks(month: Date) {
 }
 
 function resolveDayStatus(date: Date, selected: Date | undefined, today: Date | undefined, reservedDates: Date[] | undefined, disabledDates: Date[] | undefined): RsvDayStatusKind {
+  if (includesDay(disabledDates, date)) return 'unselectable';
+
   const isSelected = selected ? isSameDay(date, selected) : false;
   const isToday = today ? isSameDay(date, today) : false;
   const isReserved = includesDay(reservedDates, date);
@@ -62,7 +64,6 @@ function resolveDayStatus(date: Date, selected: Date | undefined, today: Date | 
   if (isSelected) return 'selected';
   if (isToday) return 'today';
   if (isReserved) return 'reserved';
-  if (includesDay(disabledDates, date)) return 'unselectable';
   return 'selectable';
 }
 
