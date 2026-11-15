@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { overlay } from 'overlay-kit';
 
 import { useGuardianDiaryDateQuery } from '@entities/guardian-diary';
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
@@ -25,7 +24,6 @@ import {
 } from '../lib/diaryWriteForm';
 import { useDiaryPhotoPick } from '../model/useDiaryPhotoPick';
 import { DiaryNoticeImportSheet } from './DiaryNoticeImportSheet';
-import { DiaryPhotoSourceSheet } from './DiaryPhotoSourceSheet';
 import { GuardianDiaryWriteForm } from './GuardianDiaryWriteForm';
 
 function GuardianDiaryWritePage() {
@@ -63,17 +61,7 @@ function GuardianDiaryWritePage() {
 
   function handleAddPhoto() {
     if (photos.length >= DIARY_PHOTO_LIMIT) return;
-    overlay.open(({ isOpen, close }) => (
-      <DiaryPhotoSourceSheet
-        isOpen={isOpen}
-        onClose={close}
-        onSelect={(source) => {
-          void pickPhotos(source);
-          // 같은 턴에 시트를 닫으면 iOS가 방금 연 사진 선택을 취소한다.
-          window.setTimeout(close, 300);
-        }}
-      />
-    ));
+    void pickPhotos('library');
   }
 
   function handleDismissImport() {
