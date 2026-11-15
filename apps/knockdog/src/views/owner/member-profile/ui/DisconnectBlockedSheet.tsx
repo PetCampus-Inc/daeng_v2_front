@@ -52,7 +52,7 @@ const DisconnectBlockedSheet = ({ isOpen, close, blocks, kindergartenName }: Dis
       <BottomSheet.Overlay className='z-overlay' />
       <BottomSheet.Body className='z-modal'>
         <BottomSheet.Handle />
-        <BottomSheet.Title className='h3-extrabold text-text-primary py-x3_5 pl-x6 pr-x5 shadow-[inset_0_-1px_0_var(--color-line-100)]'>
+        <BottomSheet.Title className='h3-extrabold text-text-primary py-x3_5 pl-x6 pr-x5'>
           {disconnectBlockedSheet.title}
         </BottomSheet.Title>
         <div className='px-x6 gap-x6 pt-x1 pb-x3 flex flex-col'>
