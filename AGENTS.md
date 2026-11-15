@@ -7,7 +7,6 @@
 
 - 기능이나 화면 수정을 완료하면 사용자가 직접 재현·확인할 수 있도록 사전 조건, 화면 진입 경로, 클릭·입력 순서, 단계별 기대 결과를 함께 전달한다.
 - 빈 목록이나 승인 대기 등 특정 데이터 상태가 필요하면 그 조건과 준비 방법을 명시한다. 모의 API 검증과 실제 서버·배포 상태도 구분한다.
-- PR을 만들 때는 `.github/pull_request_template.md` 양식(작업 개요·작업 내용·논의할 점·스크린샷)을 따른다.
 - 이 기준은 2026-11-11 사용자 피드백을 반영했다.
 
 ## 테스트 서버 포트
@@ -24,6 +23,6 @@
 | [데이터와 상태](docs/convention/fe-convention-data-state.md)         | 서버 데이터(DTO), 서버 상태, 클라이언트 상태     | API 호출, 서버 데이터 타입, 상태관리를 만들거나 고칠 때     |
 | [파일과 폴더](docs/convention/fe-convention-files-folders.md)        | 파일 이름, export·import, FSD 폴더 구조          | 파일을 만들거나 옮길 때, import 경로를 쓸 때                |
 | [네이티브 기능](docs/convention/fe-convention-native.md)             | WebView 브릿지 호출·추가 규칙                    | 브릿지 메서드를 호출하거나 추가할 때                        |
-| [커밋과 브랜치](docs/convention/fe-convention-commit-branch.md)              | 커밋 메시지, 브랜치, 머지 방식                   | 커밋하거나 브랜치를 만들거나 머지할 때                      |
+| [커밋과 브랜치](docs/convention/fe-convention-commit-branch.md)              | 커밋 메시지, 브랜치, PR 양식, 머지 방식          | 커밋하거나 브랜치를 만들거나 PR을 만들거나 머지할 때        |
 | [테스트와 Lighthouse](docs/convention/fe-convention-test-lighthouse.md) | 테스트 작성 기준·실행 범위·E2E, Lighthouse     | 테스트를 쓰거나 실행할 때, 성능을 측정할 때                 |
 | [단계별 문서와 버전](docs/convention/fe-convention-docs.md)          | PRD·진행 기록 폴더 구성, 문서 버전 규칙          | PRD나 진행 기록 문서를 만들거나 버전을 올릴 때              |

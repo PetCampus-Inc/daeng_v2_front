@@ -91,6 +91,7 @@ chore: TanStack Query 버전 업데이트
 
 #### 머지 규칙
 
+- PR 본문은 `.github/pull_request_template.md` 양식(작업 개요·작업 내용·논의할 점·스크린샷)을 따름
 - 스쿼시 커밋 메시지
   - 커밋 컨벤션 준수
   - 본문에 요약과 주요 변경 기재
