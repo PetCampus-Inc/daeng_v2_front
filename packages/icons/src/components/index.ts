@@ -1,3 +1,4 @@
+export { AlarmBellDot } from './AlarmBellDot';
 export { AlarmFill } from './AlarmFill';
 export { AlarmLine } from './AlarmLine';
 export { AlarmLineActive } from './AlarmLineActive';

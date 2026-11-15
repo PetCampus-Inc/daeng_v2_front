@@ -90,8 +90,8 @@ function GuardianDiaryGenerateForm({
         ) : null}
         {status === 'error' ? (
           <div className='bg-bg-50 radius-r2 p-x4 flex w-full items-start gap-[6px]'>
-            <InfoLine className='text-fill-secondary-500 mt-[5px] size-[14px] shrink-0' />
-            <p className='body1-regular text-fill-secondary-500 flex-1'>{DIARY_ERROR_TEXT}</p>
+            <InfoLine className='text-line-accent mt-[5px] size-[14px] shrink-0' />
+            <p className='body1-regular text-fill-secondary-500 flex-1 whitespace-pre-line'>{DIARY_ERROR_TEXT}</p>
           </div>
         ) : null}
         {status === 'done' && isSaved ? <p className='body1-regular text-text-primary whitespace-pre-line px-x2 py-x4'>{body}</p> : null}

@@ -87,3 +87,23 @@ button {
     opacity: 0.5;
   }
 }
+
+@keyframes diary-prompt-in {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes diary-prompt-out {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(-100%);
+  }
+}

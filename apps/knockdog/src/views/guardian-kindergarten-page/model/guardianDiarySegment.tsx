@@ -19,10 +19,15 @@ const GuardianDiarySegmentContext = createContext<GuardianDiarySegmentContextVal
   selectSegment: () => {},
 });
 
+function resolveDefaultDiarySegment(isUnlinkedDog: boolean): DiarySegment {
+  return isUnlinkedDog ? DIARY_SEGMENT.diary : DIARY_SEGMENT.kindergarten;
+}
+
 interface GuardianDiarySegmentProviderProps {
   dogName?: string;
   petId?: string | null;
   schoolId?: string | null;
+  defaultSegment?: DiarySegment;
   children: ReactNode;
 }
 
@@ -30,12 +35,17 @@ function GuardianDiarySegmentProvider({
   dogName,
   petId = null,
   schoolId = null,
+  defaultSegment = DIARY_SEGMENT.kindergarten,
   children,
 }: GuardianDiarySegmentProviderProps) {
-  const [segment, setSegment] = useState<DiarySegment>(DIARY_SEGMENT.kindergarten);
+  const [segment, setSegment] = useState<DiarySegment>(defaultSegment);
   const selectSegment = useCallback((next: DiarySegment) => {
     setSegment(next);
   }, []);
+
+  useEffect(() => {
+    setSegment(defaultSegment);
+  }, [defaultSegment, petId]);
 
   useEffect(() => {
     function openReturnedDiary() {
@@ -63,4 +73,4 @@ function useGuardianDiarySegment() {
   return useContext(GuardianDiarySegmentContext);
 }
 
-export { GuardianDiarySegmentProvider, useGuardianDiarySegment };
+export { GuardianDiarySegmentProvider, resolveDefaultDiarySegment, useGuardianDiarySegment };

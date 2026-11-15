@@ -5,11 +5,11 @@ import { useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { guardianDiaryDateQueryKey, guardianDiaryMonthQueryKey, postDiaryGeneration, postDiarySave } from '@entities/guardian-diary';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { formatDateKey } from '@shared/lib/calendar-date';
 import { buildDiaryDetailTarget } from '@shared/lib/diary-write/buildDiaryWriteTarget';
 import { readDiaryGenerateDraft } from '@shared/lib/diary-write/diaryGenerateDraft';
-import { clearDiaryRemoved, saveDiaryRecord } from '@shared/lib/diary-write/diaryRecord';
+import { clearDiaryRemoved, saveDiaryHomeReturn, saveDiaryRecord } from '@shared/lib/diary-write/diaryRecord';
 import { toast } from '@shared/ui/toast';
 
 import {
@@ -35,6 +35,7 @@ function GuardianDiaryGeneratePage() {
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const { back, push } = useStackNavigation();
+  const { navigateToTab } = useTabNavigation();
   const draft = useMemo(() => readDiaryGenerateDraft(), []);
   const date = useMemo(() => parseGenerateDate(searchParams.get('date') ?? draft?.date ?? null), [draft?.date, searchParams]);
   const photos = draft?.photos.length ? draft.photos : FALLBACK_PHOTOS;
@@ -122,6 +123,12 @@ function GuardianDiaryGeneratePage() {
     void back();
   }
 
+  function handleLeave() {
+    setDialog(null);
+    saveDiaryHomeReturn(formatDateKey(date));
+    void navigateToTab('/kindergarten');
+  }
+
   function handleRetry() {
     setGenerationId(null);
     setBody('');
@@ -202,10 +209,7 @@ function GuardianDiaryGeneratePage() {
       onSave={() => setDialog('save')}
       onConfirmSave={handleConfirmSave}
       onKeepWriting={() => setDialog(null)}
-      onLeave={() => {
-        setDialog(null);
-        void back();
-      }}
+      onLeave={handleLeave}
     />
   );
 }

@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { overlay } from 'overlay-kit';
 
 import { useGuardianDiaryDateQuery } from '@entities/guardian-diary';
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
@@ -16,17 +15,15 @@ import { toast } from '@shared/ui/toast';
 
 import {
   DIARY_PHOTO_LIMIT,
-  dismissDiaryImport,
   formatDiaryNoticeDate,
-  hasDismissedDiaryImport,
   hasMockArrivedNotice,
   isDiaryImportVisible,
+  isDiaryOpenedFromNotice,
   parseDiaryDate,
   type DiaryWritePhoto,
 } from '../lib/diaryWriteForm';
 import { useDiaryPhotoPick } from '../model/useDiaryPhotoPick';
 import { DiaryNoticeImportSheet } from './DiaryNoticeImportSheet';
-import { DiaryPhotoSourceSheet } from './DiaryPhotoSourceSheet';
 import { GuardianDiaryWriteForm } from './GuardianDiaryWriteForm';
 
 function GuardianDiaryWritePage() {
@@ -44,9 +41,11 @@ function GuardianDiaryWritePage() {
     schoolId,
     petId: storePetId,
   });
+  const opensWithNotice = isDiaryOpenedFromNotice(searchParams.get('from'));
+  const hasClearedNoticeRef = useRef(false);
   const [photos, setPhotos] = useState<DiaryWritePhoto[]>([]);
   const [text, setText] = useState('');
-  const [isImported, setIsImported] = useState(false);
+  const [isImported, setIsImported] = useState(opensWithNotice);
   const [isImportDismissed, setIsImportDismissed] = useState(false);
   const [isImportSheetOpen, setIsImportSheetOpen] = useState(false);
   const { pickPhotos } = useDiaryPhotoPick(photos, setPhotos);
@@ -54,32 +53,23 @@ function GuardianDiaryWritePage() {
   const hasNotice = dateStatus ? Boolean(dateStatus.attendance) : hasMockArrivedNotice(date) || Boolean(dailyNotice);
 
   useEffect(() => {
-    setIsImportDismissed(hasDismissedDiaryImport());
-  }, []);
+    if (!opensWithNotice || hasClearedNoticeRef.current) return;
+    setIsImported(true);
+  }, [opensWithNotice]);
 
-  const importedNotice = isImported ? { date: formatDiaryNoticeDate(date), body: noticeBody } : null;
+  const importedNotice = isImported && noticeBody ? { date: formatDiaryNoticeDate(date), body: noticeBody } : null;
 
   function handleAddPhoto() {
     if (photos.length >= DIARY_PHOTO_LIMIT) return;
-    overlay.open(({ isOpen, close }) => (
-      <DiaryPhotoSourceSheet
-        isOpen={isOpen}
-        onClose={close}
-        onSelect={(source) => {
-          void pickPhotos(source);
-          // 같은 턴에 시트를 닫으면 iOS가 방금 연 사진 선택을 취소한다.
-          window.setTimeout(close, 300);
-        }}
-      />
-    ));
+    void pickPhotos('library');
   }
 
   function handleDismissImport() {
-    dismissDiaryImport();
     setIsImportDismissed(true);
   }
 
   function handleRemoveNotice() {
+    hasClearedNoticeRef.current = true;
     setIsImported(false);
     handleDismissImport();
   }

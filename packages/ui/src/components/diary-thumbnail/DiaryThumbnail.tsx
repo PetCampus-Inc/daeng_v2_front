@@ -47,7 +47,7 @@ function DiaryThumbnail({
   onViewAll,
 }: DiaryThumbnailProps) {
   return (
-    <article className={cn('gap-x4 flex w-full flex-col', className)}>
+    <article className={cn('gap-x3 flex w-full flex-col', className)}>
       <div className='gap-x1 py-x0_5 flex items-center'>
         <h3 className='h3-extrabold text-primitive-neutral-800 min-w-0 flex-1 truncate'>{title}</h3>
         <button type='button' onClick={onViewAll} className='gap-x0_5 flex shrink-0 items-center'>
@@ -55,7 +55,7 @@ function DiaryThumbnail({
           <ChevronRight className='text-fill-secondary-500 size-[18px]' />
         </button>
       </div>
-      <div className='gap-x3 flex items-start'>
+      <div className='gap-x3 flex items-center'>
         <div className='relative h-[87px] w-[84px] shrink-0'>
           {photoCount > 1 ? (
             <span className='bg-primitive-neutral-300 radius-r3 absolute top-[-1px] left-[6px] h-[84px] w-[72px]' />
@@ -68,7 +68,7 @@ function DiaryThumbnail({
             </span>
           </div>
         </div>
-        <p className='body2-regular text-text-secondary line-clamp-3 min-w-0 flex-1 pt-x1'>{body}</p>
+        <p className='body2-regular text-text-secondary line-clamp-3 min-w-0 flex-1'>{body}</p>
       </div>
     </article>
   );

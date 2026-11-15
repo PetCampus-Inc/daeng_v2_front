@@ -22,7 +22,7 @@ function GuardianKindergartenNoPetState() {
         <div className='px-x4 shrink-0 pt-6'>
           <GuardianKindergartenHomeSegment opensOnboarding={false} />
         </div>
-        <div className='px-x4 flex flex-1 flex-col items-center justify-center gap-5 text-center'>
+        <div className='px-x4 gap-x1 flex flex-1 flex-col items-center justify-center text-center'>
           <div className='relative size-[200px] shrink-0'>
             <Image
               src={guardianKindergartenNoPetContent.imageSrc}

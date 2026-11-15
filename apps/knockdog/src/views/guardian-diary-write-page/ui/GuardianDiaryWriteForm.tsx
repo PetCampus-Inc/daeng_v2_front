@@ -43,7 +43,48 @@ function useDiaryPrompt(dogName: string) {
     return () => window.clearInterval(timer);
   }, [prompts]);
 
-  return prompts[index] ?? prompts[0];
+  return prompts[index] ?? prompts[0] ?? '';
+}
+
+const DIARY_PROMPT_RISE_MS = 350;
+
+function DiaryPromptTicker({ prompt }: { prompt: string }) {
+  const [visible, setVisible] = useState<{ current: string; previous: string | null }>({
+    current: prompt,
+    previous: null,
+  });
+
+  if (prompt !== visible.current) {
+    setVisible({ current: prompt, previous: visible.current });
+  }
+
+  useEffect(() => {
+    if (!visible.previous) return;
+    const timer = window.setTimeout(() => {
+      setVisible((state) => (state.previous === visible.previous ? { ...state, previous: null } : state));
+    }, DIARY_PROMPT_RISE_MS);
+    return () => window.clearTimeout(timer);
+  }, [visible.current, visible.previous]);
+
+  return (
+    <div className='relative h-[19px] min-w-0 flex-1 overflow-hidden'>
+      {visible.previous ? (
+        <p
+          className='caption1-regular text-text-accent absolute inset-x-0 top-0 truncate text-right leading-[18px]'
+          style={{ animation: `diary-prompt-out ${DIARY_PROMPT_RISE_MS}ms ease-out forwards` }}
+        >
+          {visible.previous}
+        </p>
+      ) : null}
+      <p
+        key={visible.current}
+        className='caption1-regular text-text-accent absolute inset-x-0 top-0 truncate text-right leading-[18px]'
+        style={visible.previous ? { animation: `diary-prompt-in ${DIARY_PROMPT_RISE_MS}ms ease-out` } : undefined}
+      >
+        {visible.current}
+      </p>
+    </div>
+  );
 }
 
 function DiaryFieldLabel({
@@ -135,9 +176,7 @@ function GuardianDiaryWriteForm({
               <span className='body2-regular text-text-caption shrink-0'>
                 {text.length}/{DIARY_TEXT_LIMIT}
               </span>
-              <p className='caption1-regular text-text-accent h-[19px] min-w-0 flex-1 truncate text-right leading-[18px]'>
-                {prompt}
-              </p>
+              <DiaryPromptTicker prompt={prompt} />
             </div>
           </div>
         </section>

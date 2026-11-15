@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { overlay } from 'overlay-kit';
 import { DiaryCalendar, DiaryCalendarBanner, DiaryThumbnail, Divider } from '@knockdog/ui';
 
@@ -83,8 +83,15 @@ function GuardianDiaryMain({
     : null;
   const selectedEntry = apiEntry ?? monthEntry ?? (monthDays ? null : sessionEntry);
   const selectedDiaryId = visibleDiary?.id ?? monthDay?.id;
-  const reportedCredits = dateStatus?.remainingGenerations ?? remainingCredits;
-  const credits = dateStatus?.blockedReason === 'LIMIT_REACHED' || reportedCredits <= 0 ? 0 : reportedCredits;
+  const creditHoldRef = useRef<{ petId: string | null; credits: number } | null>(null);
+  if (creditHoldRef.current && creditHoldRef.current.petId !== petId) creditHoldRef.current = null;
+  const liveCredits = dateStatus
+    ? dateStatus.blockedReason === 'LIMIT_REACHED' || dateStatus.remainingGenerations <= 0
+      ? 0
+      : dateStatus.remainingGenerations
+    : null;
+  if (liveCredits != null) creditHoldRef.current = { petId, credits: liveCredits };
+  const credits = liveCredits ?? creditHoldRef.current?.credits ?? remainingCredits;
   const dayKind = resolveDiaryDayKind(Boolean(selectedEntry), isSameDay(selectedDate, today), credits);
 
   useEffect(() => {

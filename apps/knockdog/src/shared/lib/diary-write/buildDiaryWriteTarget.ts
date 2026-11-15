@@ -6,12 +6,15 @@ interface DiaryWriteTargetInput {
   date: Date;
   schoolId?: string | null;
   petId?: string | null;
+  /** 오늘의 알림장 배너로 들어오면 알림장을 이미 불러온 상태로 연다 */
+  fromNotice?: boolean;
 }
 
-function buildDiaryQuery({ date, schoolId, petId }: DiaryWriteTargetInput): Query {
+function buildDiaryQuery({ date, schoolId, petId, fromNotice }: DiaryWriteTargetInput): Query {
   const query: Query = { date: formatDateKey(date) };
   if (schoolId) query.schoolId = schoolId;
   if (petId) query.petId = petId;
+  if (fromNotice) query.from = 'notice';
   return query;
 }
 

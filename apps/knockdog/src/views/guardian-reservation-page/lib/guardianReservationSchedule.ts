@@ -123,6 +123,26 @@ function datesInMonth(month: Date) {
   return Array.from({ length: count }, (_, index) => new Date(month.getFullYear(), month.getMonth(), index + 1));
 }
 
+const BLOCKED_DAY_REASON = new Set(['past', 'closedDay', 'full', 'noUsableTicket']);
+
+interface ReserveDayGate {
+  date: string;
+  isSelectable: boolean;
+  reason: string | null;
+}
+
+function listBlockedReserveDates(month: Date, today: Date, endsOn: string | null, days: ReserveDayGate[]) {
+  const dayByKey = new Map(days.map((day) => [day.date, day]));
+
+  return datesInMonth(month).filter((date) => {
+    if (isPastDay(date, today) || isAfterExpiry(date, endsOn)) return true;
+    const day = dayByKey.get(toDateKey(date));
+    if (!day) return false;
+    if (day.reason != null && BLOCKED_DAY_REASON.has(day.reason)) return true;
+    return !day.isSelectable;
+  });
+}
+
 function listDisabledDates(month: Date, today: Date, now: Date, endsOn: string | null) {
   const fullOn = fullDayKey(today);
 
@@ -186,6 +206,7 @@ export {
   fullDayKey,
   isOwnerHoursUnset,
   isSlotBookable,
+  listBlockedReserveDates,
   listDisabledDates,
   listScheduleSlots,
   reservedDateKeys,

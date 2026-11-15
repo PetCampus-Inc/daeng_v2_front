@@ -1,5 +1,6 @@
 export type IconName =
   | 'Alldogs'
+  | 'AlarmBellDot'
   | 'AlarmFill'
   | 'AlarmLine'
   | 'AlarmLineActive'

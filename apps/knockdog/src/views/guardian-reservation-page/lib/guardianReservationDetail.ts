@@ -19,7 +19,9 @@ function formatCancelWhen(startsAt: string) {
 }
 
 function formatDeadlineLead(startsAt: string) {
-  return `${formatDetailDate(startsAt)} ${formatDetailClock(startsAt)}까지 `;
+  const deadline = parseVisitKey(startsAt);
+  deadline.setMinutes(deadline.getMinutes() - 1);
+  return `${formatVisitDate(deadline)} ${formatHourClock(deadline.getHours(), deadline.getMinutes(), false)}까지 `;
 }
 
 export { canCancelReservation, formatCancelWhen, formatDeadlineLead, formatDetailClock, formatDetailDate };
