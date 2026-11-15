@@ -315,7 +315,7 @@ function OwnerPassTemplateFormPage({ mode }: OwnerPassTemplateFormPageProps) {
           <Header.BackButton onClick={handleBack} />
         </Header.LeftSection>
         <Header.Title className='max-w-[220px] truncate'>
-          {mode === 'edit' ? template?.name : ownerPassTemplateContent.managementTitle}
+          {mode === 'edit' ? template?.name : ownerPassTemplateContent.createTitle}
         </Header.Title>
         {mode === 'edit' ? (
           <Header.RightSection>

@@ -1,5 +1,6 @@
 const ownerPassTemplateContent = {
   managementTitle: '이용권 관리',
+  createTitle: '이용권 등록',
   managementDescription: '자주 사용하는 이용권을 관리 할 수 있어요.',
   emptyTitle: '아직 등록된 이용권이 없어요',
   emptyDescription: '자주 사용하는 이용권을 등록할 수 있어요.',
