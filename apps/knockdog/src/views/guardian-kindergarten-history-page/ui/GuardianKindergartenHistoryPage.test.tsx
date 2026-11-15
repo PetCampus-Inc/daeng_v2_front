@@ -320,52 +320,6 @@ describe('연결 이력 목록', () => {
   });
 });
 
-describe('연결 해제 확인 모달', () => {
-  beforeEach(() => {
-    petState.pets = [createPet({ id: '1', name: '초코', isRepresentative: true })];
-    connectionState.byPetId = { '1': [createConnection({})] };
-  });
-
-  const openDisconnectDialog = async () => {
-    renderPage();
-    await userEvent.click(await screen.findByRole('button', { name: '연결 해제' }));
-    return screen.findByRole('alertdialog');
-  };
-
-  test('`연결 해제`를 누르면 확인 모달이 열린다', async () => {
-    const dialog = await openDisconnectDialog();
-
-    expect(within(dialog).getByRole('button', { name: '연결 해제하기' })).toBeTruthy();
-  });
-
-  test('모달에 해당 유치원 이름과 강아지 이름이 들어간다', async () => {
-    const dialog = await openDisconnectDialog();
-
-    expect(within(dialog).getByText(/모모네 유치원/)).toBeTruthy();
-    expect(within(dialog).getByText(/초코/)).toBeTruthy();
-  });
-
-  test('`닫기`를 누르면 모달이 닫히고 연결 이력은 그대로다', async () => {
-    const dialog = await openDisconnectDialog();
-
-    await userEvent.click(within(dialog).getByRole('button', { name: '닫기' }));
-
-    await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
-    const current = screen.getByRole('region', { name: '지금 다니는 유치원' });
-    expect(within(current).getByText('모모네 유치원')).toBeTruthy();
-    expect(within(current).getByRole('button', { name: '연결 해제' })).toBeTruthy();
-  });
-
-  test('모달 바깥을 눌러도 모달이 닫히지 않는다', async () => {
-    await openDisconnectDialog();
-
-    // 모달이 열려 있는 동안 바깥은 `pointer-events: none`이라 검사를 끄고 실제 바깥 누르기를 재현한다
-    await userEvent.setup({ pointerEventsCheck: 0 }).click(document.body);
-
-    expect(screen.getByRole('alertdialog')).toBeTruthy();
-  });
-});
-
 describe('해제 불가 바텀시트', () => {
   beforeEach(() => {
     petState.pets = [createPet({ id: '1', name: '초코', isRepresentative: true })];
@@ -376,8 +330,6 @@ describe('해제 불가 바텀시트', () => {
     getDisconnectEligibility.mockResolvedValue({ canDisconnect: false, blocks });
     renderPage();
     await userEvent.click(await screen.findByRole('button', { name: '연결 해제' }));
-    const dialog = await screen.findByRole('alertdialog');
-    await userEvent.click(within(dialog).getByRole('button', { name: '연결 해제하기' }));
     return screen.findByRole('dialog', { name: /아직 연결을 해제할 수 없어요/ });
   };
 
@@ -406,7 +358,10 @@ describe('해제 불가 바텀시트', () => {
 
       await userEvent.click(within(sheet).getByRole('button', { name: '유치원에 문의' }));
 
-      expect(push).toHaveBeenCalledWith({ pathname: '/kindergarten/10' });
+      expect(push).toHaveBeenCalledWith({
+        pathname: '/kindergarten/10',
+        params: { entrySource: 'kindergarten-list' },
+      });
     });
 
     test('`확인`을 누르면 시트가 닫힌다', async () => {
@@ -440,7 +395,10 @@ describe('해제 불가 바텀시트', () => {
 
       await userEvent.click(within(sheet).getByRole('button', { name: '유치원에 문의' }));
 
-      expect(push).toHaveBeenCalledWith({ pathname: '/kindergarten/10' });
+      expect(push).toHaveBeenCalledWith({
+        pathname: '/kindergarten/10',
+        params: { entrySource: 'kindergarten-list' },
+      });
     });
 
     test('`확인`을 누르면 시트가 닫힌다', async () => {
@@ -458,8 +416,11 @@ describe('연결 해제 처리와 완료', () => {
   const previousRegion = () => screen.getByRole('region', { name: /이전에 다녔던 유치원/ });
   const confirmDisconnect = async () => {
     await userEvent.click(await screen.findByRole('button', { name: '연결 해제' }));
-    const dialog = await screen.findByRole('alertdialog');
-    await userEvent.click(within(dialog).getByRole('button', { name: '연결 해제하기' }));
+    await waitFor(() => expect(getDisconnectEligibility).toHaveBeenCalled());
+    const response = await getDisconnectEligibility.mock.results.at(-1)?.value?.catch(() => null);
+    if (response?.canDisconnect) {
+      await userEvent.click(await screen.findByRole('button', { name: '연결 해제하기' }));
+    }
   };
 
   beforeEach(() => {
@@ -479,7 +440,35 @@ describe('연결 해제 처리와 완료', () => {
     expect(within(currentRegion()).getByText('연결된 유치원이 없어요.')).toBeTruthy();
   });
 
-  test('해제 조건 검사와 해제 요청 중에 `연결 해제하기`를 다시 눌러도 요청은 한 번만 간다', async () => {
+  test('true이면 조회 후 확인 다이얼로그를 열고 취소 시 해제하지 않는다', async () => {
+    getDisconnectEligibility.mockResolvedValue({ canDisconnect: true, blocks: [] });
+    renderPage();
+    await userEvent.click(await screen.findByRole('button', { name: '연결 해제' }));
+    await screen.findByRole('alertdialog');
+    expect(getDisconnectEligibility).toHaveBeenCalledTimes(1);
+    expect(deleteConnection).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole('button', { name: '닫기' }));
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    expect(deleteConnection).not.toHaveBeenCalled();
+  });
+
+  test('기존 ATTENDANCE 값이 함께 와도 true이면 확인 후 해제한다', async () => {
+    getDisconnectEligibility.mockResolvedValue({ canDisconnect: true, blocks: [{ type: 'ATTENDANCE' }] });
+    deleteConnection.mockResolvedValue({});
+    renderPage();
+    await confirmDisconnect();
+    await waitFor(() => expect(deleteConnection).toHaveBeenCalledTimes(1));
+  });
+
+  test('false이면 사유가 비어 있어도 해제하지 않고 시트를 연다', async () => {
+    getDisconnectEligibility.mockResolvedValue({ canDisconnect: false, blocks: [] });
+    renderPage();
+    await confirmDisconnect();
+    await screen.findByRole('dialog', { name: /아직 연결을 해제할 수 없어요/ });
+    expect(deleteConnection).not.toHaveBeenCalled();
+  });
+
+  test('해제 조건 검사와 해제 요청 중에 `연결 해제`를 다시 눌러도 요청은 한 번만 간다', async () => {
     let resolveEligibility: (value: unknown) => void = () => undefined;
     getDisconnectEligibility.mockReturnValue(
       new Promise((resolve) => {
@@ -489,9 +478,10 @@ describe('연결 해제 처리와 완료', () => {
     deleteConnection.mockResolvedValue({});
     renderPage();
 
-    await confirmDisconnect();
+    await userEvent.click(await screen.findByRole('button', { name: '연결 해제' }));
     await userEvent.setup({ pointerEventsCheck: 0 }).click(screen.getByRole('button', { name: '연결 해제' }));
     resolveEligibility({ canDisconnect: true, blocks: [] });
+    await userEvent.click(await screen.findByRole('button', { name: '연결 해제하기' }));
 
     await waitFor(() => expect(deleteConnection).toHaveBeenCalledTimes(1));
     expect(getDisconnectEligibility).toHaveBeenCalledTimes(1);
@@ -517,8 +507,11 @@ describe('연결 해제 실패 처리', () => {
   const previousRegion = () => screen.getByRole('region', { name: /이전에 다녔던 유치원/ });
   const confirmDisconnect = async () => {
     await userEvent.click(await screen.findByRole('button', { name: '연결 해제' }));
-    const dialog = await screen.findByRole('alertdialog');
-    await userEvent.click(within(dialog).getByRole('button', { name: '연결 해제하기' }));
+    await waitFor(() => expect(getDisconnectEligibility).toHaveBeenCalled());
+    const response = await getDisconnectEligibility.mock.results.at(-1)?.value?.catch(() => null);
+    if (response?.canDisconnect) {
+      await userEvent.click(await screen.findByRole('button', { name: '연결 해제하기' }));
+    }
   };
   const serverError = (status: number, code: string) => new ApiError(status, code as never, '서버 문구');
   const TICKET_BLOCKS = [{ type: 'TICKET', ticket: { name: '10회권', remainingCount: 6, expiresOn: null } }];
@@ -565,6 +558,18 @@ describe('연결 해제 실패 처리', () => {
     expect(within(currentRegion()).getByText('모모네 유치원')).toBeTruthy();
   });
 
+  test('기존 등원 오류는 별도 차단 안내나 재조회 없이 일반 실패로 처리한다', async () => {
+    getDisconnectEligibility.mockResolvedValue({ canDisconnect: true, blocks: [] });
+    deleteConnection.mockRejectedValue(serverError(409, 'SCHOOL_MEMBERSHIP-409-1'));
+    renderPage();
+    await confirmDisconnect();
+    await waitFor(() => expect(toast).toHaveBeenCalled());
+    expect(getDisconnectEligibility).toHaveBeenCalledTimes(1);
+    expect(deleteConnection).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(within(currentRegion()).getByText('모모네 유치원')).toBeTruthy();
+  });
+
   test('다른 기기에서 이미 해제된 연결이면 연결 이력을 다시 불러와 해제된 상태로 보여 준다', async () => {
     getDisconnectEligibility.mockResolvedValue({ canDisconnect: true, blocks: [] });
     deleteConnection.mockRejectedValue(serverError(409, 'GUARDIAN_SCHOOL_CONNECTION-409-1'));
@@ -577,16 +582,5 @@ describe('연결 해제 실패 처리', () => {
 
     await waitFor(() => expect(within(previousRegion()).getByText('모모네 유치원')).toBeTruthy());
     expect(within(currentRegion()).getByText('연결된 유치원이 없어요.')).toBeTruthy();
-  });
-
-  test('오늘 등원 기록이 있어 해제가 막히면 연결은 유지되고 카드는 지금 다니는 유치원에 남는다', async () => {
-    getDisconnectEligibility.mockResolvedValue({ canDisconnect: false, blocks: [{ type: 'ATTENDANCE' }] });
-    renderPage();
-
-    await confirmDisconnect();
-
-    await waitFor(() => expect(toast).toHaveBeenCalled());
-    expect(deleteConnection).not.toHaveBeenCalled();
-    expect(within(currentRegion()).getByText('모모네 유치원')).toBeTruthy();
   });
 });

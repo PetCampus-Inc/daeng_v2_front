@@ -6,7 +6,7 @@ import { classifyGuardianDisconnectError } from './classifyGuardianDisconnectErr
 
 describe('해제 실패 오류 구분', () => {
   test.each([
-    ['SCHOOL_MEMBERSHIP-409-1', 409, 'todayAttendance'],
+    ['SCHOOL_MEMBERSHIP-409-1', 409, 'other'],
     ['GUARDIAN_SCHOOL_CONNECTION-409-1', 409, 'alreadyDisconnected'],
     ['GUARDIAN_SCHOOL_CONNECTION-409-2', 409, 'ticketsOrReservationRemain'],
     ['GUARDIAN_SCHOOL_CONNECTION-404-1', 404, 'other'],
@@ -15,7 +15,7 @@ describe('해제 실패 오류 구분', () => {
     expect(classifyGuardianDisconnectError(new ApiError(status, code as never, '문구는 달라도 된다'))).toBe(expected);
   });
 
-  test('오류 문구에 등원이 들어 있어도 코드가 다르면 당일 등원으로 보지 않는다', () => {
+  test('오류 문구에 등원이 들어 있어도 별도 차단 사유로 분류하지 않는다', () => {
     expect(classifyGuardianDisconnectError(new ApiError(500, 'UNKNOWN_ERROR', '등원 처리 중 오류'))).toBe('other');
   });
 

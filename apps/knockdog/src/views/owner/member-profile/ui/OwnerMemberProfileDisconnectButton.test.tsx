@@ -98,10 +98,7 @@ const BLOCKED_RESPONSE = {
   },
 };
 
-const renderDisconnectButton = (
-  queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-) => {
-
+const renderDisconnectButton = (queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })) => {
   return render(
     <QueryClientProvider client={queryClient}>
       <OverlayProvider>
@@ -114,6 +111,7 @@ const renderDisconnectButton = (
 describe('연결해제를 누르면 해제 가능 여부에 따라 화면을 나눈다', () => {
   beforeEach(() => {
     apiMock.getOwnerMembers.mockResolvedValue(MEMBERS_RESPONSE);
+    apiMock.postDisconnectOwnerMember.mockResolvedValue({ data: {} });
   });
 
   afterEach(() => {
@@ -121,13 +119,24 @@ describe('연결해제를 누르면 해제 가능 여부에 따라 화면을 나
     vi.resetAllMocks();
   });
 
-  it('해제할 수 있는 원생이면 `연결해제`를 눌렀을 때 해제 확인 모달이 열린다', async () => {
+  it('해제할 수 있는 원생이면 조회 후 확인 다이얼로그만 연다', async () => {
     apiMock.getDisconnectEligibility.mockResolvedValue(ELIGIBLE_RESPONSE);
     renderDisconnectButton();
 
     await userEvent.click(screen.getByRole('button', { name: '연결해제' }));
 
     expect(await screen.findByRole('alertdialog')).toBeTruthy();
+    expect(apiMock.postDisconnectOwnerMember).not.toHaveBeenCalled();
+  });
+
+  it('확인 다이얼로그를 취소하면 해제 API를 호출하지 않는다', async () => {
+    apiMock.getDisconnectEligibility.mockResolvedValue(ELIGIBLE_RESPONSE);
+    renderDisconnectButton();
+    await userEvent.click(screen.getByRole('button', { name: '연결해제' }));
+    await userEvent.click(await screen.findByRole('button', { name: '닫기' }));
+    expect(apiMock.getDisconnectEligibility).toHaveBeenCalledTimes(1);
+    expect(apiMock.postDisconnectOwnerMember).not.toHaveBeenCalled();
+    expect(screen.queryByRole('alertdialog')).toBeNull();
   });
 
   it('해제할 수 없는 원생이면 `연결해제`를 눌렀을 때 해제 불가 시트가 열리고 해제 확인 모달은 열리지 않는다', async () => {
@@ -138,6 +147,51 @@ describe('연결해제를 누르면 해제 가능 여부에 따라 화면을 나
 
     expect(await screen.findByRole('dialog')).toBeTruthy();
     expect(screen.queryByRole('alertdialog')).toBeNull();
+  });
+
+  it.each([{ blocks: [] }, { blocks: [{ type: 'ATTENDANCE', ticket: null, reservation: null }] }])(
+    'false 응답에서 지원하는 사유가 없으면 서버 판단을 유지한다 (%j)',
+    async ({ blocks }) => {
+      apiMock.getDisconnectEligibility.mockResolvedValue({ data: { canDisconnect: false, blocks } });
+      renderDisconnectButton();
+      await userEvent.click(screen.getByRole('button', { name: '연결해제' }));
+      expect(await screen.findByRole('dialog')).toBeTruthy();
+      expect(apiMock.postDisconnectOwnerMember).not.toHaveBeenCalled();
+      expect(uiMock.toast).not.toHaveBeenCalled();
+    }
+  );
+
+  it('기존 ATTENDANCE 값이 함께 와도 true이면 확인 후 해제한다', async () => {
+    apiMock.getDisconnectEligibility.mockResolvedValue({
+      data: { canDisconnect: true, blocks: [{ type: 'ATTENDANCE' }] },
+    });
+    renderDisconnectButton();
+    await userEvent.click(screen.getByRole('button', { name: '연결해제' }));
+    await screen.findByRole('alertdialog');
+    expect(apiMock.postDisconnectOwnerMember).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole('button', { name: '해제하기' }));
+    await waitFor(() => expect(apiMock.postDisconnectOwnerMember.mock.calls[0]?.[0]).toBe('member-1'));
+    expect(apiMock.getDisconnectEligibility.mock.invocationCallOrder[0]).toBeLessThan(
+      apiMock.postDisconnectOwnerMember.mock.invocationCallOrder[0]!
+    );
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('가능 여부 조회 중 중복 클릭은 조회·해제를 반복하지 않는다', async () => {
+    let resolveEligibility!: (value: typeof ELIGIBLE_RESPONSE) => void;
+    apiMock.getDisconnectEligibility.mockReturnValue(
+      new Promise((resolve) => {
+        resolveEligibility = resolve;
+      })
+    );
+    renderDisconnectButton();
+    const button = screen.getByRole('button', { name: '연결해제' });
+    await userEvent.click(button);
+    await userEvent.click(button);
+    resolveEligibility(ELIGIBLE_RESPONSE);
+    await userEvent.click(await screen.findByRole('button', { name: '해제하기' }));
+    await waitFor(() => expect(apiMock.postDisconnectOwnerMember).toHaveBeenCalledTimes(1));
+    expect(apiMock.getDisconnectEligibility).toHaveBeenCalledTimes(1);
   });
 
   it('예약일과 만료일이 배열인 해제 불가 응답도 토스트 대신 예약·이용권 시트를 연다', async () => {
@@ -168,10 +222,8 @@ describe('연결해제를 누르면 해제 가능 여부에 따라 화면을 나
     expect(apiMock.postDisconnectOwnerMember).not.toHaveBeenCalled();
   });
 
-  it('해제 불가 시트를 닫은 뒤 그 사이 조건이 풀렸으면 `연결해제`를 다시 눌렀을 때 해제 확인 모달이 열린다', async () => {
-    apiMock.getDisconnectEligibility
-      .mockResolvedValueOnce(BLOCKED_RESPONSE)
-      .mockResolvedValueOnce(ELIGIBLE_RESPONSE);
+  it('해제 불가 시트를 닫은 뒤 그 사이 조건이 풀렸으면 `연결해제`를 다시 눌렀을 때 확인 다이얼로그를 연다', async () => {
+    apiMock.getDisconnectEligibility.mockResolvedValueOnce(BLOCKED_RESPONSE).mockResolvedValueOnce(ELIGIBLE_RESPONSE);
     renderDisconnectButton();
 
     await userEvent.click(screen.getByRole('button', { name: '연결해제' }));
@@ -179,12 +231,14 @@ describe('연결해제를 누르면 해제 가능 여부에 따라 화면을 나
     await userEvent.click(screen.getByRole('button', { name: '연결해제' }));
 
     expect(await screen.findByRole('alertdialog')).toBeTruthy();
+    expect(apiMock.postDisconnectOwnerMember).not.toHaveBeenCalled();
   });
 });
 
-describe('해제 확인 모달에서 연결을 해제한다', () => {
+describe('확인 다이얼로그에서 동의한 뒤 연결을 해제한다', () => {
   beforeEach(() => {
     apiMock.getOwnerMembers.mockResolvedValue(MEMBERS_RESPONSE);
+    apiMock.postDisconnectOwnerMember.mockResolvedValue({ data: {} });
     apiMock.getDisconnectEligibility.mockResolvedValue(ELIGIBLE_RESPONSE);
   });
 
@@ -193,18 +247,7 @@ describe('해제 확인 모달에서 연결을 해제한다', () => {
     vi.resetAllMocks();
   });
 
-  it('`닫기`를 누르면 모달이 닫히고 연결이 해제되지 않은 채 원생 프로필이 남는다', async () => {
-    renderDisconnectButton();
-
-    await userEvent.click(screen.getByRole('button', { name: '연결해제' }));
-    await userEvent.click(await screen.findByRole('button', { name: '닫기' }));
-
-    await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
-    expect(apiMock.postDisconnectOwnerMember).not.toHaveBeenCalled();
-    expect(uiMock.navigateToTab).not.toHaveBeenCalled();
-  });
-
-  it('`해제하기`가 성공하면 구성원 목록으로 이동하고 해제한 원생 이름이 들어간 토스트가 보인다', async () => {
+  it('연결 해제가 성공하면 구성원 목록으로 이동하고 해제한 원생 이름이 들어간 토스트가 보인다', async () => {
     apiMock.postDisconnectOwnerMember.mockResolvedValue({ data: {} });
     renderDisconnectButton();
 
@@ -212,7 +255,9 @@ describe('해제 확인 모달에서 연결을 해제한다', () => {
     await userEvent.click(await screen.findByRole('button', { name: '해제하기' }));
 
     await waitFor(() => expect(uiMock.navigateToTab).toHaveBeenCalledWith('/owner/members', undefined, 'owner'));
-    expect(uiMock.toast).toHaveBeenCalledWith(expect.objectContaining({ nativeTitle: expect.stringContaining('콩이') }));
+    expect(uiMock.toast).toHaveBeenCalledWith(
+      expect.objectContaining({ nativeTitle: expect.stringContaining('콩이') })
+    );
   });
 
   it('해제 직후에는 접근 권한이 없어진 프로필을 다시 조회하지 않고 캐시만 오래된 상태로 바꾼다', async () => {
@@ -241,6 +286,7 @@ describe('해제 확인 모달에서 연결을 해제한다', () => {
 describe('해제 처리 중 조건이 바뀌거나 이미 해제된 경우를 나눈다', () => {
   beforeEach(() => {
     apiMock.getOwnerMembers.mockResolvedValue(MEMBERS_RESPONSE);
+    apiMock.postDisconnectOwnerMember.mockResolvedValue({ data: {} });
   });
 
   afterEach(() => {
@@ -268,10 +314,8 @@ describe('해제 처리 중 조건이 바뀌거나 이미 해제된 경우를 �
     expect(uiMock.navigateToTab).not.toHaveBeenCalled();
   });
 
-  it('`해제하기`를 눌렀는데 그 사이 이용권·예약이 생겨 서버가 거절하면 해제 불가 시트가 열린다', async () => {
-    apiMock.getDisconnectEligibility
-      .mockResolvedValueOnce(ELIGIBLE_RESPONSE)
-      .mockResolvedValueOnce(BLOCKED_RESPONSE);
+  it('연결 해제를 요청했는데 그 사이 이용권·예약이 생겨 서버가 거절하면 해제 불가 시트가 열린다', async () => {
+    apiMock.getDisconnectEligibility.mockResolvedValueOnce(ELIGIBLE_RESPONSE).mockResolvedValueOnce(BLOCKED_RESPONSE);
     apiMock.postDisconnectOwnerMember.mockRejectedValue(
       new ApiError(409, 'OWNER_MEMBER-409-3', '남은 이용권이나 끝나지 않은 예약이 있어 연결을 해제할 수 없습니다.')
     );
@@ -284,7 +328,7 @@ describe('해제 처리 중 조건이 바뀌거나 이미 해제된 경우를 �
     expect(uiMock.navigateToTab).not.toHaveBeenCalled();
   });
 
-  it('`해제하기`를 눌렀는데 이미 해제된 원생이라는 응답이 오면 구성원 목록으로 이동하고 이미 해제됐다는 토스트가 보인다', async () => {
+  it('연결 해제를 요청했는데 이미 해제된 원생이라는 응답이 오면 구성원 목록으로 이동하고 이미 해제됐다는 토스트가 보인다', async () => {
     apiMock.getDisconnectEligibility.mockResolvedValue(ELIGIBLE_RESPONSE);
     apiMock.postDisconnectOwnerMember.mockRejectedValue(
       new ApiError(400, 'OWNER_MEMBER-400-2', '이미 연결 해제되었거나 연결된 구성원이 아닙니다.')

@@ -1,7 +1,6 @@
 import { ApiError } from '@shared/api';
 
 const GUARDIAN_DISCONNECT_ERROR = {
-  todayAttendance: 'todayAttendance',
   alreadyDisconnected: 'alreadyDisconnected',
   ticketsOrReservationRemain: 'ticketsOrReservationRemain',
   other: 'other',
@@ -10,7 +9,6 @@ const GUARDIAN_DISCONNECT_ERROR = {
 type GuardianDisconnectErrorKind = (typeof GUARDIAN_DISCONNECT_ERROR)[keyof typeof GUARDIAN_DISCONNECT_ERROR];
 
 const ERROR_CODE_TO_KIND: Record<string, GuardianDisconnectErrorKind> = {
-  'SCHOOL_MEMBERSHIP-409-1': GUARDIAN_DISCONNECT_ERROR.todayAttendance,
   'GUARDIAN_SCHOOL_CONNECTION-409-1': GUARDIAN_DISCONNECT_ERROR.alreadyDisconnected,
   'GUARDIAN_SCHOOL_CONNECTION-409-2': GUARDIAN_DISCONNECT_ERROR.ticketsOrReservationRemain,
 };

@@ -33,8 +33,6 @@ const GuardianDisconnectBlockedSheet = ({
       <BottomSheet.Overlay className='z-overlay' />
       <BottomSheet.Body
         className='z-modal overflow-hidden bg-transparent shadow-none'
-        onPointerDownOutside={(event) => event.preventDefault()}
-        onInteractOutside={(event) => event.preventDefault()}
       >
         <BottomSheet.Title className='sr-only'>{blockedSheet.title}</BottomSheet.Title>
         <DisconnectSheet

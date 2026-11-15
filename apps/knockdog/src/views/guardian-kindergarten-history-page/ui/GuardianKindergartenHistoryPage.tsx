@@ -69,7 +69,7 @@ function GuardianKindergartenHistoryPage() {
           ) : (
             <div className='px-x4 flex flex-col gap-7 pt-5 pb-[max(2rem,var(--safe-area-inset-bottom,0px))]'>
               <section aria-label={content.currentSectionTitle} className='flex flex-col gap-2.5'>
-                <h2 className='body2-bold text-text-secondary'>{content.currentSectionTitle}</h2>
+                <h2 className='body2-semibold text-text-secondary'>{content.currentSectionTitle}</h2>
                 {currentItem ? (
                   <GuardianConnectionHistoryCard
                     item={currentItem}
@@ -78,7 +78,7 @@ function GuardianKindergartenHistoryPage() {
                     onHistoryOutdated={refetch}
                   />
                 ) : (
-                  <p className='body1-regular text-text-secondary bg-bg-50 radius-r3 px-x4 py-x6 text-center'>
+                  <p className='body2-semibold text-text-caption border-line-200 radius-r3 px-x4 flex min-h-[52px] items-center justify-center border border-solid text-center'>
                     {content.currentEmpty}
                   </p>
                 )}
