@@ -14,18 +14,16 @@ function GuardianKindergartenEmptyState() {
         <div className='px-x4 shrink-0 pt-6'>
           <GuardianKindergartenHomeSegment />
         </div>
-        <div className='px-x4 flex flex-1 flex-col items-center justify-center gap-5 text-center'>
-          <div className='relative flex h-[200px] w-full items-center justify-center'>
-            <div className='relative h-[200px] w-[180px]'>
-              <Image
-                src={guardianKindergartenEmptyContent.imageSrc}
-                alt={guardianKindergartenEmptyContent.imageAlt}
-                fill
-                className='object-contain'
-                sizes='180px'
-                priority
-              />
-            </div>
+        <div className='px-x4 gap-x1 flex flex-1 flex-col items-center justify-center text-center'>
+          <div className='relative size-[180px]'>
+            <Image
+              src={guardianKindergartenEmptyContent.imageSrc}
+              alt={guardianKindergartenEmptyContent.imageAlt}
+              fill
+              className='object-contain'
+              sizes='180px'
+              priority
+            />
           </div>
           <div className='flex w-full flex-col items-center gap-1'>
             <p className='h2-extrabold text-text-primary'>{guardianKindergartenEmptyContent.title}</p>
