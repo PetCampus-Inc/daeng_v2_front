@@ -3,10 +3,7 @@ import { cleanup, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
-import {
-  createFakePet,
-  fakeAttendanceServer,
-} from '@views/owner-daily-page/lib/ownerDailyFakeServer';
+import { createFakePet, fakeAttendanceServer } from '@views/owner-daily-page/lib/ownerDailyFakeServer';
 import { renderOwnerDaily } from '@views/owner-daily-page/lib/renderOwnerDaily';
 import { OwnerDailyPage } from '@views/owner-daily-page/ui/OwnerDailyPage';
 
@@ -19,11 +16,7 @@ vi.mock('@entities/owner-attendance-checkinout/api/attendanceCheckinout', async 
 vi.mock('@shared/ui/bottom-sheet', async () => ({
   BottomSheet: await import('@views/owner-daily-page/lib/fakeBottomSheet'),
 }));
-vi.mock('next/navigation', () => ({
-  useSearchParams: () => new URLSearchParams(),
-  useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
-  usePathname: () => '/owner/daily',
-}));
+vi.mock('next/navigation', () => import('@views/owner-daily-page/lib/fakeNextNavigation'));
 const pushMock = vi.hoisted(() => vi.fn());
 vi.mock('@shared/lib/bridge', () => ({
   useStackNavigation: () => ({ push: pushMock, back: vi.fn() }),
@@ -171,7 +164,8 @@ describe('등원목록 탭 — 필터', () => {
       }),
     ]);
 
-  const getCardNames = () => getCards().map((card) => ['콩이', '보리', '초코', '두부'].find((name) => card.textContent?.includes(name)));
+  const getCardNames = () =>
+    getCards().map((card) => ['콩이', '보리', '초코', '두부'].find((name) => card.textContent?.includes(name)));
 
   test('`전체`·`재원중`·`발송전` 칩에 각 원생 수가 보이고 `전체`가 기본 선택이다', async () => {
     seedFourPets();

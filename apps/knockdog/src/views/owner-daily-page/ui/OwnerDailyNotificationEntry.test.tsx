@@ -15,12 +15,7 @@ vi.mock('@entities/owner-attendance-checkinout/api/attendanceCheckinout', async 
 vi.mock('@shared/ui/bottom-sheet', async () => ({
   BottomSheet: await import('@views/owner-daily-page/lib/fakeBottomSheet'),
 }));
-const searchParamsMock = vi.hoisted(() => ({ current: new URLSearchParams() }));
-vi.mock('next/navigation', () => ({
-  useSearchParams: () => searchParamsMock.current,
-  useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
-  usePathname: () => '/owner/daily',
-}));
+vi.mock('next/navigation', () => import('@views/owner-daily-page/lib/fakeNextNavigation'));
 const pushMock = vi.hoisted(() => vi.fn());
 vi.mock('@shared/lib/bridge', () => ({
   useStackNavigation: () => ({ push: pushMock, back: vi.fn() }),
@@ -58,7 +53,6 @@ beforeEach(() => {
     createFakePet({ name: '콩이', reservedTime: '09:00' }),
     createFakePet({ name: '보리', reservedTime: '11:00' }),
   ]);
-  searchParamsMock.current = new URLSearchParams();
   pushMock.mockReset();
   pushMock.mockResolvedValue(undefined);
 });
@@ -70,8 +64,7 @@ afterEach(() => {
 
 describe('알림으로 일과 열기', () => {
   test('지각 토글이 켜진 상태로 이동하면 일과 화면이 `등원처리` 탭에서 지각 원생만 보여 준다', async () => {
-    searchParamsMock.current = new URLSearchParams({ tab: 'attendance-check', lateOnly: 'true', source: 'inbox' });
-    renderOwnerDaily(<OwnerDailyPage />);
+    renderOwnerDaily(<OwnerDailyPage />, { url: '/owner/daily?tab=attendance-check&lateOnly=true&source=inbox' });
 
     expect(await screen.findByRole('tab', { name: '등원처리', selected: true })).toBeTruthy();
     expect(screen.getByRole('button', { name: '지각만 보기' }).getAttribute('aria-pressed')).toBe('true');

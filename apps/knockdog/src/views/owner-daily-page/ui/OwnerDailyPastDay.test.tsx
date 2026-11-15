@@ -18,11 +18,7 @@ vi.mock('@entities/owner-attendance-checkinout/api/attendanceCheckinout', async 
 vi.mock('@shared/ui/bottom-sheet', async () => ({
   BottomSheet: await import('@views/owner-daily-page/lib/fakeBottomSheet'),
 }));
-vi.mock('next/navigation', () => ({
-  useSearchParams: () => new URLSearchParams(),
-  useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
-  usePathname: () => '/owner/daily',
-}));
+vi.mock('next/navigation', () => import('@views/owner-daily-page/lib/fakeNextNavigation'));
 const pushMock = vi.hoisted(() => vi.fn());
 vi.mock('@shared/lib/bridge', () => ({
   useStackNavigation: () => ({ push: pushMock, back: vi.fn() }),

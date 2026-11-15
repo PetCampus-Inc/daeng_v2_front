@@ -18,11 +18,7 @@ vi.mock('@entities/owner-attendance-checkinout/api/attendanceCheckinout', async 
 vi.mock('@shared/ui/bottom-sheet', async () => ({
   BottomSheet: await import('@views/owner-daily-page/lib/fakeBottomSheet'),
 }));
-vi.mock('next/navigation', () => ({
-  useSearchParams: () => new URLSearchParams(),
-  useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
-  usePathname: () => '/owner/daily',
-}));
+vi.mock('next/navigation', () => import('@views/owner-daily-page/lib/fakeNextNavigation'));
 const pushMock = vi.hoisted(() => vi.fn());
 vi.mock('@shared/lib/bridge', () => ({
   useStackNavigation: () => ({ push: pushMock, back: vi.fn() }),
@@ -89,6 +85,16 @@ describe('등원 가능 시간 미설정과 예약 없음', () => {
     renderOwnerDaily(<OwnerDailyPage />);
 
     expect(await screen.findByRole('button', { name: '설정하기' })).toBeTruthy();
+    expectNoDailyContent();
+  });
+
+  test('주소에 지난 날짜가 남아 있어도 주소를 바꾸지 않고 그 날짜 화면에 안내를 보여 준다', async () => {
+    fakeAttendanceServer.setSettings({ reservationSettingConfigured: false });
+    renderOwnerDaily(<OwnerDailyPage />, { url: '/owner/daily?date=2026-06-17&tab=attendance-list' });
+
+    expect(await screen.findByRole('button', { name: '설정하기' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /6월 17일 수요일/ })).toBeTruthy();
+    expect(window.location.search).toBe('?date=2026-06-17&tab=attendance-list');
     expectNoDailyContent();
   });
 

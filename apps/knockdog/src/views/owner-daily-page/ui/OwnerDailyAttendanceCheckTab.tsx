@@ -17,6 +17,7 @@ interface OwnerDailyAttendanceCheckTabProps {
   onLateOnlyChange: (lateOnly: boolean) => void;
   /** 처리 요청이 진행 중인 원생(petId). 이 원생의 처리 버튼은 잠긴다. */
   pendingPetIds: ReadonlySet<string>;
+  onMemberClick: (item: AttendanceCheckinoutCandidate) => void;
   onCheckIn: (item: AttendanceCheckinoutCandidate) => void;
   onAbsent: (item: AttendanceCheckinoutCandidate) => void;
   onCancelCheckIn?: (item: AttendanceCheckinoutCandidate) => void;
@@ -33,6 +34,7 @@ const OwnerDailyAttendanceCheckTab = ({
   onKeywordChange,
   onLateOnlyChange,
   pendingPetIds,
+  onMemberClick,
   onCheckIn,
   onAbsent,
   onCancelCheckIn,
@@ -90,6 +92,7 @@ const OwnerDailyAttendanceCheckTab = ({
                 dateKey={dateKey}
                 now={now}
                 isPending={pendingPetIds.has(item.petId)}
+                onMemberClick={onMemberClick}
                 onCheckIn={onCheckIn}
                 onAbsent={onAbsent}
                 onCancelCheckIn={onCancelCheckIn}

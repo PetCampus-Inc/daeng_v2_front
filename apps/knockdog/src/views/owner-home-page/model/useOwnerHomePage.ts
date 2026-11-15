@@ -29,7 +29,7 @@ const useOwnerHomePage = () => {
   const { refetch: refetchMembers } = membersQuery;
 
   const navigateToOwnerDaily = (query: Query) => {
-    const nextQuery = { ...query, from: 'home', homeEntry: String(Date.now()) };
+    const nextQuery = { ...query, from: 'home' };
     if (isNativeWebView()) {
       navigateToTab('/owner/daily', nextQuery).catch(() => {
         push({ pathname: route.owner.daily.root, query: nextQuery });

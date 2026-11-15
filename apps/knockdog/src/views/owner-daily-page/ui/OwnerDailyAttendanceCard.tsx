@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, type KeyboardEvent } from 'react';
 import { ActionButton, Avatar, AvatarFallback, AvatarImage, Icon } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 import { cva, type VariantProps } from 'class-variance-authority';
@@ -16,6 +16,8 @@ interface OwnerDailyAttendanceCardProps {
   now: Date;
   /** 이 원생의 처리 요청이 진행 중이면 버튼을 잠근다. */
   isPending: boolean;
+  /** 프로필 영역(사진·이름·견종 줄)을 누르면 그 원생의 상세 프로필로 이동한다. */
+  onMemberClick: (item: AttendanceCheckinoutCandidate) => void;
   onCheckIn: (item: AttendanceCheckinoutCandidate) => void;
   onAbsent: (item: AttendanceCheckinoutCandidate) => void;
   /** 등원 취소·결석 취소는 이어지는 작업이 연결한다. 연결하기 전에는 눌러도 아무 일도 일어나지 않는다. */
@@ -102,6 +104,7 @@ const OwnerDailyAttendanceCard = ({
   dateKey,
   now,
   isPending,
+  onMemberClick,
   onCheckIn,
   onAbsent,
   onCancelCheckIn,
@@ -117,7 +120,17 @@ const OwnerDailyAttendanceCard = ({
   return (
     <li className='bg-bg-0 radius-r5 p-x5 gap-x3 flex flex-col'>
       <div className='gap-x5 flex flex-col'>
-        <div className='gap-x3 flex items-center'>
+        <div
+          role='button'
+          tabIndex={0}
+          onClick={() => onMemberClick(item)}
+          onKeyDown={(event: KeyboardEvent<HTMLDivElement>) => {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            event.preventDefault();
+            onMemberClick(item);
+          }}
+          className='gap-x3 flex cursor-pointer items-center'
+        >
           <Avatar className='size-x10'>
             {item.profileImageUrl ? <AvatarImage src={item.profileImageUrl} alt='' className='object-cover' /> : null}
             <AvatarFallback role='img' aria-label={`${item.name} 기본 프로필 이미지`} className='bg-bg-50'>
