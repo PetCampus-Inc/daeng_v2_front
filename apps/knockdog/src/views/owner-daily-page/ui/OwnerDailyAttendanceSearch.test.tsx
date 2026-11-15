@@ -49,7 +49,7 @@ const TODAY_KEY = '2026-06-18';
 let user: ReturnType<typeof userEvent.setup>;
 
 const findSearchBox = () => screen.findByRole('searchbox', { name: '원생 검색' });
-const getLateToggle = () => screen.getByRole('button', { name: '지각' });
+const getLateToggle = () => screen.getByRole('button', { name: '지각만 보기' });
 const getPetCount = () => Number(screen.getByText(/강아지수/).textContent?.replace(/\D/g, ''));
 const getCardNames = () => screen.queryAllByRole('listitem').map((item) => item.textContent ?? '');
 

@@ -254,7 +254,7 @@ describe('결석 처리', () => {
       expect(within(card).getByText('결석')).toBeTruthy();
       expect(within(card).queryByText('지각')).toBeNull();
     });
-    await user.click(screen.getByRole('button', { name: '지각' }));
+    await user.click(screen.getByRole('button', { name: '지각만 보기' }));
     expect(getCards()).toHaveLength(0);
   });
 
@@ -332,7 +332,7 @@ describe('지각 토글(처리 시)', () => {
     ]);
     renderOwnerDaily(<OwnerDailyPage />);
     await findCard('콩이');
-    await user.click(screen.getByRole('button', { name: '지각' }));
+    await user.click(screen.getByRole('button', { name: '지각만 보기' }));
     expect(getCards()).toHaveLength(2);
 
     await clickCardButton('콩이', '등원처리');
@@ -348,7 +348,7 @@ describe('지각 토글(처리 시)', () => {
     ]);
     renderOwnerDaily(<OwnerDailyPage />);
     await findCard('콩이');
-    await user.click(screen.getByRole('button', { name: '지각' }));
+    await user.click(screen.getByRole('button', { name: '지각만 보기' }));
 
     await clickCardButton('콩이', '결석처리');
 

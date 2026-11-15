@@ -234,15 +234,15 @@ describe('등원 취소', () => {
     ]);
     await openPage();
     // 토글이 켜져 있으면 등원 완료 원생은 목록에 없어서 취소 버튼을 누를 수 없다. 끈 채로 취소하고 다시 켠다.
-    await user.click(await screen.findByRole('button', { name: '지각' }));
+    await user.click(await screen.findByRole('button', { name: '지각만 보기' }));
     await waitFor(() => expect(getCards()).toHaveLength(1));
-    await user.click(screen.getByRole('button', { name: '지각' }));
+    await user.click(screen.getByRole('button', { name: '지각만 보기' }));
 
     await cancelCheckInFromCard('콩이');
     await waitFor(async () => {
       expect(within(await findCard('콩이')).getByRole('button', { name: '등원처리' })).toBeTruthy();
     });
-    await user.click(screen.getByRole('button', { name: '지각' }));
+    await user.click(screen.getByRole('button', { name: '지각만 보기' }));
 
     await waitFor(() => expect(getCards()).toHaveLength(2));
     expect(within(await findCard('콩이')).getByText('지각')).toBeTruthy();
