@@ -38,7 +38,7 @@ function OwnerPassTemplateListPage() {
         />
       ) : templates?.length ? (
         // Figma: 헤더 아래 간격 16 + 본문 위 여백 24 = 40, 항목 사이 12
-        <div className='min-h-0 flex-1 overflow-y-auto px-4 pt-10 pb-4'>
+        <div className='min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-4 pt-10 pb-4'>
           <ul className='flex flex-col gap-3'>
             {templates.map((template) => (
               <li key={template.id}>
