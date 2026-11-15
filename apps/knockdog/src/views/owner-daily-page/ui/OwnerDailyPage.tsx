@@ -82,7 +82,6 @@ const OwnerDailyPage = () => {
     isPrevDayDisabled,
     isNextDayDisabled,
     summary,
-    totalMemberCount,
     candidates,
     isNoReservation,
     isNotConfigured,
@@ -133,7 +132,7 @@ const OwnerDailyPage = () => {
   const isFuture = dayKind === 'future';
   const summaryView =
     summary && !isNotConfigured && !isLoading && !isError && !isPastNoRecord && !isNoReservation
-      ? toOwnerDailySummaryView(summary, dayKind, totalMemberCount)
+      ? toOwnerDailySummaryView(summary, dayKind)
       : null;
 
   const handleBackToOwnerHome = useCallback(() => {

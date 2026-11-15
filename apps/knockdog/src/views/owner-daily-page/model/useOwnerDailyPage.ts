@@ -15,7 +15,6 @@ import {
   type TodayAttendanceFilter,
 } from '@entities/owner-attendance-checkinout';
 import { useUserStore } from '@entities/user';
-import { useOwnerMembersQuery } from '@entities/owner-member';
 
 import { addDays, formatDateKey, getKstDateKey, isAfterDay, isSameDay, startOfDay } from '@shared/lib/calendar-date';
 
@@ -83,7 +82,6 @@ const useOwnerDailyPage = ({
   const hasCandidates = dayKind !== 'past';
   const hasTodayList = dayKind !== 'future';
   const summaryQuery = useAttendanceCheckinoutSummaryQuery({ date: selectedDateKey, userId });
-  const membersQuery = useOwnerMembersQuery({ userId, enabled: hasCandidates });
   const candidatesQuery = useAttendanceCheckinoutCandidatesQuery({
     date: selectedDateKey,
     userId,
@@ -112,11 +110,10 @@ const useOwnerDailyPage = ({
   const isLoading =
     summaryQuery.isLoading ||
     isCandidatesLoading ||
-    (hasTodayList && todayListQuery.isLoading) ||
-    (hasCandidates && membersQuery.isLoading);
+    (hasTodayList && todayListQuery.isLoading);
   const isError =
     summaryQuery.isError ||
-    (hasCandidates && (candidatesQuery.isError || membersQuery.isError)) ||
+    (hasCandidates && candidatesQuery.isError) ||
     (hasTodayList && todayListQuery.isError);
 
   useEffect(() => {
@@ -138,7 +135,6 @@ const useOwnerDailyPage = ({
   /** 실패한 필수 조회만 다시 요청한다. */
   const handleRetry = () => {
     if (summaryQuery.isError) summaryQuery.refetch();
-    if (hasCandidates && membersQuery.isError) membersQuery.refetch();
     if (hasCandidates && candidatesQuery.isError) candidatesQuery.refetch();
     if (hasTodayList && todayListQuery.isError) todayListQuery.refetch();
   };
@@ -168,7 +164,6 @@ const useOwnerDailyPage = ({
     isPrevDayDisabled,
     isNextDayDisabled,
     summary: summaryQuery.data,
-    totalMemberCount: membersQuery.data?.counts.all,
     candidates,
     isNoReservation,
     isNotConfigured,
