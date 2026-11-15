@@ -16,7 +16,7 @@ function NotificationBell({ hasUnread, onClick, inverse = false }: NotificationB
       onClick={onClick}
     >
       <Icon
-        icon={hasUnread ? 'AlarmLineActive' : 'AlarmNone'}
+        icon={hasUnread ? 'BellDot' : 'BellLine'}
         className={cn(
           'size-6',
           inverse ? 'text-text-primary-inverse [&>circle]:fill-white [&>circle]:stroke-white' : 'text-text-primary'
