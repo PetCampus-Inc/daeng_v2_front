@@ -38,6 +38,7 @@ import { logout } from '@shared/lib/auth/logout';
 import { NotificationBell } from '@shared/ui/notification-bell';
 import { PrivateAccess } from '@shared/ui/private-access';
 import { openConfirmDialog, useStackNavigation } from '@shared/lib/bridge';
+import { closeOverlayThenNavigate } from '@shared/lib/navigation/closeOverlayThenNavigate';
 import {
   route,
   RELEASE_PERMISSION_SOURCE,
@@ -178,12 +179,10 @@ function MypageContent() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
+            <AlertDialogCancel>{ownerMypageContent.withdrawBlockedModalCancelLabel}</AlertDialogCancel>
             <AlertDialogAction
               className='bg-fill-secondary-700 active:bg-fill-secondary-400'
-              onClick={() => {
-                close();
-                goToReleasePermission();
-              }}
+              onClick={() => closeOverlayThenNavigate(close, goToReleasePermission)}
             >
               {ownerMypageContent.withdrawBlockedModalConfirmLabel}
             </AlertDialogAction>
@@ -202,8 +201,8 @@ function MypageContent() {
     const result = await openConfirmDialog({
       title: `${ownerMypageContent.withdrawBlockedModalTitleLine1}\n${ownerMypageContent.withdrawBlockedModalTitleLine2}`,
       description: `${ownerMypageContent.withdrawBlockedModalDescriptionLine1}\n${ownerMypageContent.withdrawBlockedModalDescriptionLine2}`,
+      cancelLabel: ownerMypageContent.withdrawBlockedModalCancelLabel,
       confirmLabel: ownerMypageContent.withdrawBlockedModalConfirmLabel,
-      showCancelButton: false,
       confirmVariant: 'neutral',
     });
 
