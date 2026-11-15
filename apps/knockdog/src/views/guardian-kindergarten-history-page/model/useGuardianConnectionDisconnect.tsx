@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { overlay } from 'overlay-kit';
 import type { DisconnectTicketProps } from '@knockdog/ui';
 
@@ -46,8 +46,7 @@ interface UseGuardianConnectionDisconnectOptions {
 
 /**
  * 보호자 연결 해제.
- * 확인 모달에서 `연결 해제하기`를 누르면 모달을 닫고 해제 가능 여부를 조회한 뒤,
- * 결과에 따라 해제 / 해제 불가 시트 / 당일 등원 토스트로 나눈다.
+ * 가능 여부 조회 후 true이면 확인 다이얼로그를, false이면 사유 시트를 연다.
  */
 function useGuardianConnectionDisconnect({
   kindergartenName,
@@ -62,6 +61,7 @@ function useGuardianConnectionDisconnect({
   const userId = useUserStore((state) => state.user?.userId);
   const disconnectMutation = useGuardianSchoolDisconnectMutation({ userId });
   const [isChecking, setIsChecking] = useState(false);
+  const isProcessing = useRef(false);
 
   const showSuccessToast = () => {
     toast({
@@ -92,56 +92,64 @@ function useGuardianConnectionDisconnect({
     ));
   };
 
-  const openBlockedSheetFor = (eligibility: GuardianDisconnectEligibility, judgement: string) => {
+  const openBlockedSheetFor = (eligibility: GuardianDisconnectEligibility) => {
     const { blockedSheet } = content;
-
-    if (judgement === GUARDIAN_DISCONNECT_JUDGEMENT.tickets) {
-      openBlockedSheet(
-        blockedSheet.ticketsBody,
-        eligibility.tickets.map((ticket) => ({
-          kind: 'pass',
-          title: ticket.name,
-          description: toTicketExpiryLabel(ticket.expiresOn),
-          amount: `${ticket.remainingCount}${blockedSheet.ticketRemainingSuffix}`,
-        }))
-      );
-      return;
-    }
+    const bodies = [
+      eligibility.tickets.length > 0 && blockedSheet.ticketsBody,
+      eligibility.reservation && blockedSheet.reservationBody,
+    ].filter(Boolean);
+    const tickets: DisconnectTicketProps[] = eligibility.tickets.map((ticket) => ({
+      kind: 'pass',
+      title: ticket.name,
+      description: toTicketExpiryLabel(ticket.expiresOn),
+      amount: `${ticket.remainingCount}${blockedSheet.ticketRemainingSuffix}`,
+    }));
 
     if (eligibility.reservation) {
-      openBlockedSheet(blockedSheet.reservationBody, [
-        {
-          kind: 'reservation',
-          title: `${kindergartenName}${blockedSheet.reservationTitleSuffix}`,
-          description: toReservationScheduleLabel(eligibility.reservation.date, eligibility.reservation.time),
-          amount: blockedSheet.reservationStatus,
-        },
-      ]);
+      tickets.push({
+        kind: 'reservation',
+        title: `${kindergartenName}${blockedSheet.reservationTitleSuffix}`,
+        description: toReservationScheduleLabel(eligibility.reservation.date, eligibility.reservation.time),
+        amount: blockedSheet.reservationStatus,
+      });
     }
+
+    openBlockedSheet(bodies.join('\n\n') || blockedSheet.unknownBody, tickets);
   };
 
-  /** 해제 조건을 조회해 막는 이유가 있으면 안내하고, 없으면 해제를 진행한다 */
+  /** 서버가 허용한 경우만 해제하고, 그 외에는 사유 시트를 연다. */
   const checkAndDisconnect = async () => {
+    if (isProcessing.current) return;
     if (!schoolPetMembershipId) {
       toast({ title: content.disconnectFailToast });
       return;
     }
 
+    isProcessing.current = true;
     setIsChecking(true);
     try {
       const eligibility = toDisconnectEligibility(await getDisconnectEligibility({ schoolPetMembershipId }));
       const judgement = judgeGuardianDisconnect(eligibility);
 
-      if (judgement === GUARDIAN_DISCONNECT_JUDGEMENT.todayAttendance) {
-        toast({ title: content.disconnectBlockedToast });
-      } else if (judgement === GUARDIAN_DISCONNECT_JUDGEMENT.proceed) {
-        await requestDisconnect(schoolPetMembershipId);
+      if (judgement === GUARDIAN_DISCONNECT_JUDGEMENT.proceed) {
+        overlay.open(({ isOpen, close }) => (
+          <GuardianConnectionDisconnectDialog
+            isOpen={isOpen}
+            kindergartenName={kindergartenName}
+            petName={petName}
+            close={close}
+            onDisconnect={() => {
+              void confirmDisconnect(schoolPetMembershipId);
+            }}
+          />
+        ));
       } else {
-        openBlockedSheetFor(eligibility, judgement);
+        openBlockedSheetFor(eligibility);
       }
     } catch {
       toast({ title: content.disconnectFailToast });
     } finally {
+      isProcessing.current = false;
       setIsChecking(false);
     }
   };
@@ -152,13 +160,8 @@ function useGuardianConnectionDisconnect({
       const eligibility = toDisconnectEligibility(
         await getDisconnectEligibility({ schoolPetMembershipId: membershipId })
       );
-      const judgement = judgeGuardianDisconnect(eligibility);
-
-      if (
-        judgement === GUARDIAN_DISCONNECT_JUDGEMENT.tickets ||
-        judgement === GUARDIAN_DISCONNECT_JUDGEMENT.reservation
-      ) {
-        openBlockedSheetFor(eligibility, judgement);
+      if (!eligibility.canDisconnect) {
+        openBlockedSheetFor(eligibility);
         return;
       }
     } catch {
@@ -177,8 +180,6 @@ function useGuardianConnectionDisconnect({
         await recheckAfterRejection(membershipId);
       } else if (errorKind === GUARDIAN_DISCONNECT_ERROR.alreadyDisconnected) {
         onHistoryOutdated?.();
-      } else if (errorKind === GUARDIAN_DISCONNECT_ERROR.todayAttendance) {
-        toast({ title: content.disconnectBlockedToast });
       } else {
         toast({ title: content.disconnectFailToast });
       }
@@ -195,18 +196,20 @@ function useGuardianConnectionDisconnect({
     showSuccessToast();
   };
 
-  const handleDisconnectClick = () => {
-    if (isChecking || disconnectMutation.isPending) return;
+  const confirmDisconnect = async (membershipId: string) => {
+    if (isProcessing.current) return;
+    isProcessing.current = true;
+    setIsChecking(true);
+    try {
+      await requestDisconnect(membershipId);
+    } finally {
+      isProcessing.current = false;
+      setIsChecking(false);
+    }
+  };
 
-    overlay.open(({ isOpen, close }) => (
-      <GuardianConnectionDisconnectDialog
-        isOpen={isOpen}
-        kindergartenName={kindergartenName}
-        petName={petName}
-        close={close}
-        onDisconnect={checkAndDisconnect}
-      />
-    ));
+  const handleDisconnectClick = () => {
+    void checkAndDisconnect();
   };
 
   return {

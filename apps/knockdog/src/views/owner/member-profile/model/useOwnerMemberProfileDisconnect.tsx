@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { overlay } from 'overlay-kit';
 
 import { useOwnerRole } from '@features/role-conversion';
@@ -19,8 +19,8 @@ import { trackConnectionStatus } from '@shared/lib/analytics';
 import { useTabNavigation } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
 import { ownerMemberProfileContent } from '@views/owner/member-profile/config/ownerMemberProfileContent';
-import { DisconnectBlockedSheet } from '@views/owner/member-profile/ui/DisconnectBlockedSheet';
 import { OwnerMemberProfileDisconnectDialog } from '@views/owner/member-profile/ui/OwnerMemberProfileDisconnectDialog';
+import { DisconnectBlockedSheet } from '@views/owner/member-profile/ui/DisconnectBlockedSheet';
 
 interface UseOwnerMemberProfileDisconnectOptions {
   petId: string;
@@ -31,16 +31,14 @@ interface UseOwnerMemberProfileDisconnectOptions {
 /**
  * 원생 프로필 연결 해제.
  *
- * - 권한 해제(API) 실패 → 공통 오류 토스트 + 프로필 화면 유지(모달 닫음)
+ * - 권한 해제(API) 실패 → 공통 오류 토스트 + 프로필 화면 유지
  * - 권한 해제 성공 후 알림·탭 이동·토스트 오류 → 연결 해제 완료로 간주
  * - 보호자 알림/앨범 미노출/당일 등원 일과 노출은 서버 정책
  */
-function useOwnerMemberProfileDisconnect({
-  petId,
-  dogName,
-  enabled = true,
-}: UseOwnerMemberProfileDisconnectOptions) {
+function useOwnerMemberProfileDisconnect({ petId, dogName, enabled = true }: UseOwnerMemberProfileDisconnectOptions) {
   const content = ownerMemberProfileContent;
+  const isProcessing = useRef(false);
+  const [isChecking, setIsChecking] = useState(false);
   const userId = useUserStore((state) => state.user?.userId);
   const { navigateToTab } = useTabNavigation();
   const { kindergarten } = useOwnerRole();
@@ -70,7 +68,7 @@ function useOwnerMemberProfileDisconnect({
 
   const navigateToMembers = async (closeDialog?: () => void) => {
     if (closeDialog) {
-      // 확인창을 닫는 history.back이 목록 이동을 되돌리지 않도록 popstate 이후에 이동한다.
+      // 다이얼로그의 history.back이 목록 이동을 되돌리지 않도록 기다린다.
       if (window.history.state?.__knockdogOverlayId) {
         await new Promise<void>((resolve) => {
           const finish = () => {
@@ -86,7 +84,6 @@ function useOwnerMemberProfileDisconnect({
         closeDialog();
       }
     }
-
     await navigateToTab('/owner/members', undefined, 'owner');
   };
 
@@ -136,19 +133,10 @@ function useOwnerMemberProfileDisconnect({
    * - `'failed'` 권한 해제 실패 — 프로필 복귀
    * - `'completed'` 권한 해제 성공 또는 이미 해제됨(이후 이동/토스트 실패 포함)
    */
-  const disconnectAndNotify = async (closeDialog: () => void): Promise<'failed' | 'completed'> => {
-    let resolvedMemberId: string | null;
-    try {
-      resolvedMemberId = await resolveMemberId();
-    } catch {
-      showFailToast();
-      return 'failed';
-    }
-
-    if (!resolvedMemberId) {
-      return handleAlreadyDisconnected(closeDialog);
-    }
-
+  const disconnectAndNotify = async (
+    resolvedMemberId: string,
+    closeDialog: () => void
+  ): Promise<'failed' | 'completed'> => {
     try {
       await disconnectMutation.mutateAsync(resolvedMemberId);
     } catch (error) {
@@ -187,18 +175,6 @@ function useOwnerMemberProfileDisconnect({
     return 'completed';
   };
 
-  const openConfirmDialog = () => {
-    // OverlayProvider history trap — 시스템/브라우저 뒤로가기는 모달만 닫음
-    overlay.open(({ isOpen, close }) => (
-      <OwnerMemberProfileDisconnectDialog
-        isOpen={isOpen}
-        dogName={dogName}
-        close={close}
-        onDisconnect={() => disconnectAndNotify(close)}
-      />
-    ));
-  };
-
   const openBlockedSheet = (eligibility: OwnerMemberDisconnectEligibility, bodyKind: OwnerMemberDisconnectBodyKind) => {
     overlay.open(({ isOpen, close }) => (
       <DisconnectBlockedSheet
@@ -211,8 +187,8 @@ function useOwnerMemberProfileDisconnect({
     ));
   };
 
-  /** `연결해제`를 누르면 해제 가능 여부를 새로 조회해 시트(해제 불가) 또는 확인 모달(해제 가능)을 연다 */
-  const handleDisconnectClick = async () => {
+  /** 가능 여부 조회 후 true이면 확인 다이얼로그를, false이면 사유 시트를 연다. */
+  const checkAndDisconnect = async () => {
     let resolvedMemberId: string | null;
     try {
       resolvedMemberId = await resolveMemberId();
@@ -237,17 +213,36 @@ function useOwnerMemberProfileDisconnect({
       return;
     }
 
-    if (eligibility.canDisconnect || !eligibility.bodyKind) {
-      openConfirmDialog();
+    if (eligibility.canDisconnect) {
+      overlay.open(({ isOpen, close }) => (
+        <OwnerMemberProfileDisconnectDialog
+          isOpen={isOpen}
+          dogName={dogName}
+          close={close}
+          onDisconnect={() => disconnectAndNotify(resolvedMemberId, close)}
+        />
+      ));
       return;
     }
 
-    openBlockedSheet(eligibility, eligibility.bodyKind);
+    openBlockedSheet(eligibility, eligibility.bodyKind ?? 'unknown');
+  };
+
+  const handleDisconnectClick = async () => {
+    if (isProcessing.current) return;
+    isProcessing.current = true;
+    setIsChecking(true);
+    try {
+      await checkAndDisconnect();
+    } finally {
+      isProcessing.current = false;
+      setIsChecking(false);
+    }
   };
 
   return {
     handleDisconnectClick,
-    isDisconnecting: disconnectMutation.isPending || eligibilityMutation.isPending,
+    isDisconnecting: isChecking || disconnectMutation.isPending || eligibilityMutation.isPending,
   };
 }
 

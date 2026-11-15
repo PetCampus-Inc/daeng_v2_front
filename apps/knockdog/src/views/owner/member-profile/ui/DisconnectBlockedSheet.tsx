@@ -4,10 +4,7 @@ import { ActionButton } from '@knockdog/ui';
 
 import { ownerMemberProfileContent } from '@views/owner/member-profile/config/ownerMemberProfileContent';
 
-import type {
-  OwnerMemberDisconnectBlock,
-  OwnerMemberDisconnectBodyKind,
-} from '@entities/owner-member';
+import type { OwnerMemberDisconnectBlock, OwnerMemberDisconnectBodyKind } from '@entities/owner-member';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 
 interface DisconnectBlockedSheetProps {
@@ -36,16 +33,15 @@ const DisconnectBlockRow = ({ title, description, trailing }: DisconnectBlockRow
   </li>
 );
 
-const DisconnectBlockedSheet = ({
-  isOpen,
-  close,
-  bodyKind,
-  blocks,
-  kindergartenName,
-}: DisconnectBlockedSheetProps) => {
+const DisconnectBlockedSheet = ({ isOpen, close, blocks, kindergartenName }: DisconnectBlockedSheetProps) => {
   const { disconnectBlockedSheet } = ownerMemberProfileContent;
   const body =
-    bodyKind === 'ticket' ? disconnectBlockedSheet.ticketBody : disconnectBlockedSheet.reservationBody;
+    [
+      blocks.some((block) => block.type === 'ticket') && disconnectBlockedSheet.ticketBody,
+      blocks.some((block) => block.type === 'reservation') && disconnectBlockedSheet.reservationBody,
+    ]
+      .filter(Boolean)
+      .join('\n\n') || disconnectBlockedSheet.unknownBody;
 
   const handleOpenChange = (open: boolean) => {
     if (!open) close();
@@ -70,14 +66,14 @@ const DisconnectBlockedSheet = ({
                   description={`${block.dateLabel} ${block.timeLabel}${disconnectBlockedSheet.reservationDescriptionSuffix}`}
                   trailing={disconnectBlockedSheet.reservationStatusLabel}
                 />
-              ) : (
+              ) : block.type === 'ticket' ? (
                 <DisconnectBlockRow
                   key={`ticket-${index}`}
                   title={block.name}
                   description={block.expiryLabel}
                   trailing={`${block.remainingCount}${disconnectBlockedSheet.remainingCountSuffix}`}
                 />
-              )
+              ) : null
             )}
           </ul>
         </div>

@@ -29,6 +29,7 @@ const guardianConnectionHistoryContent = {
   },
   blockedSheet: {
     title: '아직 연결을 해제할 수 없어요.',
+    unknownBody: '연결을 해제할 수 없는 사유를 확인하지 못했어요. 유치원에 문의해 주세요.',
     ticketsBody:
       '사용할 수 있는 이용권이 아직 남아 있어요. \n이용권을 다 쓰거나, 기한이 끝나야 해제할 수 있어요. \n남은 이용권 정리는 유치원에 문의해 주세요.',
     reservationBody:
@@ -38,8 +39,6 @@ const guardianConnectionHistoryContent = {
     ticketRemainingSuffix: '회 남음',
     scrollableTicketCount: 3,
   },
-  /** 당일 등원 기록이 있을 때 */
-  disconnectBlockedToast: '오늘은 등원 기록이 있어 연결을 해제할 수 없어요',
   /** API/네트워크 실패 */
   disconnectFailToast: '일시적 오류로 요청을 완료하지 못했어요',
   disconnectSuccessToastSuffix: '과의 연결을 해제했어요',

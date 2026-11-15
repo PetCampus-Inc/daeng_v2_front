@@ -6,7 +6,6 @@ import type { GuardianDisconnectEligibility } from '@entities/guardian-home';
 
 const createEligibility = (overrides: Partial<GuardianDisconnectEligibility>): GuardianDisconnectEligibility => ({
   canDisconnect: false,
-  hasTodayAttendance: false,
   tickets: [],
   reservation: null,
   ...overrides,
@@ -40,11 +39,7 @@ describe('해제 가능 조건 판정', () => {
     expect(result).toBe('reservation');
   });
 
-  test('오늘 등원 기록이 있으면 이용권·예약이 함께 남아 있어도 당일 등원 안내로 판정한다', () => {
-    const result = judgeGuardianDisconnect(
-      createEligibility({ hasTodayAttendance: true, tickets: [TICKET], reservation: RESERVATION })
-    );
-
-    expect(result).toBe('todayAttendance');
+  test('false이고 사유가 없어도 차단한다', () => {
+    expect(judgeGuardianDisconnect(createEligibility({}))).toBe('blocked');
   });
 });

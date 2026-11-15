@@ -49,4 +49,13 @@ describe('해제 가능 여부 응답을 화면 모델로 바꾼다', () => {
 
     expect(eligibility.tickets[0]?.expiresOn).toBe('2026-12-31');
   });
+  test('기존 ATTENDANCE 값은 별도 차단 사유로 변환하지 않는다', () => {
+    const eligibility = toDisconnectEligibility(
+      disconnectEligibilityDtoSchema.parse({
+        canDisconnect: true,
+        blocks: [{ type: 'ATTENDANCE' }],
+      })
+    );
+    expect(eligibility).toEqual({ canDisconnect: true, tickets: [], reservation: null });
+  });
 });

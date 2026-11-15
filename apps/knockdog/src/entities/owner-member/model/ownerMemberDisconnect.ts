@@ -51,12 +51,10 @@ interface OwnerMemberDisconnectReservationBlock {
   timeLabel: string;
 }
 
-type OwnerMemberDisconnectBlock =
-  | OwnerMemberDisconnectTicketBlock
-  | OwnerMemberDisconnectReservationBlock;
+type OwnerMemberDisconnectBlock = OwnerMemberDisconnectTicketBlock | OwnerMemberDisconnectReservationBlock;
 
 /** 안내 시트 본문 종류. 이용권이 하나라도 있으면 `ticket`, 예약만 있으면 `reservation` */
-type OwnerMemberDisconnectBodyKind = 'ticket' | 'reservation';
+type OwnerMemberDisconnectBodyKind = 'ticket' | 'reservation' | 'unknown';
 
 interface OwnerMemberDisconnectEligibility {
   canDisconnect: boolean;
@@ -86,9 +84,7 @@ const toTwelveHourTimeLabel = (time: string): string => {
   return `${meridiem} ${twelveHour}:${minuteText.padStart(2, '0')}`;
 };
 
-const toDisconnectBlock = (
-  blockDto: OwnerMemberDisconnectBlockDto
-): OwnerMemberDisconnectBlock | null => {
+const toDisconnectBlock = (blockDto: OwnerMemberDisconnectBlockDto): OwnerMemberDisconnectBlock | null => {
   if (blockDto.type === DISCONNECT_BLOCK_TYPE.ticket && blockDto.ticket) {
     const { name, remainingCount, expiresOn } = blockDto.ticket;
 
@@ -114,9 +110,7 @@ const toDisconnectBlock = (
   return null;
 };
 
-const toDisconnectEligibility = (
-  dto: OwnerMemberDisconnectEligibilityDto
-): OwnerMemberDisconnectEligibility => {
+const toDisconnectEligibility = (dto: OwnerMemberDisconnectEligibilityDto): OwnerMemberDisconnectEligibility => {
   const blocks = dto.blocks.flatMap((blockDto) => toDisconnectBlock(blockDto) ?? []);
   const hasTicket = blocks.some((block) => block.type === 'ticket');
   const hasReservation = blocks.some((block) => block.type === 'reservation');
@@ -124,7 +118,7 @@ const toDisconnectEligibility = (
   return {
     canDisconnect: dto.canDisconnect,
     blocks,
-    bodyKind: hasTicket ? 'ticket' : hasReservation ? 'reservation' : null,
+    bodyKind: dto.canDisconnect ? null : hasTicket ? 'ticket' : hasReservation ? 'reservation' : 'unknown',
   };
 };
 

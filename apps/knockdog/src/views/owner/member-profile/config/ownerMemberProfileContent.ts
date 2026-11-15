@@ -62,6 +62,7 @@ const ownerMemberProfileContent = {
   /** 해제할 수 없을 때 보여주는 바텀시트 */
   disconnectBlockedSheet: {
     title: '아직 연결을 해제할 수 없어요.',
+    unknownBody: '연결을 해제할 수 없는 사유를 확인하지 못했어요. 유치원에 문의해 주세요.',
     ticketBody: '사용할 수 있는 이용권이 아직 남아 있어요.\n이용권을 삭제하거나 만료된 뒤 해제할 수 있어요.',
     reservationBody: '완료되지 않은 예약이 남아 있어요.\n예약한 날이 지나면 해제할 수 있어요.',
     confirmLabel: '확인',

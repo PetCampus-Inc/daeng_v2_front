@@ -52,7 +52,7 @@ const nullableClockSchema = z
   .transform((value) => toClock(value));
 
 const disconnectBlockDtoSchema = z.object({
-  type: z.enum(['ATTENDANCE', 'RESERVATION', 'TICKET']),
+  type: z.string(),
   ticket: z
     .object({
       name: z.string(),
@@ -94,22 +94,18 @@ interface GuardianDisconnectReservation {
 
 interface GuardianDisconnectEligibility {
   canDisconnect: boolean;
-  hasTodayAttendance: boolean;
   tickets: GuardianDisconnectTicket[];
   /** 서버가 내려 주는 등원 예정일이 가장 가까운 예약 1건. 없으면 null */
   reservation: GuardianDisconnectReservation | null;
 }
 
 /** 서버 응답을 화면 모델로 바꾼다. 이유 종류별로 나눠 담는다. */
-const toDisconnectEligibility = (
-  dto: GuardianDisconnectEligibilityDto
-): GuardianDisconnectEligibility => {
+const toDisconnectEligibility = (dto: GuardianDisconnectEligibilityDto): GuardianDisconnectEligibility => {
   const blocks = dto.blocks ?? [];
   const reservationBlock = blocks.find((block) => block.type === 'RESERVATION' && block.reservation);
 
   return {
     canDisconnect: dto.canDisconnect,
-    hasTodayAttendance: blocks.some((block) => block.type === 'ATTENDANCE'),
     tickets: blocks.flatMap((block) =>
       block.type === 'TICKET' && block.ticket
         ? [
