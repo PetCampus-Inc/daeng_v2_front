@@ -291,7 +291,7 @@ function OwnerPassTemplateFormPage({ mode }: OwnerPassTemplateFormPageProps) {
           <Header.LeftSection>
             <Header.BackButton />
           </Header.LeftSection>
-          <Header.Title>{ownerPassTemplateContent.managementTitle}</Header.Title>
+          <Header.Title>{ownerPassTemplateContent.createTitle}</Header.Title>
         </Header>
         <PageError
           layout='inline'
