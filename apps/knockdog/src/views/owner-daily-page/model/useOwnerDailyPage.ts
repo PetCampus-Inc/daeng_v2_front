@@ -40,7 +40,7 @@ const NOW_REFRESH_INTERVAL_MS = 10_000;
  * - 탭: 주소에 `tab`이 없으면 오늘은 `등원처리`, 지난·미래 날짜는 `등원목록`이 기본이고 날짜를 바꾸면 기본 탭으로 돌아간다.
  * - 등원처리 탭의 검색어(`q`)와 `지각` 토글(`lateOnly`): 탭과 날짜를 오가도 유지된다.
  * - 등원목록 필터 칩(`todayFilter`): 칩을 바꾸면 서버 필터로 다시 조회하고, 날짜를 바꾸면 `전체`로 돌아간다.
- * - 등원 가능 시간 미설정: 현황 응답이 미설정이면(`isNotConfigured`) 오늘 날짜만 보여 주고 날짜 이동을 막는다.
+ * - 등원 가능 시간 미설정: 현황 응답이 미설정이면(`isNotConfigured`) 날짜 이동을 막고 보던 날짜 화면에 `설정하기` 안내를 보여 준다.
  * - 조회 실패: 필수 조회 하나라도 실패하면 `isError`이고, `handleRetry`가 실패한 조회만 다시 요청한다.
  * - 조회: 현황(summary)은 항상, 등원 대상(candidates)은 오늘·미래, 등원목록(today)은 오늘·지난 날짜만 한다.
  *   전체 등록 원생 수는 오늘·미래 날짜에 구성원 목록의 전체 집계로 조회한다.
@@ -86,18 +86,6 @@ const useOwnerDailyPage = () => {
   const isNotConfigured = summaryQuery.data?.reservationSettingConfigured === false;
   const isPrevDayDisabled = isNotConfigured || !isAfterDay(selectedDate, minDate);
   const isNextDayDisabled = isNotConfigured || !isAfterDay(maxDate, selectedDate);
-
-  // 미설정이면 지난·미래 날짜를 보고 있었더라도 주소에서 날짜·탭·필터를 지워 오늘로 돌려놓는다.
-  const hasViewOverride = dateParam !== null || tabParam !== null || todayFilter !== undefined;
-  useEffect(() => {
-    if (!isNotConfigured || !hasViewOverride) return;
-
-    replaceUrlQuery({
-      [OWNER_DAILY_QUERY_KEY.date]: null,
-      [OWNER_DAILY_QUERY_KEY.tab]: null,
-      [OWNER_DAILY_QUERY_KEY.todayFilter]: null,
-    });
-  }, [isNotConfigured, hasViewOverride, replaceUrlQuery]);
 
   // 날짜가 바뀐 직후에는 이전 날짜의 목록이 잠깐 남아 있으므로(placeholder) 불러오는 중으로 본다.
   const isCandidatesLoading = hasCandidates && (candidatesQuery.isLoading || candidatesQuery.isPlaceholderData);

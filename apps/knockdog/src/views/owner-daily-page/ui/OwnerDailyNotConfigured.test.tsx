@@ -88,6 +88,16 @@ describe('등원 가능 시간 미설정과 예약 없음', () => {
     expectNoDailyContent();
   });
 
+  test('주소에 지난 날짜가 남아 있어도 주소를 바꾸지 않고 그 날짜 화면에 안내를 보여 준다', async () => {
+    fakeAttendanceServer.setSettings({ reservationSettingConfigured: false });
+    renderOwnerDaily(<OwnerDailyPage />, { url: '/owner/daily?date=2026-06-17&tab=attendance-list' });
+
+    expect(await screen.findByRole('button', { name: '설정하기' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /6월 17일 수요일/ })).toBeTruthy();
+    expect(window.location.search).toBe('?date=2026-06-17&tab=attendance-list');
+    expectNoDailyContent();
+  });
+
   test('미설정 안내에서도 타이틀·알림 아이콘·날짜 선택은 유지된다', async () => {
     fakeAttendanceServer.setSettings({ reservationSettingConfigured: false });
     renderOwnerDaily(<OwnerDailyPage />);

@@ -142,7 +142,7 @@ describe('일과 화면 상태를 주소로 유지', () => {
   });
 
   test('홈에서 들어온 표시(`from=home`)는 화면 상태를 바꿔도 주소에 남는다', async () => {
-    renderOwnerDaily(<OwnerDailyPage />, { url: '/owner/daily?from=home&homeEntry=1' });
+    renderOwnerDaily(<OwnerDailyPage />, { url: '/owner/daily?from=home' });
 
     await user.click(await screen.findByRole('tab', { name: '등원목록' }));
 
@@ -158,7 +158,7 @@ describe('홈·알림이 새 주소로 열 때', () => {
     });
     expect(await screen.findByRole('tab', { name: '등원목록', selected: true })).toBeTruthy();
 
-    act(() => setFakeUrl('/owner/daily?tab=attendance-check&lateOnly=true&from=home&homeEntry=2'));
+    act(() => setFakeUrl('/owner/daily?tab=attendance-check&lateOnly=true&from=home'));
 
     expect(await screen.findByRole('tab', { name: '등원처리', selected: true })).toBeTruthy();
     expect(getLateToggle().getAttribute('aria-pressed')).toBe('true');
@@ -169,7 +169,7 @@ describe('홈·알림이 새 주소로 열 때', () => {
     renderOwnerDaily(<OwnerDailyPage />, { url: '/owner/daily?q=보리' });
     expect((await screen.findByRole('searchbox', { name: '원생 검색' })).getAttribute('value')).toBe('보리');
 
-    act(() => setFakeUrl('/owner/daily?tab=attendance-check&lateOnly=true&homeEntry=3'));
+    act(() => setFakeUrl('/owner/daily?tab=attendance-check&lateOnly=true'));
 
     expect(screen.getByRole('searchbox', { name: '원생 검색' }).getAttribute('value')).toBe('');
   });
