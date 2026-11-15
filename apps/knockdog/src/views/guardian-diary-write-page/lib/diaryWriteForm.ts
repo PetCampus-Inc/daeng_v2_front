@@ -65,6 +65,10 @@ function isDiaryImportVisible({ hasNotice, isImported, isImportDismissed }: Diar
   return hasNotice && !isImported && !isImportDismissed;
 }
 
+function isDiaryOpenedFromNotice(from: string | null) {
+  return from === 'notice';
+}
+
 const DIARY_IMPORT_SHEET_TITLE = '알림장을 불러왔어요';
 
 interface DiaryImportSheetCopy {
@@ -131,6 +135,7 @@ export {
   buildDiaryPrompts,
   canSubmitDiary,
   isDiaryImportVisible,
+  isDiaryOpenedFromNotice,
   dismissDiaryImport,
   formatDiaryNoticeDate,
   formatDiaryObject,

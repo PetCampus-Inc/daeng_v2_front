@@ -495,6 +495,7 @@ function GuardianDailyNoticeDetailPage() {
                         buildDiaryWriteTarget({
                           date: selectedDate,
                           schoolId,
+                          fromNotice: true,
                         })
                       )
                     }

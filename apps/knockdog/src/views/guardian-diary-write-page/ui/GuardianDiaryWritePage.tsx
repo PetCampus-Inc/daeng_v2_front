@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { overlay } from 'overlay-kit';
 
@@ -21,6 +21,7 @@ import {
   hasDismissedDiaryImport,
   hasMockArrivedNotice,
   isDiaryImportVisible,
+  isDiaryOpenedFromNotice,
   parseDiaryDate,
   type DiaryWritePhoto,
 } from '../lib/diaryWriteForm';
@@ -44,9 +45,11 @@ function GuardianDiaryWritePage() {
     schoolId,
     petId: storePetId,
   });
+  const opensWithNotice = isDiaryOpenedFromNotice(searchParams.get('from'));
+  const hasClearedNoticeRef = useRef(false);
   const [photos, setPhotos] = useState<DiaryWritePhoto[]>([]);
   const [text, setText] = useState('');
-  const [isImported, setIsImported] = useState(false);
+  const [isImported, setIsImported] = useState(opensWithNotice);
   const [isImportDismissed, setIsImportDismissed] = useState(false);
   const [isImportSheetOpen, setIsImportSheetOpen] = useState(false);
   const { pickPhotos } = useDiaryPhotoPick(photos, setPhotos);
@@ -57,7 +60,12 @@ function GuardianDiaryWritePage() {
     setIsImportDismissed(hasDismissedDiaryImport());
   }, []);
 
-  const importedNotice = isImported ? { date: formatDiaryNoticeDate(date), body: noticeBody } : null;
+  useEffect(() => {
+    if (!opensWithNotice || hasClearedNoticeRef.current) return;
+    setIsImported(true);
+  }, [opensWithNotice]);
+
+  const importedNotice = isImported && noticeBody ? { date: formatDiaryNoticeDate(date), body: noticeBody } : null;
 
   function handleAddPhoto() {
     if (photos.length >= DIARY_PHOTO_LIMIT) return;
@@ -80,6 +88,7 @@ function GuardianDiaryWritePage() {
   }
 
   function handleRemoveNotice() {
+    hasClearedNoticeRef.current = true;
     setIsImported(false);
     handleDismissImport();
   }
