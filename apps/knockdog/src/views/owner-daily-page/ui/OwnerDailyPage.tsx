@@ -22,6 +22,7 @@ import {
 } from '@views/owner-daily-page/ui/OwnerDailyEmptyStates';
 import { OwnerDailyFutureListTab } from '@views/owner-daily-page/ui/OwnerDailyFutureListTab';
 import { OwnerDailyPastListTab } from '@views/owner-daily-page/ui/OwnerDailyPastListTab';
+import { OwnerDailyDateNav } from '@views/owner-daily-page/ui/OwnerDailyDateNav';
 import { OwnerDailyDatePickerSheet } from '@views/owner-daily-page/ui/OwnerDailyDatePickerSheet';
 import { OwnerDailySummarySection } from '@views/owner-daily-page/ui/OwnerDailySummarySection';
 import {
@@ -50,9 +51,11 @@ const OwnerDailyReturnHomeBack = ({ onBack }: { onBack: () => void }) => {
 const TAB_TRIGGER_CLASS_NAME =
   'text-size-body1 h-x12 px-x4 py-x3 data-[state=inactive]:text-text-secondary border-b-0 leading-6 font-bold';
 
-const TAB_CONTENT_CLASS_NAME = 'bg-bg-50 min-h-0 flex-1 overflow-y-auto pb-[calc(var(--bottom-bar-height)+88px)]';
+// 날짜 선택줄 아래 전체(등원 현황·탭·목록)가 하나의 스크롤 영역이다.
+const SCROLL_AREA_CLASS_NAME = 'bg-bg-50 flex min-h-0 flex-1 flex-col overflow-y-auto';
+const TAB_CONTENT_CLASS_NAME = 'bg-bg-50 flex-1 pb-[calc(var(--bottom-bar-height)+88px)]';
 // 오늘 탭은 안내를 하단 내비게이션 위쪽 영역의 가운데에 두기 위해 아래 여백을 목록 쪽에서 둔다.
-const CHECK_TAB_CONTENT_CLASS_NAME = 'bg-bg-50 min-h-0 flex-1 overflow-y-auto pb-(--bottom-bar-height)';
+const CHECK_TAB_CONTENT_CLASS_NAME = 'bg-bg-50 flex-1 pb-(--bottom-bar-height)';
 
 /** 원장 일과 화면. 날짜 이동·등원 현황·`등원처리`/`등원목록` 탭을 조합한다. */
 const OwnerDailyPage = () => {
@@ -227,19 +230,19 @@ const OwnerDailyPage = () => {
         </Header>
       </div>
       <main className='bg-bg-0 flex min-h-0 flex-1 flex-col'>
-        <OwnerDailySummarySection
-          summaryView={summaryView}
-          dateNav={{
-            label: formatOwnerDailyDateLabel(selectedDate, today),
-            onPrevDay: handlePrevDayClick,
-            onNextDay: handleNextDayClick,
-            onOpenDatePicker: handleDatePickerOpen,
-            onGoToday: handleTodayClick,
-            isPrevDayDisabled,
-            isNextDayDisabled,
-            isToday,
-          }}
-        />
+        {/* 날짜 선택줄은 스크롤과 관계없이 항상 보인다. */}
+        <div className='bg-bg-0 px-x6 py-x5 flex w-full'>
+          <OwnerDailyDateNav
+            label={formatOwnerDailyDateLabel(selectedDate, today)}
+            onPrevDay={handlePrevDayClick}
+            onNextDay={handleNextDayClick}
+            onOpenDatePicker={handleDatePickerOpen}
+            onGoToday={handleTodayClick}
+            isPrevDayDisabled={isPrevDayDisabled}
+            isNextDayDisabled={isNextDayDisabled}
+            isToday={isToday}
+          />
+        </div>
         {isNotConfigured ? (
           <OwnerDailyNotConfiguredState onSetUpClick={handleSetUpClick} />
         ) : isLoading ? (
@@ -251,12 +254,16 @@ const OwnerDailyPage = () => {
         ) : isNoReservation ? (
           <OwnerDailyNoReservationState isFuture={isFuture} />
         ) : (
+          // 등원 현황·탭·목록이 이 `Tabs` 하나에서 같이 스크롤되고, 탭만 위쪽에 붙는다.
           <Tabs
+            ref={contentRef}
             value={selectedTab}
-            className='flex min-h-0 flex-1 flex-col'
+            className={SCROLL_AREA_CLASS_NAME}
+            onScroll={handleContentScroll}
             onValueChange={(value) => handleTabChange(value as OwnerDailyTab)}
           >
-            <TabsList className='h-x12 border-b-0 shadow-[inset_0_-1px_0_0_var(--color-line-200)]'>
+            <OwnerDailySummarySection summaryView={summaryView} />
+            <TabsList className='bg-bg-0 h-x12 sticky top-0 z-10 shrink-0 border-b-0 shadow-[inset_0_-1px_0_0_var(--color-line-200)]'>
               <TabsTrigger
                 value='attendance-check'
                 data-testid='owner-daily-tab-attendance-check'
@@ -272,12 +279,7 @@ const OwnerDailyPage = () => {
                 {OWNER_DAILY_TAB_LABEL['attendance-list']}
               </TabsTrigger>
             </TabsList>
-            <TabsContent
-              ref={contentRef}
-              value='attendance-check'
-              className={CHECK_TAB_CONTENT_CLASS_NAME}
-              onScroll={handleContentScroll}
-            >
+            <TabsContent value='attendance-check' className={CHECK_TAB_CONTENT_CLASS_NAME}>
               {isToday && candidates ? (
                 <OwnerDailyAttendanceCheckTab
                   items={candidates}
@@ -301,10 +303,8 @@ const OwnerDailyPage = () => {
               ) : null}
             </TabsContent>
             <TabsContent
-              ref={contentRef}
               value='attendance-list'
               className={isToday ? CHECK_TAB_CONTENT_CLASS_NAME : TAB_CONTENT_CLASS_NAME}
-              onScroll={handleContentScroll}
             >
               {todayList && isPast ? (
                 <OwnerDailyPastListTab
