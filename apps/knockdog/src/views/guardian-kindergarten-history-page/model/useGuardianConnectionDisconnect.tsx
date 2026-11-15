@@ -15,6 +15,7 @@ import { useUserStore } from '@entities/user';
 import { trackConnectionStatus } from '@shared/lib/analytics';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { formatDateKey } from '@shared/lib/calendar-date';
+import { closeOverlayThenNavigate } from '@shared/lib/navigation/closeOverlayThenNavigate';
 import { toast } from '@shared/ui/toast';
 import { guardianConnectionHistoryContent } from '@views/guardian-kindergarten-history-page/config/guardianConnectionHistoryContent';
 import {
@@ -85,8 +86,11 @@ function useGuardianConnectionDisconnect({
         tickets={tickets}
         onConfirm={close}
         onInquiry={() => {
-          close();
-          if (placeId && isKindergartenId(placeId)) push({ pathname: `/kindergarten/${placeId}` });
+          closeOverlayThenNavigate(close, () => {
+            if (placeId && isKindergartenId(placeId)) {
+              push({ pathname: `/kindergarten/${placeId}`, params: { entrySource: 'kindergarten-list' } });
+            }
+          });
         }}
       />
     ));

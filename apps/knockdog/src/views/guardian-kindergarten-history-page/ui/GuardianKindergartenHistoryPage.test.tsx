@@ -358,7 +358,10 @@ describe('해제 불가 바텀시트', () => {
 
       await userEvent.click(within(sheet).getByRole('button', { name: '유치원에 문의' }));
 
-      expect(push).toHaveBeenCalledWith({ pathname: '/kindergarten/10' });
+      expect(push).toHaveBeenCalledWith({
+        pathname: '/kindergarten/10',
+        params: { entrySource: 'kindergarten-list' },
+      });
     });
 
     test('`확인`을 누르면 시트가 닫힌다', async () => {
@@ -392,7 +395,10 @@ describe('해제 불가 바텀시트', () => {
 
       await userEvent.click(within(sheet).getByRole('button', { name: '유치원에 문의' }));
 
-      expect(push).toHaveBeenCalledWith({ pathname: '/kindergarten/10' });
+      expect(push).toHaveBeenCalledWith({
+        pathname: '/kindergarten/10',
+        params: { entrySource: 'kindergarten-list' },
+      });
     });
 
     test('`확인`을 누르면 시트가 닫힌다', async () => {
