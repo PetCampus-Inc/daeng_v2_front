@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
-import { Icon, TextField, TextFieldInput } from '@knockdog/ui';
-import { cn } from '@knockdog/ui/lib';
+import { Icon, Switch, TextField, TextFieldInput } from '@knockdog/ui';
 
 import { filterAttendanceList } from '@views/owner-daily-page/lib/ownerDailyAttendance';
 import { OwnerDailyAttendanceCard } from '@views/owner-daily-page/ui/OwnerDailyAttendanceCard';
@@ -69,23 +68,14 @@ const OwnerDailyAttendanceCheckTab = ({
             </button>
           ) : null}
         </TextField>
-        <div className='pl-x2 flex items-center justify-between'>
+        <div className='pr-x1 flex items-center justify-between'>
+          <label className='label-medium text-text-secondary p-x2 gap-x2 flex cursor-pointer items-center'>
+            <Switch size='sm' pressed={lateOnly} onPressedChange={onLateOnlyChange} />
+            지각만 보기
+          </label>
           <p className='label-medium text-text-secondary gap-x1 flex items-center'>
             강아지수 <span className='body2-bold text-text-accent'>{filteredItems.length}</span>
           </p>
-          <button
-            type='button'
-            aria-pressed={lateOnly}
-            className='label-medium text-text-secondary p-x2 gap-x1 flex cursor-pointer items-center'
-            onClick={() => onLateOnlyChange(!lateOnly)}
-          >
-            <span className='size-x4 flex items-center justify-center'>
-              <span
-                className={cn('size-x2_5 radius-full', lateOnly ? 'bg-fill-primary-500' : 'bg-fill-secondary-400')}
-              />
-            </span>
-            지각
-          </button>
         </div>
       </div>
       {filteredItems.length === 0 ? (

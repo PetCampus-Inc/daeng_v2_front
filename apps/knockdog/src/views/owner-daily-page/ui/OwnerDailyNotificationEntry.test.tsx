@@ -74,7 +74,7 @@ describe('알림으로 일과 열기', () => {
     renderOwnerDaily(<OwnerDailyPage />);
 
     expect(await screen.findByRole('tab', { name: '등원처리', selected: true })).toBeTruthy();
-    expect(screen.getByRole('button', { name: '지각' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: '지각만 보기' }).getAttribute('aria-pressed')).toBe('true');
     const cards = within(screen.getByRole('tabpanel')).getAllByRole('listitem');
     expect(cards).toHaveLength(1);
     expect(cards[0]?.textContent).toContain('콩이');
