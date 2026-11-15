@@ -5,13 +5,17 @@ import { useSearchParams } from 'next/navigation';
 import { Icon } from '@knockdog/ui';
 import { DiaryOnboardingNoteBanner } from '@features/diary-onboarding';
 
+import { useGuardianDiaryDateQuery } from '@entities/guardian-diary';
 import {
   useGuardianSchoolConnectionsQuery,
   type GuardianSchoolConnection,
 } from '@entities/guardian-home';
 import { useUserStore } from '@entities/user';
 import { guardianDailyNoticeContent } from '@views/guardian-daily-notice-page/config/guardianDailyNoticeContent';
-import { shouldShowDiaryNoteBanner } from '@views/guardian-daily-notice-page/lib/shouldShowDiaryNoteBanner';
+import {
+  hasSavedDiaryRecord,
+  shouldShowDiaryNoteBanner,
+} from '@views/guardian-daily-notice-page/lib/shouldShowDiaryNoteBanner';
 import {
   formatNoticeClockTime,
   formatNoticeUpdatedAt,
@@ -32,6 +36,7 @@ import { GuardianKindergartenDateCalendar } from '@views/guardian-kindergarten-p
 import { Header } from '@widgets/Header';
 import { route } from '@shared/constants/route';
 import { buildDiaryWriteTarget } from '@shared/lib/diary-write/buildDiaryWriteTarget';
+import { isDiaryRemoved } from '@shared/lib/diary-write/diaryRecord';
 import { useDiaryRecords } from '@shared/lib/diary-write/useDiaryRecords';
 import { trackNotebookView } from '@shared/lib/analytics';
 import { useStackNavigation } from '@shared/lib/bridge';
@@ -284,10 +289,17 @@ function GuardianDailyNoticeDetailPage() {
     enabled: !showEmptyWeekNoCheckIn && !isQueryPetMissing && Boolean(schoolId),
   });
   const diaryRecords = useDiaryRecords();
-  const hasWrittenDiary = diaryRecords.some(
-    (record) => record.dateKey === selectedDateKey && record.petId === selectedPetId
-  );
-  const showDiaryNoteBanner = shouldShowDiaryNoteBanner(Boolean(dailyNotice), hasWrittenDiary);
+  const { data: diaryDate, isLoading: isDiaryDateLoading } = useGuardianDiaryDateQuery({
+    petId: selectedPetId,
+    date: selectedDateKey,
+    enabled: Boolean(selectedPetId) && !isQueryPetMissing,
+  });
+  const serverDiaryId = diaryDate?.diary?.id;
+  const hasWrittenDiary =
+    hasSavedDiaryRecord(diaryRecords, selectedDateKey, selectedPetId) ||
+    (Boolean(serverDiaryId) && !isDiaryRemoved(selectedPetId, serverDiaryId));
+  const showDiaryNoteBanner =
+    !isDiaryDateLoading && shouldShowDiaryNoteBanner(Boolean(dailyNotice), hasWrittenDiary);
 
   useEffect(() => {
     if (!dailyNotice || isPending) return;
