@@ -30,7 +30,7 @@ function DiaryNoteBanner({ dogName = '콩이', className, onClick }: DiaryNoteBa
         <span className='body1-bold text-text-primary'>{formatDiaryDogSubject(dogName)} 일기를 써본대요!</span>
         <span className='caption1-regular text-text-secondary'>알림장으로 {dogName}의 일기를 쓸 수 있어요.</span>
       </span>
-      <ChevronRight className='text-text-primary size-x5 shrink-0' />
+      <ChevronRight className='text-gray-400 size-x5 shrink-0' />
     </button>
   );
 }
