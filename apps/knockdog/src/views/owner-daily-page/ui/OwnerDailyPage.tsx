@@ -290,6 +290,7 @@ const OwnerDailyPage = () => {
                   onKeywordChange={setKeyword}
                   onLateOnlyChange={setLateOnly}
                   pendingPetIds={pendingPetIds}
+                  onMemberClick={handleMemberClick}
                   onCheckIn={handleCheckIn}
                   onAbsent={handleAbsent}
                   onCancelCheckIn={(item) => openCancelDialog('checkIn', item)}
