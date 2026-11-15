@@ -618,7 +618,8 @@ describe('뒤로가기와 작성 중 이탈', () => {
     await user.click(within(nativeDialog).getByRole('button', { name: '닫기' }));
     await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
 
-    // 브라우저 뒤로가기: 같은 이탈 확인 모달
+    // 브라우저 뒤로가기: 입력이 잠잠해져 가드가 걸린 뒤에는 같은 이탈 확인 모달
+    await waitFor(() => expect(window.history.state).toMatchObject({ __unsavedExitGuard: true }));
     act(() => {
       window.history.back();
     });

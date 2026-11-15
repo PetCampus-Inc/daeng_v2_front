@@ -8,8 +8,15 @@ import {
   markUnsavedExitDialogClosed,
   UNSAVED_EXIT_OVERLAY_ID,
 } from '@shared/lib/openUnsavedExitDialog';
+import { useDebounced } from '@shared/lib/react';
 
 const GUARD_STATE_KEY = '__unsavedExitGuard';
+/**
+ * `isDirty`가 바뀐 뒤 이 시간 동안 더 바뀌지 않아야 가드를 걸거나 푼다.
+ * iOS 한글 첫 글자 조합 중에는 입력값이 순간적으로 바뀔 수 있어, 그때마다 history를 넣고 빼면
+ * 가드가 자기가 부른 `history.back()`의 popstate를 사용자 이탈로 오해해 이탈 모달이 뜬다.
+ */
+const DIRTY_SETTLE_DELAY_MS = 300;
 /** 글자 입력 직후 브라우저가 내는 popstate만 거른다. 그보다 늦은 뒤로가기는 이탈로 본다. */
 const TEXT_ENTRY_POP_IGNORE_MS = 1000;
 const NON_TEXT_INPUT_TYPES = new Set([
@@ -63,7 +70,9 @@ function useUnsavedBrowserBackGuard(isDirty: boolean, onAttemptLeave: () => void
   const pendingLeaveRef = useRef<(() => void) | null>(null);
   const [isSuspended, setIsSuspended] = useState(false);
 
-  const shouldArm = isDirty && !isSuspended;
+  // 입력이 잠잠해진 뒤의 값으로만 판단한다. 상단 뒤로가기 등 화면이 직접 보는 isDirty에는 영향 없다.
+  const settledIsDirty = useDebounced(isDirty, DIRTY_SETTLE_DELAY_MS);
+  const shouldArm = settledIsDirty && !isSuspended;
 
   const releaseAndLeave = useCallback((leave: () => void) => {
     if (!isGuardHistoryState(window.history.state)) {
