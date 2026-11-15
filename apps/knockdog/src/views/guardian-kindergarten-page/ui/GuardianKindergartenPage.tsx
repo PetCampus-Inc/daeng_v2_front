@@ -6,7 +6,10 @@ import { useSearchParams } from 'next/navigation';
 import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenHome';
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 import { DiaryOnboardingProvider } from '@features/diary-onboarding';
-import { GuardianDiarySegmentProvider } from '@views/guardian-kindergarten-page/model/guardianDiarySegment';
+import {
+  GuardianDiarySegmentProvider,
+  resolveDefaultDiarySegment,
+} from '@views/guardian-kindergarten-page/model/guardianDiarySegment';
 import { OwnerVerificationEntry, useOwnerRole } from '@features/role-conversion';
 import { useGuardianApplicationsQuery } from '@entities/guardian-application';
 import { useUserStore } from '@entities/user';
@@ -239,6 +242,7 @@ export function GuardianKindergartenPage() {
         dogName={selectedPet?.name}
         petId={selectedPet?.id ?? null}
         schoolId={diarySchoolId}
+        defaultSegment={resolveDefaultDiarySegment(showEmpty)}
       >
         <div className='flex h-dvh flex-col' style={homePageStyle}>
           <GuardianKindergartenHeader
