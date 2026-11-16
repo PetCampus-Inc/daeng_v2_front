@@ -8,6 +8,7 @@ export { REQUEST_FAILED_MESSAGE } from './config/messages';
 
 /** Lib */
 export { isTimeoutError } from './lib/isTimeoutError';
+export { isNetworkError } from './lib/isNetworkError';
 export { mapRequestErrorMessage } from './lib/mapRequestErrorMessage';
 export { fetchWithUploadTimeout } from './lib/fetchWithUploadTimeout';
 
