@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import {
   ActionButton,
   Field,
@@ -105,6 +105,50 @@ function ReservationSettingPending({
 function ReservationSettingEditor({ setting }: { setting: ReservationSetting }) {
   const form = useReservationSettingForm(setting);
   const handleBackRef = useRef(() => {});
+  const capacityRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const userAgent = navigator.userAgent;
+    const isIphoneSafari = /iPhone/.test(userAgent) && /Version\/[\d.]+.*Safari\//.test(userAgent) &&
+      !/CriOS|FxiOS|EdgiOS|OPiOS/.test(userAgent);
+    if (!isIphoneSafari) return;
+
+    const viewport = window.visualViewport;
+    const capacity = capacityRef.current;
+    if (!viewport || !capacity) return;
+
+    let scrollPosition: { top: number; left: number; height: number } | null = null;
+    let frameId = 0;
+
+    const handleFocus = () => {
+      scrollPosition ??= { top: window.scrollY, left: window.scrollX, height: viewport.height };
+    };
+    const handleViewportChange = () => {
+      if (!scrollPosition) return;
+      // 키보드가 닫힌 뒤 남은 문서 이동만 복원한다. 본문 scrollTop은 건드리지 않는다.
+      if (viewport.height < scrollPosition.height - 80) return;
+      window.cancelAnimationFrame(frameId);
+      frameId = window.requestAnimationFrame(() => {
+        if (!scrollPosition) return;
+        window.scrollTo({ top: scrollPosition.top, left: scrollPosition.left, behavior: 'instant' });
+        if (!capacity.contains(document.activeElement) && Math.abs(viewport.offsetTop) < 1) {
+          scrollPosition = null;
+        }
+      });
+    };
+
+    capacity.addEventListener('focusin', handleFocus);
+    capacity.addEventListener('focusout', handleViewportChange);
+    viewport.addEventListener('resize', handleViewportChange);
+    viewport.addEventListener('scroll', handleViewportChange);
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      capacity.removeEventListener('focusin', handleFocus);
+      capacity.removeEventListener('focusout', handleViewportChange);
+      viewport.removeEventListener('resize', handleViewportChange);
+      viewport.removeEventListener('scroll', handleViewportChange);
+    };
+  }, []);
 
   const { releaseAndLeave } = useUnsavedBrowserBackGuard(form.isDirty, () => {
     handleBackRef.current();
@@ -128,6 +172,9 @@ function ReservationSettingEditor({ setting }: { setting: ReservationSetting }) 
 
   const handleSave = async () => {
     if (!form.isSaveEnabled) return;
+
+    const activeElement = document.activeElement;
+    if (activeElement instanceof HTMLInputElement) activeElement.blur();
 
     const result = await form.handleSave();
     if (!result) return;
@@ -153,15 +200,15 @@ function ReservationSettingEditor({ setting }: { setting: ReservationSetting }) 
   const { hoursLine, closedLine } = form;
 
   return (
-    <div className='flex h-full flex-col bg-white'>
-      <Header>
+    <div className='flex h-full min-h-0 flex-col overflow-hidden bg-white'>
+      <Header className='relative shrink-0'>
         <Header.LeftSection>
           <Header.BackButton onClick={handleBack} />
         </Header.LeftSection>
         <Header.Title>예약 설정</Header.Title>
       </Header>
 
-      <div className='flex-1 overflow-y-auto overscroll-y-contain pb-5 [-webkit-overflow-scrolling:touch]'>
+      <div className='min-h-0 flex-1 overflow-y-auto overscroll-y-contain pb-5 [-webkit-overflow-scrolling:touch]'>
         <AdmissionTimeRange
           label='평일 등원 가능 시간'
           start={form.values.weekdayStart}
@@ -186,7 +233,7 @@ function ReservationSettingEditor({ setting }: { setting: ReservationSetting }) 
             하루 정원
             <FieldLabelIndicator type='optional' className='text-text-accent' />
           </FieldLabel>
-          <div className='flex flex-col gap-2'>
+          <div ref={capacityRef} className='flex flex-col gap-2'>
             <NumberField
               value={form.values.dailyCapacity}
               onChange={(event) => form.handleCapacityChange(event.target.value)}
