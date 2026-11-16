@@ -252,12 +252,12 @@ function MypageOwnerKindergartenEditPage() {
       position: 'bottom',
       nativeTitle: ownerMypageContent.kindergartenEditSaveSuccessToastFallback,
       titleParts: [
-        { text: ownerMypageContent.kindergartenEditSaveSuccessToastPrefix, accent: true },
+        { text: ownerMypageContent.kindergartenEditSaveSuccessToastPrefix, bold: true },
         { text: ownerMypageContent.kindergartenEditSaveSuccessToastSuffix },
       ],
       title: (
         <>
-          <span className='body1-bold text-text-accent'>
+          <span className='body1-bold text-text-primary-inverse'>
             {ownerMypageContent.kindergartenEditSaveSuccessToastPrefix}
           </span>
           <span className='body1-medium text-text-primary-inverse'>

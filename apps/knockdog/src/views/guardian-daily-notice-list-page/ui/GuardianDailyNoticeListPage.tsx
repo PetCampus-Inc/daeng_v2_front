@@ -261,7 +261,7 @@ function GuardianDailyNoticeListPage() {
         nativeTitle: `${noMoreNoticeToastPrefix}${noMoreNoticeToastAccent}${noMoreNoticeToastSuffix}`,
         titleParts: [
           { text: noMoreNoticeToastPrefix },
-          { text: noMoreNoticeToastAccent, accent: true },
+          { text: noMoreNoticeToastAccent, bold: true },
           { text: noMoreNoticeToastSuffix },
         ],
         title: (
@@ -269,7 +269,7 @@ function GuardianDailyNoticeListPage() {
             <span className='body1-medium text-text-primary-inverse'>
               {noMoreNoticeToastPrefix}
             </span>
-            <span className='body1-bold text-text-accent'>{noMoreNoticeToastAccent}</span>
+            <span className='body1-bold text-text-primary-inverse'>{noMoreNoticeToastAccent}</span>
             <span className='body1-medium text-text-primary-inverse'>
               {noMoreNoticeToastSuffix}
             </span>

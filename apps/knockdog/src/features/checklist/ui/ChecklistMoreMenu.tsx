@@ -62,13 +62,13 @@ function ChecklistMoreMenu({ targetId, onEdit }: ChecklistMoreMenuProps) {
         nativeTitle: '체크리스트를 초기화하지 못했어요',
         titleParts: [
           { text: '체크리스트를 ', accent: false },
-          { text: '초기화', accent: true },
+          { text: '초기화', bold: true },
           { text: '하지 못했어요', accent: false },
         ],
         title: (
           <>
             <span className='text-text-primary-inverse'>체크리스트를 </span>
-            <span className='text-text-accent'>초기화</span>
+            <span className='body1-bold text-text-primary-inverse'>초기화</span>
             <span className='text-text-primary-inverse'>하지 못했어요</span>
           </>
         ),
@@ -80,13 +80,13 @@ function ChecklistMoreMenu({ targetId, onEdit }: ChecklistMoreMenuProps) {
         nativeTitle: '체크리스트를 초기화했어요',
         titleParts: [
           { text: '체크리스트를 ', accent: false },
-          { text: '초기화', accent: true },
+          { text: '초기화', bold: true },
           { text: '했어요', accent: false },
         ],
         title: (
           <>
             <span className='text-text-primary-inverse'>체크리스트를 </span>
-            <span className='text-text-accent'>초기화</span>
+            <span className='body1-bold text-text-primary-inverse'>초기화</span>
             <span className='text-text-primary-inverse'>했어요</span>
           </>
         ),

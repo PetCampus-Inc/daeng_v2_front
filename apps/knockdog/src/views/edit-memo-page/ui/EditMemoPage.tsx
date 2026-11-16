@@ -43,10 +43,10 @@ function showSaveSuccessToast() {
   toast({
     type: 'success',
     nativeTitle: editMemoContent.saveSuccessToast,
-    titleParts: [{ text: '메모', accent: true }, { text: '를 저장했어요' }],
+    titleParts: [{ text: '메모', bold: true }, { text: '를 저장했어요' }],
     title: (
       <>
-        <span className='text-text-accent'>메모</span>
+        <span className='body1-bold text-text-primary-inverse'>메모</span>
         <span className='text-text-primary-inverse'>를 저장했어요</span>
       </>
     ),
@@ -58,13 +58,13 @@ function showMaxPhotoCountToast() {
     nativeTitle: editMemoContent.maxPhotoCountToast,
     titleParts: [
       { text: '사진은 최대 ' },
-      { text: `${MAX_PHOTO_COUNT}장`, accent: true },
+      { text: `${MAX_PHOTO_COUNT}장`, bold: true },
       { text: '까지 올릴 수 있어요' },
     ],
     title: (
       <>
         <span className='text-text-primary-inverse'>사진은 최대 </span>
-        <span className='text-text-accent'>{MAX_PHOTO_COUNT}장</span>
+        <span className='body1-bold text-text-primary-inverse'>{MAX_PHOTO_COUNT}장</span>
         <span className='text-text-primary-inverse'>까지 올릴 수 있어요</span>
       </>
     ),

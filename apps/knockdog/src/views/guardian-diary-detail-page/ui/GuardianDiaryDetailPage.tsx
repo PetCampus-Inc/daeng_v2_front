@@ -104,12 +104,12 @@ function GuardianDiaryDetailPage() {
         position: 'bottom',
         nativeTitle: deleted.nativeTitle,
         titleParts: [
-          { text: deleted.label, accent: true },
+          { text: deleted.label, bold: true },
           { text: deleted.suffix },
         ],
         title: (
           <>
-            <span className='body1-bold text-text-accent'>{deleted.label}</span>
+            <span className='body1-bold text-text-primary-inverse'>{deleted.label}</span>
             <span className='text-text-primary-inverse'>{deleted.suffix}</span>
           </>
         ),

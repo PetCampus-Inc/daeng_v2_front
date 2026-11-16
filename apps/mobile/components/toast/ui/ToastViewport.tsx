@@ -192,7 +192,9 @@ function ToastRow({ item, itemId, onDismiss }: { item: ToastItem; itemId: string
                               toastTextStyle,
                               part.accent
                                 ? { color: tokens.colors.accent, fontWeight: '700' as const }
-                                : { color: tokens.colors.fg },
+                                : part.bold
+                                  ? { color: tokens.colors.fg, fontWeight: '700' as const }
+                                  : { color: tokens.colors.fg },
                             ]}
                           >
                             {part.text}

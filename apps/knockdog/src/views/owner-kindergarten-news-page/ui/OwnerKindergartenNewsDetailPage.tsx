@@ -27,13 +27,13 @@ function showOwnerKindergartenNewsShareSuccessToast() {
     nativeTitle: shareSuccessToast.nativeTitle,
     titleParts: [
       { text: '유치원 ' },
-      { text: '소식', accent: true },
+      { text: '소식', bold: true },
       { text: '을 공유했어요' },
     ],
     title: (
       <>
         <span className='text-text-primary-inverse'>유치원 </span>
-        <span className='text-text-accent'>소식</span>
+        <span className='body1-bold text-text-primary-inverse'>소식</span>
         <span className='text-text-primary-inverse'>을 공유했어요</span>
       </>
     ),

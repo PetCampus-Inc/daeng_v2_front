@@ -26,13 +26,13 @@ function showMaxCountToast() {
     nativeTitle: ownerAlbumContent.upload.maxCountToast.nativeTitle,
     titleParts: [
       { text: '사진은 한 번에 최대 ' },
-      { text: `${ownerAlbumContent.maxSelectionCount}장`, accent: true },
+      { text: `${ownerAlbumContent.maxSelectionCount}장`, bold: true },
       { text: '까지 올릴 수 있어요' },
     ],
     title: (
       <>
         <span className='text-text-primary-inverse'>사진은 한 번에 최대 </span>
-        <span className='text-text-accent'>{ownerAlbumContent.maxSelectionCount}장</span>
+        <span className='body1-bold text-text-primary-inverse'>{ownerAlbumContent.maxSelectionCount}장</span>
         <span className='text-text-primary-inverse'>까지 올릴 수 있어요</span>
       </>
     ),
@@ -45,12 +45,12 @@ function showUploadSuccessToast() {
     type: 'success',
     nativeTitle: ownerAlbumContent.uploadSuccessToast.nativeTitle,
     titleParts: [
-      { text: '사진', accent: true },
+      { text: '사진', bold: true },
       { text: '을 올렸어요' },
     ],
     title: (
       <>
-        <span className='text-text-accent'>사진</span>
+        <span className='body1-bold text-text-primary-inverse'>사진</span>
         <span className='text-text-primary-inverse'>을 올렸어요</span>
       </>
     ),

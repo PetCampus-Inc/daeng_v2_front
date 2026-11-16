@@ -68,10 +68,10 @@ function useGuardianConnectionDisconnect({
     toast({
       type: 'success',
       nativeTitle: `${kindergartenName}${content.disconnectSuccessToastSuffix}`,
-      titleParts: [{ text: kindergartenName, accent: true }, { text: content.disconnectSuccessToastSuffix }],
+      titleParts: [{ text: kindergartenName, bold: true }, { text: content.disconnectSuccessToastSuffix }],
       title: (
         <>
-          <span className='text-text-accent'>{kindergartenName}</span>
+          <span className='body1-bold text-text-primary-inverse'>{kindergartenName}</span>
           <span className='text-text-primary-inverse'>{content.disconnectSuccessToastSuffix}</span>
         </>
       ),

@@ -117,12 +117,12 @@ function KindergartenSelectSheet({
       type: 'success',
       nativeTitle: `${content.toastAccentLabel}${content.toastSuffix}`,
       titleParts: [
-        { text: content.toastAccentLabel, accent: true },
+        { text: content.toastAccentLabel, bold: true },
         { text: content.toastSuffix },
       ],
       title: (
         <>
-          <span className='body1-bold text-text-accent'>{content.toastAccentLabel}</span>
+          <span className='body1-bold text-text-primary-inverse'>{content.toastAccentLabel}</span>
           <span className='body1-medium text-text-primary-inverse'>{content.toastSuffix}</span>
         </>
       ),

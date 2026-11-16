@@ -168,12 +168,12 @@ function GuardianDiaryGeneratePage() {
         position: 'bottom',
         nativeTitle: saved.nativeTitle,
         titleParts: [
-          { text: saved.name, accent: true },
+          { text: saved.name, bold: true },
           { text: saved.suffix },
         ],
         title: (
           <>
-            <span className='body1-bold text-text-accent'>{saved.name}</span>
+            <span className='body1-bold text-text-primary-inverse'>{saved.name}</span>
             <span className='text-text-primary-inverse'>{saved.suffix}</span>
           </>
         ),
