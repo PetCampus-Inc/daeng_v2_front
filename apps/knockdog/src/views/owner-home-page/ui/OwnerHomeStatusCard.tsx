@@ -42,7 +42,7 @@ const OwnerHomeStatusCard = ({
   const contentId = useId();
 
   return (
-    <section aria-label='오늘 유치원 현황' className='bg-bg-0 radius-r5 gap-x5 p-x4 py-x5 flex flex-col'>
+    <section aria-label='오늘 유치원 현황' className='bg-bg-0 radius-r5 gap-x5 p-x4 pt-x8 pb-x5 flex flex-col'>
       <div className='gap-x2 px-x1 flex flex-col'>
         <p className='label-medium text-primitive-neutral-500'>{dateLabel}</p>
         <h2 className='h1-extrabold text-text-primary'>

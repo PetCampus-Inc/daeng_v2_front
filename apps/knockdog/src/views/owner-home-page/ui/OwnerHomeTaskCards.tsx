@@ -58,7 +58,7 @@ const OwnerHomeTaskCards = ({
         >
           <span className='h3-semibold text-text-primary'>이용권 확인</span>
           <span className='caption1-regular text-primitive-neutral-500 leading-[18px]'>
-            {expiringCount > 0 ? `종료 예정인 이용권이 ${expiringCount}건 있어요` : '종료 예정인 이용권이 없어요'}
+            {expiringCount > 0 ? '종료 예정인 이용권이 있어요' : '종료 예정인 이용권이 없어요'}
           </span>
         </button>
       )}
