@@ -28,7 +28,7 @@ const TICKET_LIST_FILTERS = [
   { id: TICKET_LIST_STATUS.active, label: '사용중' },
   { id: TICKET_LIST_STATUS.scheduled, label: '사용예정' },
   { id: TICKET_LIST_STATUS.onHold, label: '홀딩중' },
-  { id: TICKET_LIST_STATUS.expired, label: '만료' },
+  { id: TICKET_LIST_STATUS.expired, label: '종료' },
 ] as const satisfies ReadonlyArray<{ id: TicketListFilter; label: string }>;
 
 function sortMemberTicketList(tickets: MemberTicketListItem[]) {

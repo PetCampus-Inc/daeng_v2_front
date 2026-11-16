@@ -212,47 +212,47 @@ describe('필터 칩', () => {
   });
   afterEach(cleanup);
 
-  it('`전체`·`만료예정`·`만료` 칩에 각각의 원생 수가 함께 보인다', async () => {
+  it('`전체`·`종료예정`·`종료` 칩에 각각의 원생 수가 함께 보인다', async () => {
     renderPage('');
 
     expect(await screen.findByRole('button', { name: '전체 22' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: '만료예정 2' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: '만료 3' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '종료예정 2' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '종료 3' })).toBeTruthy();
   });
 
-  it('`만료예정` 칩을 누르면 그 칩만 선택되고 만료예정 원생 목록으로 바뀐다', async () => {
+  it('`종료예정` 칩을 누르면 그 칩만 선택되고 종료예정 원생 목록으로 바뀐다', async () => {
     renderPage('');
 
-    fireEvent.click(await screen.findByRole('button', { name: '만료예정 2' }));
+    fireEvent.click(await screen.findByRole('button', { name: '종료예정 2' }));
 
     expect(await screen.findByText('가나디')).toBeTruthy();
     expect(screen.queryByText('보리')).toBeNull();
-    expect(screen.getByRole('button', { name: '만료예정 2', pressed: true })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '종료예정 2', pressed: true })).toBeTruthy();
     expect(screen.getByRole('button', { name: '전체 22', pressed: false })).toBeTruthy();
-    expect(screen.getByRole('button', { name: '만료 3', pressed: false })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '종료 3', pressed: false })).toBeTruthy();
   });
 
-  it('`만료` 칩을 누르면 그 칩만 선택되고 만료된 원생 목록으로 바뀐다', async () => {
+  it('`종료` 칩을 누르면 그 칩만 선택되고 종료된 원생 목록으로 바뀐다', async () => {
     renderPage('');
 
-    fireEvent.click(await screen.findByRole('button', { name: '만료 3' }));
+    fireEvent.click(await screen.findByRole('button', { name: '종료 3' }));
 
     expect(await screen.findByText('두리안')).toBeTruthy();
     expect(screen.queryByText('보리')).toBeNull();
-    expect(screen.getByRole('button', { name: '만료 3', pressed: true })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '종료 3', pressed: true })).toBeTruthy();
     expect(screen.getByRole('button', { name: '전체 22', pressed: false })).toBeTruthy();
-    expect(screen.getByRole('button', { name: '만료예정 2', pressed: false })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '종료예정 2', pressed: false })).toBeTruthy();
   });
 
   it('검색하거나 칩을 바꿔도 칩의 원생 수는 유치원 전체 기준 그대로다', async () => {
     renderPage('');
 
-    fireEvent.click(await screen.findByRole('button', { name: '만료예정 2' }));
+    fireEvent.click(await screen.findByRole('button', { name: '종료예정 2' }));
     await screen.findByText('가나디');
 
     expect(screen.getByRole('button', { name: '전체 22' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: '만료예정 2' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: '만료 3' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '종료예정 2' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '종료 3' })).toBeTruthy();
   });
 });
 
@@ -350,28 +350,28 @@ describe('등록 원생 없음·필터 결과 없음', () => {
     expect(screen.queryByRole('button', { name: /^전체/ })).toBeNull();
   });
 
-  it('`만료예정` 결과가 없으면 칩은 그대로이고 `만료 예정인 원생이 없어요` / `다른 상태의 원생을 확인해 보세요.`가 보인다', async () => {
+  it('`종료예정` 결과가 없으면 칩은 그대로이고 `이용권이 종료 예정인 원생이 없어요` / `다른 상태의 원생을 확인해 보세요.`가 보인다', async () => {
     mocks.getOwnerMembers.mockImplementation(async (params?: { filter?: string }) =>
       params?.filter === 'EXPIRING' ? createMembersResponse({ members: [] }) : membersResponse
     );
     renderPage('');
 
-    fireEvent.click(await screen.findByRole('button', { name: '만료예정 2' }));
+    fireEvent.click(await screen.findByRole('button', { name: '종료예정 2' }));
 
-    expect(await screen.findByText('만료 예정인 원생이 없어요')).toBeTruthy();
+    expect(await screen.findByText('이용권이 종료 예정인 원생이 없어요')).toBeTruthy();
     expect(screen.getByText('다른 상태의 원생을 확인해 보세요.')).toBeTruthy();
     expect(screen.getByRole('button', { name: '전체 22' })).toBeTruthy();
   });
 
-  it('`만료` 결과가 없으면 칩은 그대로이고 `이용권이 만료된 원생이 없어요` / `다른 상태의 원생을 확인해 보세요.`가 보인다', async () => {
+  it('`종료` 결과가 없으면 칩은 그대로이고 `이용권이 종료된 원생이 없어요` / `다른 상태의 원생을 확인해 보세요.`가 보인다', async () => {
     mocks.getOwnerMembers.mockImplementation(async (params?: { filter?: string }) =>
       params?.filter === 'EXPIRED' ? createMembersResponse({ members: [] }) : membersResponse
     );
     renderPage('');
 
-    fireEvent.click(await screen.findByRole('button', { name: '만료 3' }));
+    fireEvent.click(await screen.findByRole('button', { name: '종료 3' }));
 
-    expect(await screen.findByText('이용권이 만료된 원생이 없어요')).toBeTruthy();
+    expect(await screen.findByText('이용권이 종료된 원생이 없어요')).toBeTruthy();
     expect(screen.getByText('다른 상태의 원생을 확인해 보세요.')).toBeTruthy();
     expect(screen.getByRole('button', { name: '전체 22' })).toBeTruthy();
   });
@@ -389,11 +389,11 @@ describe('이용권 만료 예정 알림 이동', () => {
   });
   afterEach(cleanup);
 
-  it('만료예정 목록 주소로 구성원 화면을 열면 `등록 원생` 탭에서 `만료예정` 칩이 선택된 목록이 보인다', async () => {
+  it('종료예정 목록 주소로 구성원 화면을 열면 `등록 원생` 탭에서 `종료예정` 칩이 선택된 목록이 보인다', async () => {
     renderPage('filter=expiring');
 
     expect(await screen.findByText('가나디')).toBeTruthy();
     expect(screen.getByRole('tab', { name: '등록 원생', selected: true })).toBeTruthy();
-    expect(screen.getByRole('button', { name: '만료예정 2', pressed: true })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '종료예정 2', pressed: true })).toBeTruthy();
   });
 });

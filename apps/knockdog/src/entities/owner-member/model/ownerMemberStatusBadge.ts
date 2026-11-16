@@ -10,7 +10,7 @@ interface OwnerMemberStatusBadgeSource {
 
 /**
  * 등록 원생 한 줄에 붙는 상태 배지 문구를 만든다.
- * 만료예정·만료 판정은 서버가 하고, 여기서는 서버 값을 문구로 바꾸기만 한다.
+ * 종료예정·종료 판정은 서버가 하고, 여기서는 서버 값을 문구로 바꾸기만 한다.
  * 배지가 없으면 null을 돌려준다.
  */
 function toOwnerMemberStatusBadge({
@@ -18,7 +18,7 @@ function toOwnerMemberStatusBadge({
   expiringReason,
   daysLeft,
 }: OwnerMemberStatusBadgeSource): string | null {
-  if (ticketState === 'EXPIRED') return '만료';
+  if (ticketState === 'EXPIRED') return '종료';
   if (ticketState !== 'EXPIRING') return null;
 
   if (expiringReason === 'REMAINING_ONE') return '1회 남음';

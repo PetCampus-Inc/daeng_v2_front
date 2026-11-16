@@ -29,8 +29,8 @@ function OwnerMembersPage() {
   const isPendingTab = selectedTab === OWNER_MEMBERS_TAB.pending;
   const filterChips: { filter: OwnerMembersFilter; label: string; count: number }[] = [
     { filter: 'ALL', label: '전체', count: counts.all },
-    { filter: 'EXPIRING', label: '만료예정', count: counts.expiring },
-    { filter: 'EXPIRED', label: '만료', count: counts.expired },
+    { filter: 'EXPIRING', label: '종료예정', count: counts.expiring },
+    { filter: 'EXPIRED', label: '종료', count: counts.expired },
   ];
 
   return (

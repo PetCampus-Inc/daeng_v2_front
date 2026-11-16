@@ -5,7 +5,7 @@ import { cn } from '@knockdog/ui/lib';
 const TICKET_STATUS_BADGE_LABEL = {
   remaining: '1회 남음',
   dday: 'D-3',
-  expired: '만료',
+  expired: '종료',
 } as const;
 
 type TicketStatusBadgeStatus = keyof typeof TICKET_STATUS_BADGE_LABEL;
