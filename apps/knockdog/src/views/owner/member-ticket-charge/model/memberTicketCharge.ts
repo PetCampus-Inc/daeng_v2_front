@@ -127,12 +127,12 @@ function toChargeTicketRequest(
   };
 }
 
-function canChargeTicket(name: string, count: string, duration: ChargeDuration | null) {
+const canChargeTicket = (name: string, count: string, duration: ChargeDuration | null) => {
   const hasName = name.trim().length > 0;
   const hasCount = count !== '' && chargeCountError(count) === null;
   const hasCustomAmount = duration?.kind !== 'custom' || duration.amount >= 1;
-  return hasName && hasCount && hasCustomAmount;
-}
+  return hasName && hasCount && duration !== null && hasCustomAmount;
+};
 
 export type { ChargeDuration, ChargeMonth, ChargePreset, ChargeUnit };
 export {
