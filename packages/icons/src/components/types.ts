@@ -9,6 +9,7 @@ export type IconName =
   | 'AlbumNav'
   | 'ArchiveNav'
   | 'AppleLogo'
+  | 'ApplyStatusLine'
   | 'Babydelivery'
   | 'Bath'
   | 'BookmarkFill'
