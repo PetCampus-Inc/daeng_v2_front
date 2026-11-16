@@ -70,14 +70,6 @@ function ReservationNoPetState() {
   );
 }
 
-function ReservationEmptySchedule() {
-  return (
-    <div className='radius-r3 px-x4 py-x5 flex w-full items-center justify-center bg-[linear-gradient(-87deg,var(--color-primitive-orange-400)_12%,var(--color-primitive-orange-500)_93%)]'>
-      <p className='body1-bold text-text-primary-inverse'>아직 예정된 등원 일정이 없어요</p>
-    </div>
-  );
-}
-
 function ticketPeriod(ticket: GuardianTicket) {
   const startsOn = ticket.startsOn.replaceAll('-', '.');
   if (!ticket.endsOn) return '이용 기간 무제한';
@@ -322,7 +314,7 @@ function GuardianReservationPage() {
                 onClick={handleOpenList}
               />
             ) : (
-              <ReservationEmptySchedule />
+              <UpcomingRsvCard status='empty' />
             )}
           </section>
 
