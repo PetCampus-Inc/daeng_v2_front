@@ -118,7 +118,7 @@ const OwnerDailyAttendanceCard = ({
   const memo = item.requestMemo?.trim() ?? '';
 
   return (
-    <li className='bg-bg-0 radius-r5 p-x5 gap-x3 flex flex-col'>
+    <li data-attendance-status={item.status} className='bg-bg-0 radius-r5 p-x5 gap-x3 flex flex-col'>
       <div className='gap-x5 flex flex-col'>
         <div
           role='button'

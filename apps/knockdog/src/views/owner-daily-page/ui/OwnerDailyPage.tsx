@@ -7,6 +7,7 @@ import { overlay } from 'overlay-kit';
 
 import { OWNER_DAILY_TAB_LABEL, type OwnerDailyTab } from '@views/owner-daily-page/config/ownerDailyContent';
 import { formatOwnerDailyDateLabel } from '@views/owner-daily-page/lib/ownerDailyDateLabel';
+import { scrollToFirstFocusCard } from '@views/owner-daily-page/lib/ownerDailyFocus';
 import { toOwnerDailySummaryView } from '@views/owner-daily-page/lib/ownerDailySummary';
 import { useOwnerDailyActions } from '@views/owner-daily-page/model/useOwnerDailyActions';
 import { useOwnerDailyCancelDialog } from '@views/owner-daily-page/model/useOwnerDailyCancelDialog';
@@ -90,6 +91,7 @@ const OwnerDailyPage = () => {
     keyword,
     lateOnly,
     todayFilter,
+    focusStatus,
     setKeyword,
     setLateOnly,
     setTodayFilter,
@@ -99,6 +101,7 @@ const OwnerDailyPage = () => {
     handleNextDayClick,
     handleTodayClick,
     handleTabChange,
+    clearFocusStatus,
   } = useOwnerDailyPage();
   const {
     pendingPetIds,
@@ -198,6 +201,15 @@ const OwnerDailyPage = () => {
   useLayoutEffect(() => {
     contentRef.current?.scrollTo({ top: 0 });
   }, [viewKey]);
+
+  // 홈 등원 현황 카드로 열렸으면 목록이 그려진 뒤 누른 상태의 첫 원생 카드로 스크롤한다. 한 번만 하고 주소에서 지운다.
+  const isListVisible = !isNotConfigured && !isLoading && !isError && !isPastNoRecord && !isNoReservation;
+  useLayoutEffect(() => {
+    if (!focusStatus || !isListVisible) return;
+
+    if (contentRef.current) scrollToFirstFocusCard(contentRef.current, focusStatus);
+    clearFocusStatus();
+  }, [focusStatus, isListVisible, clearFocusStatus]);
 
   return (
     <div data-testid='owner-daily-root' className='bg-bg-50 relative flex h-dvh flex-col'>

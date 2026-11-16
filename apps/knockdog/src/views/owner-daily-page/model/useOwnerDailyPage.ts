@@ -42,6 +42,7 @@ const NOW_REFRESH_INTERVAL_MS = 10_000;
  * - 등원목록 필터 칩(`todayFilter`): 칩을 바꾸면 서버 필터로 다시 조회하고, 날짜를 바꾸면 `전체`로 돌아간다.
  * - 등원 가능 시간 미설정: 현황 응답이 미설정이면(`isNotConfigured`) 날짜 이동을 막고 보던 날짜 화면에 `설정하기` 안내를 보여 준다.
  * - 조회 실패: 필수 조회 하나라도 실패하면 `isError`이고, `handleRetry`가 실패한 조회만 다시 요청한다.
+ * - 홈 카드 진입: 주소에 `focusStatus`가 있으면 화면이 그려진 뒤 그 상태의 첫 원생 카드로 스크롤하고 주소에서 지운다.
  * - 조회: 현황(summary)은 항상, 등원 대상(candidates)은 오늘·미래, 등원목록(today)은 오늘·지난 날짜만 한다.
  *   전체 등록 원생 수는 오늘·미래 날짜에 구성원 목록의 전체 집계로 조회한다.
  */
@@ -53,6 +54,7 @@ const useOwnerDailyPage = () => {
     tab: tabParam,
     lateOnly,
     todayFilter,
+    focusStatus,
     keyword,
     setKeyword,
     replaceUrlQuery,
@@ -142,6 +144,11 @@ const useOwnerDailyPage = () => {
     replaceUrlQuery({ [OWNER_DAILY_QUERY_KEY.tab]: tab });
   };
 
+  /** 홈에서 받은 `focusStatus`를 주소에서 지운다. 스크롤을 한 번만 하고, 이후 목록이 다시 그려져도 되풀이하지 않게 한다. */
+  const clearFocusStatus = () => {
+    replaceUrlQuery({ [OWNER_DAILY_QUERY_KEY.focusStatus]: null });
+  };
+
   const candidates = hasCandidates && !candidatesQuery.isPlaceholderData ? candidatesQuery.data?.items : undefined;
   // 오늘·미래 날짜에 예약한 원생이 하나도 없다. 조회 중이거나 실패하면 candidates가 없어 false다.
   const isNoReservation = candidates?.length === 0;
@@ -167,6 +174,7 @@ const useOwnerDailyPage = () => {
     keyword,
     lateOnly,
     todayFilter,
+    focusStatus,
     setKeyword,
     setLateOnly,
     setTodayFilter,
@@ -176,6 +184,7 @@ const useOwnerDailyPage = () => {
     handleNextDayClick: () => handleDateSelect(addDays(selectedDate, 1)),
     handleTodayClick: () => handleDateSelect(today),
     handleTabChange,
+    clearFocusStatus,
   };
 };
 

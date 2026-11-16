@@ -7,6 +7,7 @@ import {
   parseOwnerDailyLateOnlyParam,
   parseOwnerDailyTabParam,
   parseOwnerDailyFilterParam,
+  parseOwnerDailyFocusParam,
 } from '@views/owner-daily-page/lib/ownerDailyUrlState';
 
 /** 값이 null인 항목은 주소에서 지운다. */
@@ -75,6 +76,7 @@ const useOwnerDailyUrlState = () => {
     tab: parseOwnerDailyTabParam(searchParams.get(OWNER_DAILY_QUERY_KEY.tab)),
     lateOnly: parseOwnerDailyLateOnlyParam(searchParams.get(OWNER_DAILY_QUERY_KEY.lateOnly)),
     todayFilter: parseOwnerDailyFilterParam(searchParams.get(OWNER_DAILY_QUERY_KEY.todayFilter)),
+    focusStatus: parseOwnerDailyFocusParam(searchParams.get(OWNER_DAILY_QUERY_KEY.focusStatus)),
     keyword,
     setKeyword,
     replaceUrlQuery,

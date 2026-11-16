@@ -39,6 +39,26 @@ const useOwnerHomePage = () => {
     push({ pathname: route.owner.daily.root, query: nextQuery });
   };
   const handleLatePetsClick = () => navigateToOwnerDaily({ tab: 'attendance-check', lateOnly: true });
+  /**
+   * 등원 현황 카드의 `등원 완료`·`결석 확정`을 누르면 오늘 일과 `등원처리` 탭을 열고 그 상태의 원생으로 스크롤한다.
+   * 해당 원생이 0마리면 스크롤 없이 기본 목록만 보여 준다.
+   */
+  const handleCheckedInClick = () =>
+    navigateToOwnerDaily({
+      tab: 'attendance-check',
+      focusStatus: (ownerHome?.operationStatus.checkedInCount ?? 0) > 0 ? 'checkedIn' : undefined,
+    });
+  const handleAbsentClick = () =>
+    navigateToOwnerDaily({
+      tab: 'attendance-check',
+      focusStatus: (ownerHome?.operationStatus.absentCount ?? 0) > 0 ? 'absent' : undefined,
+    });
+  /** `하원 완료`를 누르면 오늘 일과 `등원목록` 탭을 열고 하원한 원생으로 스크롤한다. 0마리면 기본 목록만 보여 준다. */
+  const handleCheckedOutClick = () =>
+    navigateToOwnerDaily({
+      tab: 'attendance-list',
+      focusStatus: (ownerHome?.operationStatus.checkedOutCount ?? 0) > 0 ? 'checkedOut' : undefined,
+    });
   const handleNoticebookStatusClick = () =>
     navigateToOwnerDaily({ tab: 'attendance-list', todayFilter: 'UNSENT_RECORD' });
   const handleConnectionClick = () =>
@@ -103,6 +123,9 @@ const useOwnerHomePage = () => {
       refetchMembers();
     },
     handleLatePetsClick,
+    handleCheckedInClick,
+    handleAbsentClick,
+    handleCheckedOutClick,
     handleNoticebookStatusClick,
     handleConnectionClick,
     handleTicketsClick,
