@@ -49,7 +49,7 @@ function UpcomingRsvCard({
           className
         )}
       >
-        <p className='body1-bold text-fill-secondary-500'>아직 예정된 등원 일정이 없어요.</p>
+        <p className='body1-bold text-text-tertiary'>아직 예정된 등원 일정이 없어요.</p>
         <p className='label-medium text-text-caption'>원하는 날짜로 새로 예약해 보세요.</p>
       </div>
     );

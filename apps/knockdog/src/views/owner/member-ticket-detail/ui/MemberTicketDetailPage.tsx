@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useParams } from 'next/navigation';
 
 import { TrashV4 } from '@knockdog/icons';
-import { Divider, ExpirationDateRow, TicketLifecycleBadge } from '@knockdog/ui';
+import { ActionButton, Divider, ExpirationDateRow, TicketLifecycleBadge } from '@knockdog/ui';
 
 import { memberTicketDetailContent } from '@views/owner/member-ticket-detail/config/memberTicketDetailContent';
 import { isHoldButtonDisabled, toTicketDetail } from '@views/owner/member-ticket-detail/model/memberTicketDetail';
@@ -219,12 +219,14 @@ function MemberTicketDetailPage() {
             <h2 className='h3-extrabold text-text-primary'>{content.manageTitle}</h2>
             <p className='body2-regular text-text-secondary'>{content.manageDescription}</p>
           </div>
-          <button
+          <ActionButton
             type='button'
+            variant={isHoldDisabled ? 'primaryFill' : 'secondaryLine'}
+            size='large'
             disabled={isHoldDisabled}
-            className={`body1-bold bg-bg-0 radius-r3 flex w-full items-center justify-center border border-solid p-x4 ${
+            className={`body1-bold ${
               isHoldDisabled
-                ? 'border-line-400 text-text-secondary-inverse cursor-not-allowed'
+                ? ''
                 : isCancelAction
                   ? 'border-line-200 text-text-tertiary'
                   : 'border-line-200 text-fill-secondary-500'
@@ -236,7 +238,7 @@ function MemberTicketDetailPage() {
             }}
           >
             {isCancelAction ? content.cancelHold : content.hold}
-          </button>
+          </ActionButton>
         </section>
 
         {isHistoryLoading || isHistoryError || history.length > 0 ? (

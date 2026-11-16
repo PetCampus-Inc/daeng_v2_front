@@ -46,7 +46,7 @@ function BottomNavBarLinks() {
       >
         {navItems.map((item) => {
           const isActive = isActiveNavItem(pathname, item.href);
-          const colorClassName = isActive ? 'text-fill-primary-500' : 'text-text-secondary';
+          const colorClassName = isActive ? 'text-fill-primary-500' : 'text-text-tertiary';
           const usesFigmaIcon =
             !showOwnerBottomNav &&
             (item.href === '/' ||
@@ -56,7 +56,7 @@ function BottomNavBarLinks() {
               item.href === '/mypage');
           const iconColorClassName =
             !isActive && (showOwnerBottomNav || usesFigmaIcon) ? 'text-text-caption' : colorClassName;
-          const labelColorClassName = showOwnerBottomNav && !isActive ? 'text-primitive-neutral-500' : colorClassName;
+          const labelColorClassName = colorClassName;
 
           return (
             <Link

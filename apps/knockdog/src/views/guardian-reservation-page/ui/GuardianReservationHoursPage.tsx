@@ -45,10 +45,10 @@ function GuardianReservationHoursPage({
         <Header.Title>{copy.title}</Header.Title>
       </Header>
 
-      <div className='px-x5 py-x4 gap-x5 flex min-h-0 flex-1 flex-col items-center justify-center'>
-        <div className='gap-x1 flex flex-col items-center text-center'>
+      <div className='px-x5 py-x4 gap-x5 flex min-h-0 flex-1 flex-col'>
+        <div className='gap-x1 flex flex-1 flex-col items-center justify-center text-center'>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={copy.imageSrc} alt='' className='size-[200px] object-contain' />
+          <img src={copy.imageSrc} alt='' className='size-[200px] object-contain object-bottom' />
           <p className='h2-extrabold text-text-primary'>{copy.heading}</p>
           <p className='body1-regular text-text-tertiary'>{copy.body}</p>
         </div>
