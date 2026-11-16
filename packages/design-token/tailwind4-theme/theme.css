@@ -121,6 +121,8 @@
   --font-size-caption1: var(--font-size-caption1);
   --font-size-caption2: var(--font-size-caption2);
 
+  --shadow-floating: var(--shadow-floating);
+
   --opacity-low: var(--opacity-low);
   --opacity-md: var(--opacity-md);
   --opacity-high: var(--opacity-high);

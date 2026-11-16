@@ -119,6 +119,8 @@
   --font-size-caption1: 0.75rem;
   --font-size-caption2: 0.6875rem;
 
+  --shadow-floating: 0px 4px 16px 0px #70727c1a;
+
   --opacity-low: 0.2;
   --opacity-md: 0.4;
   --opacity-high: 0.7;

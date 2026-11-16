@@ -11,10 +11,10 @@ const BANNER_CLOSE_LABEL = '배너 닫기';
 
 const OwnerApprovalBanner = ({ onClick, onClose, isClosing = false }: OwnerApprovalBannerProps) => {
   return (
-    <div className='bg-bg-0 radius-r4 px-x4 py-x3 flex min-h-14 w-full items-center justify-between'>
+    <div className='bg-bg-0 radius-r4 px-x4 py-x3 shadow-floating flex min-h-14 w-full items-center justify-between'>
       <button
         type='button'
-        className='gap-x1 flex h-6 min-w-0 flex-1 items-center justify-start text-left'
+        className='gap-x3 flex h-6 min-w-0 flex-1 items-center justify-start text-left'
         onClick={onClick}
       >
         <span className='flex size-6 shrink-0 items-center justify-center'>
@@ -31,7 +31,7 @@ const OwnerApprovalBanner = ({ onClick, onClose, isClosing = false }: OwnerAppro
         disabled={isClosing}
         onClick={onClose}
       >
-        <Icon icon='Close' className='text-fill-secondary-700 size-6' />
+        <Icon icon='Close' className='text-text-caption size-6' />
       </button>
     </div>
   );
