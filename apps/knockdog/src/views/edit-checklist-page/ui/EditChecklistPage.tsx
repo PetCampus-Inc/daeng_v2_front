@@ -66,10 +66,10 @@ function showSaveSuccessToast() {
   toast({
     type: 'success',
     nativeTitle: '체크리스트를 저장했어요',
-    titleParts: [{ text: '체크리스트', accent: true }, { text: '를 저장했어요' }],
+    titleParts: [{ text: '체크리스트', bold: true }, { text: '를 저장했어요' }],
     title: (
       <>
-        <span className='text-text-accent'>체크리스트</span>
+        <span className='body1-bold text-text-primary-inverse'>체크리스트</span>
         <span className='text-text-primary-inverse'>를 저장했어요</span>
       </>
     ),

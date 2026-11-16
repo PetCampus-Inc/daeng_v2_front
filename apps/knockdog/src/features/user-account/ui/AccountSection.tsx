@@ -92,12 +92,12 @@ function AccountSection({
       position: 'bottom',
       nativeTitle: `${ttokIdLabel}를 복사했어요`,
       titleParts: [
-        { text: ttokIdLabel, accent: true },
+        { text: ttokIdLabel, bold: true },
         { text: '를 복사했어요' },
       ],
       title: (
         <>
-          <span className='body1-bold text-text-accent'>{ttokIdLabel}</span>
+          <span className='body1-bold text-text-primary-inverse'>{ttokIdLabel}</span>
           <span className='body1-medium text-text-primary-inverse'>를 복사했어요</span>
         </>
       ),

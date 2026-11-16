@@ -82,10 +82,10 @@ function showCancelToast(startsAt: string) {
     shape: 'rounded',
     position: 'bottom',
     nativeTitle: `${when} ${suffix}`,
-    titleParts: [{ text: when, accent: true }, { text: ` ${suffix}` }],
+    titleParts: [{ text: when, bold: true }, { text: ` ${suffix}` }],
     title: (
       <>
-        <span className='body1-bold text-text-accent whitespace-pre'>{`${when} `}</span>
+        <span className='body1-bold text-text-primary-inverse whitespace-pre'>{`${when} `}</span>
         <span className='body1-medium text-text-primary-inverse'>{suffix}</span>
       </>
     ),

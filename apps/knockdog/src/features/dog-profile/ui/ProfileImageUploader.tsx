@@ -49,12 +49,12 @@ function ProfileImageUploader({ profileImage, onImageSelect }: ProfileImageUploa
         toast({
           title: (
             <>
-              <span className='text-text-accent'>20MB 이하의 사진만</span> 등록할 수 있어요.
+              <span className='body1-bold text-text-primary-inverse'>20MB 이하의 사진만</span> 등록할 수 있어요.
             </>
           ),
           nativeTitle: '20MB 이하의 사진만 등록할 수 있어요.',
           titleParts: [
-            { text: '20MB 이하의 사진만', accent: true },
+            { text: '20MB 이하의 사진만', bold: true },
             { text: ' 등록할 수 있어요.' },
           ],
           position: 'bottom-above-nav',

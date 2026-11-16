@@ -31,12 +31,12 @@ export function LocationMap({ address = '', coord = { lat: 0, lng: 0 } }: Locati
       position: 'bottom',
       nativeTitle: '주소를 복사했어요',
       titleParts: [
-        { text: '주소', accent: true },
+        { text: '주소', bold: true },
         { text: '를 복사했어요' },
       ],
       title: (
         <>
-          <span className='body1-bold text-text-accent'>주소</span>
+          <span className='body1-bold text-text-primary-inverse'>주소</span>
           <span className='body1-medium text-text-primary-inverse'>를 복사했어요</span>
         </>
       ),

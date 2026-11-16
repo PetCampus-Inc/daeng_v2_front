@@ -80,11 +80,11 @@ function showClosedToast() {
     shape: 'rounded',
     position: 'bottom',
     nativeTitle: `${copy.closedPrefix}${copy.closedAccent}${copy.closedSuffix}`,
-    titleParts: [{ text: copy.closedPrefix }, { text: copy.closedAccent, accent: true }, { text: copy.closedSuffix }],
+    titleParts: [{ text: copy.closedPrefix }, { text: copy.closedAccent, bold: true }, { text: copy.closedSuffix }],
     title: (
       <>
         <span className='body1-medium text-text-primary-inverse whitespace-pre'>{copy.closedPrefix}</span>
-        <span className='body1-bold text-text-accent'>{copy.closedAccent}</span>
+        <span className='body1-bold text-text-primary-inverse'>{copy.closedAccent}</span>
         <span className='body1-medium text-text-primary-inverse'>{copy.closedSuffix}</span>
       </>
     ),

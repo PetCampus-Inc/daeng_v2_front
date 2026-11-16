@@ -101,12 +101,12 @@ function showWriteSuccessToast() {
     type: 'success',
     nativeTitle: submitSuccessToast.nativeTitle,
     titleParts: [
-      { text: '새로운 소식', accent: true },
+      { text: '새로운 소식', bold: true },
       { text: '을 등록했어요' },
     ],
     title: (
       <>
-        <span className='text-text-accent'>새로운 소식</span>
+        <span className='body1-bold text-text-primary-inverse'>새로운 소식</span>
         <span className='text-text-primary-inverse'>을 등록했어요</span>
       </>
     ),
@@ -120,12 +120,12 @@ function showEditSuccessToast() {
     type: 'success',
     nativeTitle: submitSuccessToast.nativeTitle,
     titleParts: [
-      { text: '소식', accent: true },
+      { text: '소식', bold: true },
       { text: '을 수정했어요' },
     ],
     title: (
       <>
-        <span className='text-text-accent'>소식</span>
+        <span className='body1-bold text-text-primary-inverse'>소식</span>
         <span className='text-text-primary-inverse'>을 수정했어요</span>
       </>
     ),
@@ -139,12 +139,12 @@ function showDraftSaveToast() {
     type: 'success',
     nativeTitle: draftSaveToast.nativeTitle,
     titleParts: [
-      { text: '작성 중인 소식', accent: true },
+      { text: '작성 중인 소식', bold: true },
       { text: '을 임시저장했어요' },
     ],
     title: (
       <>
-        <span className='text-text-accent'>작성 중인 소식</span>
+        <span className='body1-bold text-text-primary-inverse'>작성 중인 소식</span>
         <span className='text-text-primary-inverse'>을 임시저장했어요</span>
       </>
     ),
@@ -157,12 +157,12 @@ function showDraftSaveFailedToast() {
   toast({
     nativeTitle: draftSaveFailedToast.nativeTitle,
     titleParts: [
-      { text: '임시저장', accent: true },
+      { text: '임시저장', bold: true },
       { text: '하지 못했어요 다시 시도해 주세요' },
     ],
     title: (
       <>
-        <span className='text-text-accent'>임시저장</span>
+        <span className='body1-bold text-text-primary-inverse'>임시저장</span>
         <span className='text-text-primary-inverse'>하지 못했어요 다시 시도해 주세요</span>
       </>
     ),
@@ -176,13 +176,13 @@ function showMaxPhotoCountToast() {
     nativeTitle: imageUpload.maxCountToast.nativeTitle,
     titleParts: [
       { text: '사진은 한 번에 최대 ' },
-      { text: `${maxPhotoCount}장`, accent: true },
+      { text: `${maxPhotoCount}장`, bold: true },
       { text: '까지 올릴 수 있어요' },
     ],
     title: (
       <>
         <span className='text-text-primary-inverse'>사진은 한 번에 최대 </span>
-        <span className='text-text-accent'>{maxPhotoCount}장</span>
+        <span className='body1-bold text-text-primary-inverse'>{maxPhotoCount}장</span>
         <span className='text-text-primary-inverse'>까지 올릴 수 있어요</span>
       </>
     ),

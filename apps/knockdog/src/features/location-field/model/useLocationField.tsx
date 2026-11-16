@@ -21,12 +21,12 @@ function showLocationResultToast(alias: string, suffix: string) {
     shape: 'rounded',
     nativeTitle: `${alias}${suffix}`,
     titleParts: [
-      { text: alias, accent: true },
+      { text: alias, bold: true },
       { text: suffix },
     ],
     title: (
       <>
-        <span className='text-text-accent'>{alias}</span>
+        <span className='body1-bold text-text-primary-inverse'>{alias}</span>
         {suffix}
       </>
     ),
