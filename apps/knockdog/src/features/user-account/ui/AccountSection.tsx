@@ -63,7 +63,7 @@ function AccountSection({
   variant = 'guardian',
   accountInfo,
   accountSectionTitle = '내 계정',
-  ttokIdLabel = '똑똑 ID',
+  ttokIdLabel = '똑독 ID',
   ttokIdDescription = '문의 시 사용되는 ID예요',
   releasePermissionLabel,
   headerAddon,

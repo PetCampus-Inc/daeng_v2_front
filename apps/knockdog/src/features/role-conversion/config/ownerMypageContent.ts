@@ -1,7 +1,7 @@
 export const ownerMypageContent = Object.freeze({
   ownerBadgeLabel: '원장',
   accountSectionTitle: '계정 정보',
-  ttokIdLabel: '똑똑 ID',
+  ttokIdLabel: '똑독 ID',
   ttokIdDescription: '문의 시 사용되는 ID예요',
   releasePermissionLabel: '운영 권한 해제하기',
   withdrawBlockedModalTitleLine1: '원장 권한이 있어',
