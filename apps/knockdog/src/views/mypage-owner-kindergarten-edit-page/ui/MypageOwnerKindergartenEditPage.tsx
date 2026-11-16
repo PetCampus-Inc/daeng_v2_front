@@ -284,7 +284,7 @@ function MypageOwnerKindergartenEditPage() {
   return (
     <div className='flex h-full flex-col'>
       <Header>
-        <Header.LeftSection className='relative z-10'>
+        <Header.LeftSection>
           <Header.BackButton onClick={handleBack} />
         </Header.LeftSection>
 

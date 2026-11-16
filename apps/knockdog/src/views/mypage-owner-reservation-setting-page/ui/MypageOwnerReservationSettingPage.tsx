@@ -88,7 +88,7 @@ function ReservationSettingPending({
   return (
     <div className='flex h-full flex-col bg-white'>
       <Header>
-        <Header.LeftSection className='relative z-10'>
+        <Header.LeftSection>
           <Header.BackButton onClick={handleBack} />
         </Header.LeftSection>
         <Header.Title>예약 설정</Header.Title>
@@ -155,7 +155,7 @@ function ReservationSettingEditor({ setting }: { setting: ReservationSetting }) 
   return (
     <div className='flex h-full flex-col bg-white'>
       <Header>
-        <Header.LeftSection className='relative z-10'>
+        <Header.LeftSection>
           <Header.BackButton onClick={handleBack} />
         </Header.LeftSection>
         <Header.Title>예약 설정</Header.Title>
