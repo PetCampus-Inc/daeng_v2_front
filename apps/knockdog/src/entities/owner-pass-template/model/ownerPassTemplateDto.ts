@@ -5,6 +5,9 @@ import type { OwnerPassTemplate } from './types';
 /** 이름 중복 오류 코드 (`POST`·`PUT` 409) */
 const PASS_TEMPLATE_DUPLICATE_CODE = 'TICKET_TEMPLATE-409-1';
 
+/** 없거나 이미 삭제된 템플릿에 요청했을 때의 오류 코드 (`PUT`·`DELETE` 404) */
+const PASS_TEMPLATE_NOT_FOUND_CODE = 'TICKET_TEMPLATE-404-1';
+
 const ownerPassTemplateDtoSchema = z.object({
   id: z.number().int(),
   name: z.string(),
@@ -35,6 +38,7 @@ function toOwnerPassTemplate(dto: OwnerPassTemplateDto): OwnerPassTemplate {
 
 export {
   PASS_TEMPLATE_DUPLICATE_CODE,
+  PASS_TEMPLATE_NOT_FOUND_CODE,
   ownerPassTemplateDtoSchema,
   ownerPassTemplatesDtoSchema,
   toOwnerPassTemplate,

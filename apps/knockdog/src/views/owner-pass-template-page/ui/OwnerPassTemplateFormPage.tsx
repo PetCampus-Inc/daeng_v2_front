@@ -25,6 +25,7 @@ import { Header } from '@widgets/Header';
 import {
   PASS_TEMPLATE_DUPLICATE_CODE,
   PASS_TEMPLATE_NAME_MAX_LENGTH,
+  PASS_TEMPLATE_NOT_FOUND_CODE,
   findPassTemplateById,
   getPassTemplateSelection,
   isValidPassTemplateInput,
@@ -40,6 +41,7 @@ import {
 import { ApiError } from '@shared/api';
 import { route } from '@shared/constants/route';
 import { useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
+import { closeOverlayThenNavigate } from '@shared/lib/navigation/closeOverlayThenNavigate';
 import { openUnsavedExitDialog } from '@shared/lib/openUnsavedExitDialog';
 import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGuard';
 import { ACTION_SPINNER_DELAY_MS, ActionLoadingOverlay, DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
@@ -86,6 +88,11 @@ function durationOptionToInput(
   }
 
   return { type: 'FIXED', value: Number(durationOption.split('_')[0]), unit: 'MONTH' };
+}
+
+/** 저장·삭제 실패가 다른 기기에서 이미 삭제된 이용권 때문인지 판별한다. */
+function isTemplateAlreadyDeletedError(error: unknown): boolean {
+  return error instanceof ApiError && String(error.code) === PASS_TEMPLATE_NOT_FOUND_CODE;
 }
 
 /** 필수 항목 라벨. Figma의 라벨 옆 `*` 표시를 붙인다. */
@@ -138,7 +145,8 @@ function OwnerPassTemplateFormPage({ mode }: OwnerPassTemplateFormPageProps) {
     initializedTemplateIdRef.current = template.id;
   }, [template]);
 
-  // 삭제를 시작했으면 목록이 갱신돼 항목이 사라져도 `찾을 수 없음`으로 처리하지 않는다.
+  // 삭제를 시작했거나 이미 삭제된 이용권임을 알았으면, 목록이 갱신돼 항목이 사라져도
+  // `찾을 수 없음`으로 한 번 더 처리하지 않는다.
   const isDeletingRef = useRef(false);
   const isTemplateNotFound = mode === 'edit' && listQuery.isSuccess && !template;
   useEffect(() => {
@@ -210,6 +218,18 @@ function OwnerPassTemplateFormPage({ mode }: OwnerPassTemplateFormPageProps) {
     navigate();
   }, [isDirty, releaseAndLeave, replace]);
 
+  /**
+   * 삭제 모달을 닫은 뒤 목록으로 이동한다. 삭제 확인은 미저장 변경까지 버리는 명시적 결정이라,
+   * 수정 중이면 이탈 방지용 history 칸을 먼저 풀고 이동한다.
+   */
+  const closeDeleteDialogAndMoveToList = (close: () => void) => {
+    closeOverlayThenNavigate(close, () => {
+      releaseAndLeave(() => {
+        void replace({ pathname: route.mypage.passTemplate.root });
+      });
+    });
+  };
+
   const handleSubmit = async () => {
     if (!canSubmit || !input) return;
 
@@ -225,6 +245,18 @@ function OwnerPassTemplateFormPage({ mode }: OwnerPassTemplateFormPageProps) {
     } catch (error) {
       if (error instanceof ApiError && error.code === PASS_TEMPLATE_DUPLICATE_CODE) {
         setDuplicateNameError(true);
+        return;
+      }
+
+      // 다른 기기에서 이미 삭제된 이용권이면 화면에 머물지 않고 목록으로 보낸다.
+      if (mode === 'edit' && isTemplateAlreadyDeletedError(error)) {
+        isDeletingRef.current = true;
+        void listQuery.refetch();
+        toast({
+          title: ownerPassTemplateContent.alreadyDeletedToast,
+          nativeTitle: ownerPassTemplateContent.alreadyDeletedToast,
+        });
+        moveToList();
         return;
       }
 
@@ -252,24 +284,21 @@ function OwnerPassTemplateFormPage({ mode }: OwnerPassTemplateFormPageProps) {
                 isDeletingRef.current = true;
                 try {
                   await deleteMutation.mutateAsync(templateId);
-                  // 삭제 확인은 미저장 변경까지 버리는 명시적 결정이다. 모달을 닫을 때 앱이
-                  // history.back()을 실행하므로, 그 popstate가 끝난 뒤에 목록으로 이동해
-                  // 이동이 뒤로가기에 덮어씌워지지 않게 한다. 신호가 없으면 300ms 뒤 이동한다.
-                  let didNavigate = false;
-                  const goToList = () => {
-                    if (didNavigate) return;
-                    didNavigate = true;
-                    window.removeEventListener('popstate', goToList);
-                    // 수정 중이면 이탈 방지용 history 칸이 하나 더 있어, 먼저 풀고 이동한다.
-                    releaseAndLeave(() => {
-                      void replace({ pathname: route.mypage.passTemplate.root });
-                    });
-                  };
-                  window.addEventListener('popstate', goToList);
-                  close();
+                  closeDeleteDialogAndMoveToList(close);
                   toast({ title: '이용권을 삭제했어요', nativeTitle: '이용권을 삭제했어요', type: 'success' });
-                  window.setTimeout(goToList, 300);
-                } catch {
+                } catch (error) {
+                  // 다른 기기에서 이미 삭제된 이용권이면 삭제 성공처럼 목록으로 보낸다.
+                  // isDeletingRef를 그대로 두어 목록 갱신 뒤 `찾을 수 없어요` 토스트가 겹쳐 뜨지 않게 한다.
+                  if (isTemplateAlreadyDeletedError(error)) {
+                    void listQuery.refetch();
+                    closeDeleteDialogAndMoveToList(close);
+                    toast({
+                      title: ownerPassTemplateContent.alreadyDeletedToast,
+                      nativeTitle: ownerPassTemplateContent.alreadyDeletedToast,
+                    });
+                    return;
+                  }
+
                   isDeletingRef.current = false;
                   close();
                   toast({ title: '이용권을 삭제하지 못했어요', nativeTitle: '이용권을 삭제하지 못했어요' });
@@ -390,9 +419,9 @@ function OwnerPassTemplateFormPage({ mode }: OwnerPassTemplateFormPageProps) {
             </div>
 
             {durationOption === 'CUSTOM' ? (
-              <div className='flex flex-col gap-x2'>
+              <div className='gap-x2 flex flex-col'>
                 <DurationUnitField
-                  className='pr-[2px] pl-x1'
+                  className='pl-x1 pr-[2px]'
                   unit={customUnit === 'DAY' ? 'day' : 'month'}
                   onUnitChange={(unit) => setCustomUnit(unit === 'day' ? 'DAY' : 'MONTH')}
                   value={customDuration}

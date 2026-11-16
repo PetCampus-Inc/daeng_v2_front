@@ -19,6 +19,7 @@ const ownerPassTemplateContent = {
   unsavedDescription: '변경한 내용이 저장되지 않아요.',
   deleteTitle: '이용권을 삭제할까요?',
   deleteDescription: '이미 충전한 이용권은 그대로 사용할 수 있어요',
+  alreadyDeletedToast: '이미 삭제된 이용권이에요',
 } as const;
 
 export { ownerPassTemplateContent };
