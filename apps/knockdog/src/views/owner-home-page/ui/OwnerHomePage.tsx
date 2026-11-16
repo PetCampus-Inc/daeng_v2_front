@@ -95,6 +95,9 @@ const OwnerHomePage = () => {
               lateCount={home.latePets.count}
               latePets={home.latePets.items}
               onLatePetsClick={home.handleLatePetsClick}
+              onCheckedInClick={home.handleCheckedInClick}
+              onAbsentClick={home.handleAbsentClick}
+              onCheckedOutClick={home.handleCheckedOutClick}
             />
           )}
           <OwnerHomeTaskCards

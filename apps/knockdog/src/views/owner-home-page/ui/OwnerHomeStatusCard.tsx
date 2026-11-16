@@ -20,6 +20,9 @@ interface OwnerHomeStatusCardProps {
   lateCount: number;
   latePets: HomeLatePet[];
   onLatePetsClick: () => void;
+  onCheckedInClick: () => void;
+  onAbsentClick: () => void;
+  onCheckedOutClick: () => void;
 }
 
 const OwnerHomeStatusCard = ({
@@ -31,6 +34,9 @@ const OwnerHomeStatusCard = ({
   lateCount,
   latePets,
   onLatePetsClick,
+  onCheckedInClick,
+  onAbsentClick,
+  onCheckedOutClick,
 }: OwnerHomeStatusCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const contentId = useId();
@@ -86,21 +92,28 @@ const OwnerHomeStatusCard = ({
         </div>
       ) : null}
 
-      <dl className='gap-x2 py-x3 flex items-center'>
+      <div className='gap-x2 py-x3 flex items-center'>
         {[
-          { label: '등원 완료', count: checkedInCount },
-          { label: '결석 확정', count: absentCount },
-          { label: '하원 완료', count: checkedOutCount },
-        ].map(({ label, count }, index) => (
+          { label: '등원 완료', count: checkedInCount, onClick: onCheckedInClick },
+          { label: '결석 확정', count: absentCount, onClick: onAbsentClick },
+          { label: '하원 완료', count: checkedOutCount, onClick: onCheckedOutClick },
+        ].map(({ label, count, onClick }, index) => (
           <Fragment key={label}>
             <div className='flex min-w-0 flex-1 flex-col items-center'>
-              <dd className='h1-extrabold text-text-primary'>{count}</dd>
-              <dt className='body2-regular text-primitive-neutral-500'>{label}</dt>
+              <button
+                type='button'
+                aria-label={`${label} ${count}마리 일과로 이동`}
+                className='flex w-full cursor-pointer flex-col items-center'
+                onClick={onClick}
+              >
+                <span className='h1-extrabold text-text-primary'>{count}</span>
+                <span className='body2-regular text-primitive-neutral-500'>{label}</span>
+              </button>
             </div>
             {index < 2 ? <div aria-hidden className='bg-line-100 h-x10 w-px shrink-0' /> : null}
           </Fragment>
         ))}
-      </dl>
+      </div>
     </section>
   );
 };

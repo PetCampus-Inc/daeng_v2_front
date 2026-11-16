@@ -12,10 +12,15 @@ const OWNER_DAILY_QUERY_KEY = {
   lateOnly: 'lateOnly',
   todayFilter: 'todayFilter',
   keyword: 'q',
+  focusStatus: 'focusStatus',
 } as const;
+
+/** 홈 등원 현황 카드에서 누른 상태. 일과 화면이 열리면 이 상태의 첫 원생 카드로 스크롤한다. */
+type OwnerDailyFocusStatus = 'checkedIn' | 'absent' | 'checkedOut';
 
 const OWNER_DAILY_TABS: readonly OwnerDailyTab[] = ['attendance-check', 'attendance-list'];
 const TODAY_ATTENDANCE_FILTERS: readonly TodayAttendanceFilter[] = ['CURRENTLY_IN', 'UNSENT_RECORD', 'ABSENT'];
+const OWNER_DAILY_FOCUS_STATUSES: readonly OwnerDailyFocusStatus[] = ['checkedIn', 'absent', 'checkedOut'];
 const DATE_KEY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 /** 주소의 `date` 값을 날짜로 바꾼다. `YYYY-MM-DD` 형식이고 실제로 있는 날짜가 아니면 null이다. */
@@ -37,10 +42,16 @@ const parseOwnerDailyFilterParam = (value: string | null): TodayAttendanceFilter
 /** 주소의 `lateOnly` 값은 정확히 `true`일 때만 켜진 것으로 본다. */
 const parseOwnerDailyLateOnlyParam = (value: string | null): boolean => value === 'true';
 
+/** 주소의 `focusStatus` 값이 홈에서 보내는 상태 이름이면 돌려주고, 아니면 undefined(스크롤하지 않음)이다. */
+const parseOwnerDailyFocusParam = (value: string | null): OwnerDailyFocusStatus | undefined =>
+  OWNER_DAILY_FOCUS_STATUSES.find((status) => status === value);
+
 export {
   OWNER_DAILY_QUERY_KEY,
+  parseOwnerDailyFocusParam,
   parseOwnerDailyDateParam,
   parseOwnerDailyLateOnlyParam,
   parseOwnerDailyTabParam,
   parseOwnerDailyFilterParam,
 };
+export type { OwnerDailyFocusStatus };
