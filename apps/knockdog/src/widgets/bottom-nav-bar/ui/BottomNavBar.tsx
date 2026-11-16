@@ -64,8 +64,7 @@ function BottomNavBarLinks() {
               href={item.href}
               data-testid={navItemTestId(item.href)}
               className={cn(
-                'flex flex-1 flex-col items-center justify-center gap-y-0.5 transition-colors duration-100 motion-reduce:transition-none',
-                showOwnerBottomNav && 'gap-y-1',
+                'flex flex-1 flex-col items-center justify-center gap-y-1 transition-colors duration-100 motion-reduce:transition-none',
                 labelColorClassName
               )}
             >
@@ -75,7 +74,7 @@ function BottomNavBarLinks() {
                   className={`transition-colors duration-100 motion-reduce:transition-none ${iconColorClassName} ${'iconClassName' in item ? item.iconClassName : ''}`}
                 />
               </div>
-              <span className={cn('caption1-regular tracking-normal', showOwnerBottomNav && 'font-semibold tracking-[-0.02em]')}>
+              <span className={cn('caption1-semibold leading-[18px] tracking-normal', showOwnerBottomNav && 'tracking-[-0.02em]')}>
                 {item.label}
               </span>
             </Link>

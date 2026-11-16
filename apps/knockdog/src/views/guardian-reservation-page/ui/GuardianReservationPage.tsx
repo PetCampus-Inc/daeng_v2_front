@@ -279,7 +279,7 @@ function GuardianReservationPage() {
             breed={selectedPet.breed}
             age={petAgeLabel(selectedPet.birthYear)}
             weight={petWeightLabel(selectedPet.weight)}
-            className='rounded-none shadow-none'
+            className='h-[90px] rounded-none py-0 shadow-none'
             onClick={canOpenDogList ? handleToggleDogList : undefined}
           >
             <PetAvatar pet={selectedPet} />

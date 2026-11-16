@@ -1,5 +1,6 @@
 import GuardianArchiveIcon from '@/assets/icons/guardian_archive.svg';
-import GuardianLogIcon from '@/assets/icons/guardian_log.svg';
+import GuardianLogActiveIcon from '@/assets/icons/guardian_log_active.svg';
+import GuardianLogInactiveIcon from '@/assets/icons/guardian_log_inactive.svg';
 import GuardianMapIcon from '@/assets/icons/guardian_map.svg';
 import GuardianMyIcon from '@/assets/icons/guardian_my.svg';
 import GuardianReserveIcon from '@/assets/icons/guardian_reserve.svg';
@@ -134,7 +135,9 @@ export default function TabNavigator() {
                   );
                 case 'Kindergarten':
                   return (
-                    <GuardianLogIcon width={23} height={20} color={focused ? '#FF6E0C' : '#B4B4BB'} />
+                    <View style={{ width: 24, height: 24, alignItems: 'center', justifyContent: 'center', paddingBottom: 2 }}>
+                      {focused ? <GuardianLogActiveIcon width={23} height={20} /> : <GuardianLogInactiveIcon width={23} height={20} />}
+                    </View>
                   );
                 case 'OwnerHome':
                   return <OwnerHomeIcon width={21} height={21} {...strokeIconProps} />;
@@ -161,13 +164,12 @@ export default function TabNavigator() {
             tabBarStyle: getTabBarStyle(isTabBarVisible, bottom),
             tabBarLabelStyle: {
               fontSize: 12,
-              marginTop: 2,
+              fontFamily: 'SUIT-SemiBold',
+              lineHeight: 18,
+              marginTop: 4,
               ...(isOwnerMode
                 ? {
-                    fontFamily: 'SUIT-SemiBold',
-                    lineHeight: 18,
                     letterSpacing: -0.24,
-                    marginTop: 4,
                   }
                 : {}),
             },
