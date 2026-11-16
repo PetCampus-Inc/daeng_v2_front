@@ -377,7 +377,7 @@ describe('등록 원생 없음·필터 결과 없음', () => {
   });
 });
 
-describe('이용권 만료 예정 알림 이동', () => {
+describe('이용권 종료 예정 알림 이동', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.getOwnerPendingMembers.mockResolvedValue(pendingResponse);

@@ -72,7 +72,7 @@ const TICKET_DETAIL_TYPES = new Set(['PET_TICKET_CHARGED', 'PET_TICKET_EXHAUSTED
 /** 등원 전날 리마인드 — 예약 상세 */
 const RESERVATION_DETAIL_TYPES = new Set(['RESERVATION_REMINDER']);
 
-/** 원장 이용권 만료 예정 — 구성원 목록(만료예정) */
+/** 원장 이용권 종료 예정 — 구성원 목록(종료예정) */
 const OWNER_TICKET_EXPIRING_TYPES = new Set(['PET_TICKET_EXPIRING_OWNER']);
 
 function toPositiveId(value: unknown): string | null {

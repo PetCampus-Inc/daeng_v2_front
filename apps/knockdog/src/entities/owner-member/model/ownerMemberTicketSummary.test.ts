@@ -25,7 +25,7 @@ describe('등록 원생 한 줄의 이용권 정보', () => {
     );
   });
 
-  it('이용권이 없거나 모두 만료면 이용권 정보를 보여주지 않는다', () => {
+  it('이용권이 없거나 모두 종료면 이용권 정보를 보여주지 않는다', () => {
     expect(toOwnerMemberTicketSummary(null)).toBeNull();
   });
 });

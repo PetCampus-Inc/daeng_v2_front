@@ -18,5 +18,5 @@ export const Selected: Story = {
 };
 
 export const Unselected: Story = {
-  args: { children: '만료 예정 2' },
+  args: { children: '종료예정 2' },
 };
