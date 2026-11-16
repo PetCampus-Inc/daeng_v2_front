@@ -15,7 +15,14 @@ import { PageError } from '@shared/ui/page-error';
 
 function OwnerPassTemplateListPage() {
   const { push } = useStackNavigation();
-  const { data: templates, isLoading, isError, isFetching, refetch } = useOwnerPassTemplatesQuery();
+  // 이미 불러온 목록은 재조회가 실패해도 유지한다. 오류 화면은 처음 불러오기에 실패했을 때만 보여 준다.
+  const {
+    data: templates,
+    isLoading,
+    isLoadingError: hasLoadError,
+    isFetching,
+    refetch,
+  } = useOwnerPassTemplatesQuery();
 
   return (
     <div className='bg-bg-0 flex h-full min-h-0 flex-1 flex-col'>
@@ -28,7 +35,7 @@ function OwnerPassTemplateListPage() {
 
       {isLoading && !templates ? (
         <DelayedLoadingSpinner isLoading layout='content' />
-      ) : isError ? (
+      ) : hasLoadError ? (
         <PageError
           layout='inline'
           isRetrying={isFetching}
@@ -73,7 +80,7 @@ function OwnerPassTemplateListPage() {
         </div>
       )}
 
-      {!isError ? (
+      {!hasLoadError ? (
         <div className='bg-bg-0 shrink-0 px-4 pt-4 pb-[calc(1rem+max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px)))]'>
           <ActionButton
             type='button'

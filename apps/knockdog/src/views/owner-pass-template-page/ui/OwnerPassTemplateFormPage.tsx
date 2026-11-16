@@ -313,7 +313,8 @@ function OwnerPassTemplateFormPage({ mode }: OwnerPassTemplateFormPageProps) {
     ));
   };
 
-  if (mode === 'edit' && listQuery.isError) {
+  // 이미 불러온 목록은 재조회가 실패해도 유지한다. 오류 화면은 처음 불러오기에 실패했을 때만 보여 준다.
+  if (mode === 'edit' && listQuery.isLoadingError) {
     return (
       <div className='bg-bg-0 flex h-full min-h-0 flex-1 flex-col'>
         <Header>
