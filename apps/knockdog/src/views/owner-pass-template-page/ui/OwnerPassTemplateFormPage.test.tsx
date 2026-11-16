@@ -63,6 +63,7 @@ const mockedToast = vi.mocked(toast);
 const LIST_PATH = '/mypage/pass-templates';
 const savedDto = { id: 12, name: '정기권', chargeCount: 10, validityValue: 80, validityUnit: 'DAY' as const };
 const duplicateError = () => new ApiError(409, 'TICKET_TEMPLATE-409-1', '중복');
+const templateNotFoundError = () => new ApiError(404, 'TICKET_TEMPLATE-404-1', '없는 이용권');
 
 function renderForm(mode: 'create' | 'edit', ui = <OwnerPassTemplateFormPage mode={mode} />) {
   routeParams = mode === 'edit' ? { id: '12' } : {};
@@ -414,6 +415,26 @@ describe('수정', () => {
     expect((nameInput() as HTMLInputElement).value).toBe('정기권2');
     await waitFor(() => expect((submitButton() as HTMLButtonElement).disabled).toBe(false));
   });
+
+  test('다른 기기에서 이미 삭제된 이용권을 저장하면(`TICKET_TEMPLATE-404-1`) `이미 삭제된 이용권이에요` 토스트를 보이고, 목록을 다시 불러오며 목록으로 이동한다', async () => {
+    const user = userEvent.setup();
+    mockedPut.mockRejectedValue(templateNotFoundError());
+    await renderEdit();
+    await user.type(nameInput(), '2');
+    mockedGet.mockResolvedValue({ templates: [] });
+
+    await user.click(submitButton());
+
+    await waitFor(() => expect(navigation.replace).toHaveBeenCalledWith({ pathname: LIST_PATH }));
+    expect(mockedToast).toHaveBeenCalledWith(expect.objectContaining({ title: '이미 삭제된 이용권이에요' }));
+    expect(mockedGet).toHaveBeenCalledTimes(2);
+    // 목록이 갱신돼 항목이 사라져도 `찾을 수 없어요` 토스트·이동이 한 번 더 나오지 않는다
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    });
+    expect(mockedToast).toHaveBeenCalledTimes(1);
+    expect(navigation.replace).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('삭제', () => {
@@ -535,6 +556,26 @@ describe('삭제', () => {
     await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
     expect(navigation.replace).not.toHaveBeenCalled();
     expect((nameInput() as HTMLInputElement).value).toBe('정기권2');
+  });
+
+  test('다른 기기에서 이미 삭제된 이용권을 삭제하면(`TICKET_TEMPLATE-404-1`) `이미 삭제된 이용권이에요` 토스트를 보이고, 목록을 다시 불러오며 목록으로 이동한다', async () => {
+    const user = userEvent.setup();
+    mockedDelete.mockRejectedValue(templateNotFoundError());
+    await renderEdit();
+    mockedGet.mockResolvedValue({ templates: [] });
+    const dialog = await openDeleteDialog(user);
+
+    await user.click(within(dialog).getByRole('button', { name: '삭제하기' }));
+
+    await waitFor(() => expect(navigation.replace).toHaveBeenCalledWith({ pathname: LIST_PATH }));
+    expect(mockedToast).toHaveBeenCalledWith(expect.objectContaining({ title: '이미 삭제된 이용권이에요' }));
+    expect(mockedGet).toHaveBeenCalledTimes(2);
+    // 목록이 갱신돼 항목이 사라져도 `찾을 수 없어요` 토스트·이동이 한 번 더 나오지 않는다
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    });
+    expect(mockedToast).toHaveBeenCalledTimes(1);
+    expect(navigation.replace).toHaveBeenCalledTimes(1);
   });
 });
 

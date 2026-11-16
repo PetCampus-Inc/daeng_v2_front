@@ -15,7 +15,7 @@ export {
   toPassTemplateRequestDto,
 } from './lib/passTemplate';
 export type { PassTemplateDurationOption } from './lib/passTemplate';
-export { PASS_TEMPLATE_DUPLICATE_CODE } from './model/ownerPassTemplateDto';
+export { PASS_TEMPLATE_DUPLICATE_CODE, PASS_TEMPLATE_NOT_FOUND_CODE } from './model/ownerPassTemplateDto';
 export { useOwnerPassTemplateMutation, useOwnerPassTemplatesQuery } from './model/useOwnerPassTemplateQuery';
 export type {
   OwnerPassTemplate,
