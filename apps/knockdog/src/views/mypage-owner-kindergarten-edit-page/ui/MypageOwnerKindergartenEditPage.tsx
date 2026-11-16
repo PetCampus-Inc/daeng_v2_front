@@ -284,7 +284,7 @@ function MypageOwnerKindergartenEditPage() {
   return (
     <div className='flex h-full flex-col'>
       <Header>
-        <Header.LeftSection className='relative z-10'>
+        <Header.LeftSection>
           <Header.BackButton onClick={handleBack} />
         </Header.LeftSection>
 
@@ -555,20 +555,20 @@ function MypageOwnerKindergartenEditPage() {
             />
           </div>
         </section>
+      </div>
 
-        <div className='px-4 pt-5 pb-10'>
-          <ActionButton
-            type='button'
-            size='large'
-            variant='primaryFill'
-            className='w-full'
-            disabled={formData.isSaving}
-            data-disabled={!formData.isSaveEnabled || formData.isSaving ? true : undefined}
-            onClick={handleSave}
-          >
-            {ownerMypageContent.profileSaveButtonLabel}
-          </ActionButton>
-        </div>
+      <div className='shrink-0 bg-white px-4 py-4'>
+        <ActionButton
+          type='button'
+          size='large'
+          variant='primaryFill'
+          className='w-full'
+          disabled={formData.isSaving}
+          data-disabled={!formData.isSaveEnabled || formData.isSaving ? true : undefined}
+          onClick={handleSave}
+        >
+          {ownerMypageContent.profileSaveButtonLabel}
+        </ActionButton>
       </div>
 
       <OptionSelectSheet

@@ -25,19 +25,19 @@ function SettingsSection({
     <div className='bg-bg-0'>
       <div className='px-4 pt-5 pb-7'>
         <div className='label-medium text-text-secondary mb-4 px-1'>{otherInfoTitle}</div>
-        <button type='button' className='body1-medium flex w-full items-center py-2 pr-1 pl-2 text-left' onClick={onNoticeClick}>
+        <button type='button' className='body1-medium flex w-full items-center py-4 pr-1 pl-2 text-left' onClick={onNoticeClick}>
           공지사항
         </button>
         <Divider className='border-line-100' />
         <button
           type='button'
-          className='body1-medium flex w-full items-center py-2 pr-1 pl-2 text-left'
+          className='body1-medium flex w-full items-center py-4 pr-1 pl-2 text-left'
           onClick={onNotificationClick}
         >
           알림 설정
         </button>
         <Divider className='border-line-100' />
-        <button type='button' className='body1-medium flex w-full items-center py-2 pr-1 pl-2 text-left' onClick={onTermsClick}>
+        <button type='button' className='body1-medium flex w-full items-center py-4 pr-1 pl-2 text-left' onClick={onTermsClick}>
           이용약관
         </button>
       </div>

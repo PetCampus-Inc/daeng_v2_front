@@ -49,7 +49,7 @@ function InfoRow({ label, value, lines, firstLineClamp = 1 }: InfoRowProps) {
   const isMultiline = displayLines.length > 1 || firstLineClamp > 1;
 
   return (
-    <div className={`flex justify-between gap-x-4 p-4 ${isMultiline ? 'items-start' : 'items-center'}`}>
+    <div className={`flex justify-between gap-x-4 px-1 py-4 ${isMultiline ? 'items-start' : 'items-center'}`}>
       <span className='body1-medium text-text-tertiary shrink-0'>{label}</span>
       {displayLines.length > 0 ? (
         <div className='flex min-w-0 flex-1 flex-col items-end'>
