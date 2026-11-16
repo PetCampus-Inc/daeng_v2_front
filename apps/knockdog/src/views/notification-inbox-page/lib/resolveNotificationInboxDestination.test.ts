@@ -35,7 +35,7 @@ describe('resolveNotificationInboxDestination ticket', () => {
     expect(resolveNotificationInboxDestination('PET_TICKET_CHARGED', { petId: 4 })).toEqual({ kind: 'unavailable' });
   });
 
-  it('원장 만료 예정은 구성원 만료예정으로 간다', () => {
+  it('원장 종료 예정은 구성원 종료예정으로 간다', () => {
     expect(resolveNotificationInboxDestination('PET_TICKET_EXPIRING_OWNER')).toEqual({
       kind: 'ownerExpiringMembers',
     });

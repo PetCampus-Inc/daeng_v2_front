@@ -19,7 +19,7 @@ const getGuardianTicketManage = async (petId: string) => {
   return parseGuardianTicketManage(response);
 };
 
-/** `GET` - 이용권 상세와 사용 내역. 최신순이며 만료 항목은 없다. */
+/** `GET` - 이용권 상세와 사용 내역. 최신순이며 종료 항목은 없다. */
 const getGuardianTicketDetail = async (petId: string, ticketId: string) => {
   const response = await api
     .get(`guardian/pets/${encodeURIComponent(petId)}/tickets/${encodeURIComponent(ticketId)}`)
@@ -28,7 +28,7 @@ const getGuardianTicketDetail = async (petId: string, ticketId: string) => {
   return parseGuardianTicketDetail(response);
 };
 
-/** `DELETE` - 만료된 이용권을 보호자 목록에서만 지운다. 이미 지운 이용권도 성공이다. */
+/** `DELETE` - 종료된 이용권을 보호자 목록에서만 지운다. 이미 지운 이용권도 성공이다. */
 const deleteGuardianTicket = async (petId: string, ticketId: string) => {
   const response = await api
     .delete(`guardian/pets/${encodeURIComponent(petId)}/tickets/${encodeURIComponent(ticketId)}`)

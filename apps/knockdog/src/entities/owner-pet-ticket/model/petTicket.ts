@@ -296,7 +296,7 @@ const toPetTicketHistoryLine = (dto: PetTicketHistoryItemDto, index: number): Pe
     return { id, title: '연장', detail: `만료일 ${toHistoryDate(dto.newExpiresOn) || occurred} 변경`, isCancelled: false };
   }
 
-  if (dto.type === 'EXPIRE') return { id, title: '만료', detail: occurred, isCancelled: false };
+  if (dto.type === 'EXPIRE') return { id, title: '종료', detail: occurred, isCancelled: false };
 
   return { id, title: '충전', detail: occurred, isCancelled: false };
 };

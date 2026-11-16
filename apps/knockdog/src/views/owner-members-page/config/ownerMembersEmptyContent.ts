@@ -24,14 +24,14 @@ const ownerMembersEmptyContent = {
   },
   emptyExpiring: {
     imageSrc: '/images/img_members_empty_ticket.svg',
-    imageAlt: '만료 예정인 원생 없음',
-    title: '만료 예정인 원생이 없어요',
+    imageAlt: '이용권이 종료 예정인 원생 없음',
+    title: '이용권이 종료 예정인 원생이 없어요',
     description: FILTER_EMPTY_DESCRIPTION,
   },
   emptyExpired: {
     imageSrc: '/images/img_members_empty_ticket.svg',
-    imageAlt: '이용권이 만료된 원생 없음',
-    title: '이용권이 만료된 원생이 없어요',
+    imageAlt: '이용권이 종료된 원생 없음',
+    title: '이용권이 종료된 원생이 없어요',
     description: FILTER_EMPTY_DESCRIPTION,
   },
 } satisfies Record<OwnerMembersEmptyStateType, OwnerMembersEmptyContent>;

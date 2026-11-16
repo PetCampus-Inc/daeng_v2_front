@@ -8,7 +8,7 @@ type OwnerMembersFilter = 'ALL' | 'EXPIRING' | 'EXPIRED';
 interface GetOwnerMembersParams {
   /** 이름·견종 검색어. 비어 있으면 보내지 않는다 */
   keyword?: string;
-  /** 만료 상태 필터. 기본 `ALL` */
+  /** 종료 상태 필터. 기본 `ALL` */
   filter?: OwnerMembersFilter;
 }
 

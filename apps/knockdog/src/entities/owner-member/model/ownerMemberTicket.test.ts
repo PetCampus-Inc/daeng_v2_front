@@ -31,28 +31,28 @@ describe('toOwnerMemberTicketView', () => {
     expect(view.remainingDays).toBeNull();
   });
 
-  it('잔여 횟수가 없으면 기간이 남아도 만료다', () => {
+  it('잔여 횟수가 없으면 기간이 남아도 종료다', () => {
     const view = toOwnerMemberTicketView({ ...ticket, remainingCount: 0 }, today);
 
     expect(view.status).toBe(TICKET_STATUS.expired);
     expect(view.remainingDays).toBeNull();
   });
 
-  it('종료일이 지나면 잔여 횟수가 있어도 만료다', () => {
+  it('종료일이 지나면 잔여 횟수가 있어도 종료다', () => {
     const view = toOwnerMemberTicketView({ ...ticket, endsOn: '2026-11-04' }, today);
 
     expect(view.status).toBe(TICKET_STATUS.expired);
     expect(view.remainingDays).toBeNull();
   });
 
-  it('종료일 당일은 만료가 아니고 남은 일수는 0이다', () => {
+  it('종료일 당일은 종료가 아니고 남은 일수는 0이다', () => {
     const view = toOwnerMemberTicketView({ ...ticket, endsOn: '2026-11-05' }, today);
 
     expect(view.status).toBe(TICKET_STATUS.active);
     expect(view.remainingDays).toBe(0);
   });
 
-  it('홀딩은 만료 조건이 아니면 유지한다', () => {
+  it('홀딩은 종료 조건이 아니면 유지한다', () => {
     const view = toOwnerMemberTicketView({ ...ticket, status: TICKET_STATUS.onHold }, today);
 
     expect(view.status).toBe(TICKET_STATUS.onHold);
