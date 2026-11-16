@@ -159,7 +159,7 @@ export default function TabNavigator() {
               }
             },
             tabBarActiveTintColor: '#FF6E0C',
-            tabBarInactiveTintColor: '#8C8C94',
+            tabBarInactiveTintColor: '#70727C',
             ...(Platform.OS === 'android' ? { tabBarAllowFontScaling: false } : {}),
             tabBarStyle: getTabBarStyle(isTabBarVisible, bottom),
             tabBarLabelStyle: {
