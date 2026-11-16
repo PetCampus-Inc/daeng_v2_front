@@ -77,7 +77,7 @@ const OwnerHomePage = () => {
         </h1>
       </div>
       <PullToRefresh onRefresh={() => home.handleRefresh()}>
-        <div className='gap-x6 px-x3 pt-x5 flex w-full flex-col pb-[calc(var(--bottom-bar-height)+20px)]'>
+        <div className='gap-x6 px-x4 pt-x5 flex w-full flex-col pb-[calc(var(--bottom-bar-height)+20px)]'>
           {!home.isHomeLoading && !home.today.isError && home.pendingApprovals?.bannerVisible ? (
             <OwnerApprovalBanner
               onClick={home.handleConnectionClick}
