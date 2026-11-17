@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { resolveNotificationInboxDestination } from './resolveNotificationInboxDestination';
 
 const GUARDIAN_TICKET_TYPES = [
+  'PET_TICKET_HOLD_CREATED',
   'PET_TICKET_HOLD_CANCELED',
   'PET_TICKET_HOLD_ENDED',
   'PET_TICKET_EXPIRY_EXTENDED',
@@ -10,6 +11,13 @@ const GUARDIAN_TICKET_TYPES = [
 ];
 
 describe('resolveNotificationInboxDestination ticket', () => {
+  it('홀딩 설정 알림의 강아지를 예약 탭에서 선택한다', () => {
+    expect(resolveNotificationInboxDestination('PET_TICKET_HOLD_CREATED', { petId: 12 })).toEqual({
+      kind: 'guardianReservation',
+      petId: '12',
+    });
+  });
+
   it('보호자 이용권 알림은 payload가 없어도 예약 탭으로 간다', () => {
     for (const type of GUARDIAN_TICKET_TYPES) {
       expect(resolveNotificationInboxDestination(type)).toEqual({ kind: 'guardianReservation' });
