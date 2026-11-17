@@ -4,6 +4,13 @@ import { defineConfig } from 'vitest/config';
 export default [
   defineConfig({
     test: {
+      name: 'mobile-sentry',
+      include: ['./apps/mobile/lib/sentry/*.test.ts'],
+      environment: 'node',
+    },
+  }),
+  defineConfig({
+    test: {
       name: 'knockdog',
       include: ['./apps/knockdog/**/*.test.(ts|tsx)'],
       exclude: [

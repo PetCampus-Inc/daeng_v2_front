@@ -1,5 +1,6 @@
 import { getAnalytics, logEvent, setAnalyticsCollectionEnabled, setUserId } from '@react-native-firebase/analytics';
 import { getApp } from '@react-native-firebase/app';
+import * as Sentry from '@sentry/react-native';
 import {
   METHODS,
   type AnalyticsLogEventParams,
@@ -59,6 +60,9 @@ function registerAnalyticsHandlers(router: NativeBridgeRouter) {
   router.register(METHODS.analyticsSetUserId, async (params: AnalyticsSetUserIdParams) => {
     const rawUserId = params?.user_id;
     const userId = typeof rawUserId === 'string' && rawUserId.trim() ? rawUserId.trim() : null;
+
+    // 웹의 로그인·세션 복원·로그아웃과 동일한 내부 사용자 ID만 연결한다.
+    Sentry.setUser(userId ? { id: userId } : null);
 
     await ensureAnalyticsCollection();
 
