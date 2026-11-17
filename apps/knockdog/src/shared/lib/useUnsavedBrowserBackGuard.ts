@@ -8,11 +8,40 @@ import {
   markUnsavedExitDialogClosed,
   UNSAVED_EXIT_OVERLAY_ID,
 } from '@shared/lib/openUnsavedExitDialog';
+import { useDebounced } from '@shared/lib/react';
 
 const GUARD_STATE_KEY = '__unsavedExitGuard';
+/**
+ * `isDirty`가 바뀐 뒤 이 시간 동안 더 바뀌지 않아야 가드를 걸거나 푼다.
+ * iOS 한글 첫 글자 조합 중에는 입력값이 순간적으로 바뀔 수 있어, 그때마다 history를 넣고 빼면
+ * 가드가 자기가 부른 `history.back()`의 popstate를 사용자 이탈로 오해해 이탈 모달이 뜬다.
+ */
+const DIRTY_SETTLE_DELAY_MS = 300;
+/** 글자 입력 직후 브라우저가 내는 popstate만 거른다. 그보다 늦은 뒤로가기는 이탈로 본다. */
+const TEXT_ENTRY_POP_IGNORE_MS = 1000;
+const NON_TEXT_INPUT_TYPES = new Set([
+  'button',
+  'submit',
+  'reset',
+  'checkbox',
+  'radio',
+  'file',
+  'range',
+  'color',
+  'image',
+  'hidden',
+]);
 
 interface GuardHistoryState {
   [GUARD_STATE_KEY]?: true;
+}
+
+function isTextEntryTarget(target: EventTarget | null) {
+  if (target instanceof HTMLTextAreaElement) return !target.disabled && !target.readOnly;
+  if (target instanceof HTMLInputElement) {
+    return !target.disabled && !target.readOnly && !NON_TEXT_INPUT_TYPES.has(target.type);
+  }
+  return target instanceof HTMLElement && target.isContentEditable;
 }
 
 function isGuardHistoryState(state: unknown): state is GuardHistoryState {
@@ -28,6 +57,10 @@ function pushGuardState() {
  * 페이지 `onAttemptLeave`(이탈 경고 모달)로 연결함
  *
  * 뒤로가기를 영구 차단하지 않음: 확인 시 `releaseAndLeave`로 trap 해제 후 실제 이탈
+ *
+ * 가드는 입력칸에 포커스가 있어도 건다. 포커스가 남은 채 뒤로가면 이탈로 본다.
+ * 모바일 브라우저(한글 IME)는 pushState 직후 다음 글자에서 popstate를 보낸다.
+ * 그 popstate만 이탈로 보지 않고 가드를 다시 건다.
  */
 function useUnsavedBrowserBackGuard(isDirty: boolean, onAttemptLeave: () => void) {
   const onAttemptLeaveRef = useRef(onAttemptLeave);
@@ -37,7 +70,9 @@ function useUnsavedBrowserBackGuard(isDirty: boolean, onAttemptLeave: () => void
   const pendingLeaveRef = useRef<(() => void) | null>(null);
   const [isSuspended, setIsSuspended] = useState(false);
 
-  const shouldArm = isDirty && !isSuspended;
+  // 입력이 잠잠해진 뒤의 값으로만 판단한다. 상단 뒤로가기 등 화면이 직접 보는 isDirty에는 영향 없다.
+  const settledIsDirty = useDebounced(isDirty, DIRTY_SETTLE_DELAY_MS);
+  const shouldArm = settledIsDirty && !isSuspended;
 
   const releaseAndLeave = useCallback((leave: () => void) => {
     if (!isGuardHistoryState(window.history.state)) {
@@ -61,7 +96,11 @@ function useUnsavedBrowserBackGuard(isDirty: boolean, onAttemptLeave: () => void
   useEffect(() => {
     if (!shouldArm) return;
 
-    pushGuardState();
+    let cancelled = false;
+    let isComposing = false;
+    let lastEditAt = 0;
+    let armTimer = 0;
+    let detachPopState: (() => void) | null = null;
 
     const onPopState = () => {
       if (bypassRef.current) {
@@ -87,17 +126,71 @@ function useUnsavedBrowserBackGuard(isDirty: boolean, onAttemptLeave: () => void
         return;
       }
 
+      const editedJustNow = lastEditAt > 0 && performance.now() - lastEditAt < TEXT_ENTRY_POP_IGNORE_MS;
+      const isEditing = isTextEntryTarget(document.activeElement) && (isComposing || editedJustNow);
+      if (isEditing) {
+        pushGuardState();
+        return;
+      }
+
       // dirty 이탈 시도 → URL 복구 후 기존 이탈 핸들러 호출
       pushGuardState();
       onAttemptLeaveRef.current();
     };
 
-    window.addEventListener('popstate', onPopState);
+    const arm = () => {
+      if (cancelled || detachPopState) return;
+
+      isComposing = false;
+      pushGuardState();
+      window.addEventListener('popstate', onPopState);
+      detachPopState = () => window.removeEventListener('popstate', onPopState);
+    };
+
+    const scheduleArm = () => {
+      window.clearTimeout(armTimer);
+      armTimer = window.setTimeout(arm, 0);
+    };
+
+    const onFocusOut = () => {
+      isComposing = false;
+      scheduleArm();
+    };
+
+    const markEditing = (event: Event) => {
+      if (!isTextEntryTarget(event.target)) return;
+      lastEditAt = performance.now();
+    };
+
+    const onCompositionStart = () => {
+      isComposing = true;
+    };
+
+    const onCompositionEnd = () => {
+      isComposing = false;
+      scheduleArm();
+    };
+
+    document.addEventListener('beforeinput', markEditing, true);
+    document.addEventListener('input', markEditing, true);
+    document.addEventListener('compositionupdate', markEditing, true);
+    document.addEventListener('compositionstart', onCompositionStart, true);
+    document.addEventListener('compositionend', onCompositionEnd, true);
+    document.addEventListener('focusout', onFocusOut);
+    arm();
 
     return () => {
-      window.removeEventListener('popstate', onPopState);
+      cancelled = true;
+      window.clearTimeout(armTimer);
+      document.removeEventListener('beforeinput', markEditing, true);
+      document.removeEventListener('input', markEditing, true);
+      document.removeEventListener('compositionupdate', markEditing, true);
+      document.removeEventListener('compositionstart', onCompositionStart, true);
+      document.removeEventListener('compositionend', onCompositionEnd, true);
+      document.removeEventListener('focusout', onFocusOut);
+      detachPopState?.();
 
-      if (!isGuardHistoryState(window.history.state)) return;
+      if (!detachPopState || !isGuardHistoryState(window.history.state)) return;
 
       // dirty 해제/중첩 네비/언마운트 시 trap만 제거 (이탈 콜백 없음)
       const discardTrap = () => {

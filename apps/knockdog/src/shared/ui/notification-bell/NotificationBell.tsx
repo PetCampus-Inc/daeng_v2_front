@@ -10,9 +10,13 @@ interface NotificationBellProps {
 /** 헤더에서 사용하는 알림함 이동 버튼. 읽지 않은 알림이 있으면 활성 아이콘을 표시한다. */
 function NotificationBell({ hasUnread, onClick, inverse = false }: NotificationBellProps) {
   return (
-    <button type='button' aria-label='알림함' onClick={onClick}>
+    <button
+      type='button'
+      aria-label={hasUnread ? '알림함, 읽지 않은 알림 있음' : '알림함'}
+      onClick={onClick}
+    >
       <Icon
-        icon={hasUnread ? 'AlarmLineActive' : 'AlarmNone'}
+        icon={hasUnread ? 'BellDot' : 'BellLine'}
         className={cn(
           'size-6',
           inverse ? 'text-text-primary-inverse [&>circle]:fill-white [&>circle]:stroke-white' : 'text-text-primary'

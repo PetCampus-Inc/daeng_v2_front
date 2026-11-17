@@ -1,6 +1,7 @@
 'use client';
 
 import { overlay } from 'overlay-kit';
+import { AlarmBellDot } from '@knockdog/icons';
 import { Icon } from '@knockdog/ui';
 
 import { guardianKindergartenApprovedContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenApprovedContent';
@@ -98,7 +99,7 @@ function GuardianKindergartenHeader({
         onSelect={(petId) => {
           setSelectedPetId(petId);
           // 이전 강아지 알림장 리스트/스택이 뒤로가기에 남지 않게 유치원 홈으로 정리
-          navigateToTab('/compare').catch(() => undefined);
+          navigateToTab('/kindergarten').catch(() => undefined);
         }}
       />
     ));
@@ -150,9 +151,9 @@ function GuardianKindergartenHeader({
           className='bg-bg-0 shrink-0 rounded-full p-1.5'
         >
           {hasUnreadAlarm ? (
-            <Icon icon='AlarmLineActive' className='text-fill-primary-500 size-6' aria-hidden='true' />
+            <AlarmBellDot aria-hidden='true' />
           ) : (
-            <Icon icon='AlarmNone' className='text-fill-primary-500 size-6' aria-hidden='true' />
+            <Icon icon='AlarmNone' className='text-text-primary size-6' aria-hidden='true' />
           )}
         </button>
       </div>

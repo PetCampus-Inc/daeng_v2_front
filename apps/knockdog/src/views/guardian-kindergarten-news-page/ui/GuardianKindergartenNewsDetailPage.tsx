@@ -28,13 +28,13 @@ function showGuardianKindergartenNewsShareSuccessToast() {
     nativeTitle: shareSuccessToast.nativeTitle,
     titleParts: [
       { text: '유치원 소식을 ' },
-      { text: '공유', accent: true },
+      { text: '공유', bold: true },
       { text: '했어요' },
     ],
     title: (
       <>
         <span className='text-text-primary-inverse'>유치원 소식을 </span>
-        <span className='text-text-accent'>공유</span>
+        <span className='body1-bold text-text-primary-inverse'>공유</span>
         <span className='text-text-primary-inverse'>했어요</span>
       </>
     ),
@@ -95,10 +95,10 @@ function GuardianKindergartenNewsDetailPageContent() {
 
     if (entrySource === 'inbox' || entrySource === 'push') {
       void replace({
-        pathname: route.compare.news.root,
+        pathname: route.kindergarten.news.root,
         query: newsListQuery,
       }).catch(() => {
-        void navigateToTab('/compare');
+        void navigateToTab('/kindergarten');
       });
       return;
     }
@@ -113,11 +113,11 @@ function GuardianKindergartenNewsDetailPageContent() {
 
       try {
         await push({
-          pathname: route.compare.news.root,
+          pathname: route.kindergarten.news.root,
           query: newsListQuery,
         });
       } catch {
-        void navigateToTab('/compare');
+        void navigateToTab('/kindergarten');
       }
     })();
   }, [back, entrySource, navigateToTab, push, replace, schoolId]);
@@ -128,7 +128,7 @@ function GuardianKindergartenNewsDetailPageContent() {
     if (!item) return;
 
     const shareUrl =
-      typeof window !== 'undefined' ? window.location.href : route.compare.news.detail.root.replace('[id]', item.id);
+      typeof window !== 'undefined' ? window.location.href : route.kindergarten.news.detail.root.replace('[id]', item.id);
 
     const shared = await share({
       title: item.title,

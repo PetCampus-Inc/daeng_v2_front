@@ -76,7 +76,7 @@ export { type PushSetting } from './api/pushSetting';
 export { USER_ADDRESS_TYPE_KR } from './model/constant/user';
 
 /** Store */
-export { useUserStore } from './model/store/useUserStore';
+export { getUserHydrationStatus, subscribeUserHydration, useUserStore } from './model/store/useUserStore';
 
 /** Hooks */
 export { useBasePoint } from './model/useBasePoint';

@@ -54,11 +54,11 @@ function GuardianKindergartenNewsSearchPageContent() {
 
       try {
         await push({
-          pathname: route.compare.news.root,
+          pathname: route.kindergarten.news.root,
           query: schoolId ? { schoolId } : undefined,
         });
       } catch {
-        void navigateToTab('/compare');
+        void navigateToTab('/kindergarten');
       }
     })();
   }, [back, navigateToTab, push, schoolId]);
@@ -77,7 +77,7 @@ function GuardianKindergartenNewsSearchPageContent() {
   const handleResultClick = (newsId: string) => {
     if (query.trim()) addRecentKeyword(query);
     void push({
-      pathname: route.compare.news.detail.root.replace('[id]', newsId),
+      pathname: route.kindergarten.news.detail.root.replace('[id]', newsId),
       query: schoolId ? { schoolId } : undefined,
     });
   };

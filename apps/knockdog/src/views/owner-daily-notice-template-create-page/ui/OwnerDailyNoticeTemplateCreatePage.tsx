@@ -151,10 +151,9 @@ function OwnerDailyNoticeTemplateCreatePage() {
       toast({
         nativeTitle: '본문을 작성해 주세요',
         icon: 'info',
-        iconAccent: true,
         title: (
           <div className='flex items-center gap-1'>
-            <Icon icon='InfoLine' className='text-text-accent size-6 shrink-0' />
+            <Icon icon='InfoLine' className='text-text-primary-inverse size-6 shrink-0' />
             <span className='body1-medium text-text-primary-inverse'>본문을 작성해 주세요</span>
           </div>
         ),
@@ -178,12 +177,12 @@ function OwnerDailyNoticeTemplateCreatePage() {
       toast({
         nativeTitle: '템플릿을 저장하지 못했어요',
         titleParts: [
-          { text: '템플릿', accent: true },
+          { text: '템플릿', bold: true },
           { text: '을 저장하지 못했어요. 다시 시도해 주세요' },
         ],
         title: (
           <>
-            <span className='text-text-accent'>템플릿</span>
+            <span className='body1-bold text-text-primary-inverse'>템플릿</span>
             <span className='text-text-primary-inverse'>을 저장하지 못했어요. 다시 시도해 주세요</span>
           </>
         ),

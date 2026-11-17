@@ -1,11 +1,10 @@
-import { Suspense } from 'react';
+import { route } from '@shared/constants/route';
+import { redirectKeepingQuery } from '@shared/lib/navigation/redirectKeepingQuery';
 
-import { GuardianAlbumPage } from '@views/guardian-album-page';
+interface PageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
 
-export default function Page() {
-  return (
-    <Suspense fallback={null}>
-      <GuardianAlbumPage />
-    </Suspense>
-  );
+export default async function Page({ searchParams }: PageProps) {
+  redirectKeepingQuery(route.kindergarten.album.root, await searchParams);
 }

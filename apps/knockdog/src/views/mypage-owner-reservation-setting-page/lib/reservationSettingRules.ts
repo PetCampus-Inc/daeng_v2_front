@@ -23,20 +23,37 @@ function timeOrderError(start: string | null, end: string | null) {
   return TIME_ORDER_ERROR;
 }
 
-/** 시작과 끝은 둘 다 있거나 둘 다 없어야 한다. */
-function isTimePairComplete(start: string | null, end: string | null) {
-  return Boolean(start) === Boolean(end);
+/** 평일·주말 등원 가능 시간은 시작과 끝이 모두 필수다. */
+function hasRequiredAdmissionTimes(values: ReservationSettingValues) {
+  return Boolean(values.weekdayStart && values.weekdayEnd && values.weekendStart && values.weekendEnd);
 }
 
 function capacityLimitError(value: string, peak: number | null) {
-  if (!value || peak == null) return null;
+  if (!value) return null;
+
   const count = Number(value);
-  if (!Number.isFinite(count) || count >= peak) return null;
+  if (!Number.isInteger(count) || count < 1) return '하루 정원은 1마리 이상이어야 해요.';
+  if (peak == null || count >= peak) return null;
   return `하루 ${peak}마리가 예약된 날이 있어 ${peak}마리보다 적게 정할 수 없어요.`;
 }
 
 function sanitizeDailyCapacity(value: string) {
   return value.replace(/\D/g, '').slice(0, 3);
+}
+
+/** origin과 다른 칸은 편집으로 보고 current를 남긴다. 같은 칸은 next로 바꾼다. */
+function keepUnsavedReservationEdits(
+  origin: ReservationSettingValues,
+  current: ReservationSettingValues,
+  next: ReservationSettingValues
+): ReservationSettingValues {
+  return {
+    weekdayStart: current.weekdayStart === origin.weekdayStart ? next.weekdayStart : current.weekdayStart,
+    weekdayEnd: current.weekdayEnd === origin.weekdayEnd ? next.weekdayEnd : current.weekdayEnd,
+    weekendStart: current.weekendStart === origin.weekendStart ? next.weekendStart : current.weekendStart,
+    weekendEnd: current.weekendEnd === origin.weekendEnd ? next.weekendEnd : current.weekendEnd,
+    dailyCapacity: current.dailyCapacity === origin.dailyCapacity ? next.dailyCapacity : current.dailyCapacity,
+  };
 }
 
 function isSameReservationSetting(left: ReservationSettingValues, right: ReservationSettingValues) {
@@ -60,11 +77,7 @@ function canSaveReservationSetting(
       timeOrderError(values.weekendStart, values.weekendEnd) ||
       capacityLimitError(values.dailyCapacity, peak)
   );
-  const hasIncompleteTimePair =
-    !isTimePairComplete(values.weekdayStart, values.weekdayEnd) ||
-    !isTimePairComplete(values.weekendStart, values.weekendEnd);
-
-  return isDirty && !hasFieldError && !hasIncompleteTimePair;
+  return isDirty && !hasFieldError && hasRequiredAdmissionTimes(values);
 }
 
 /** 확인한 칸만 바꾼다. 반대편 시간은 그대로 둔다. */
@@ -78,6 +91,7 @@ export {
   canSaveReservationSetting,
   capacityLimitError,
   isSameReservationSetting,
+  keepUnsavedReservationEdits,
   sanitizeDailyCapacity,
   timeOrderError,
 };

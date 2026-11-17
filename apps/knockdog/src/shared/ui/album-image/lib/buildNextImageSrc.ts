@@ -4,6 +4,10 @@
 const NEXT_IMAGE_REMOTE_PATTERNS = [
   { protocol: 'https:', hostname: 'images.unsplash.com' },
   { protocol: 'https:', hostname: 'kindergarten-image-bucket.s3.ap-northeast-2.amazonaws.com' },
+  {
+    protocol: 'https:',
+    hostname: 'knockdog-dev-kindergarten-image-bucket-294556736127.s3.ap-northeast-2.amazonaws.com',
+  },
   { protocol: 'http:', hostname: 'blogpfthumb.phinf.naver.net' },
 ] as const;
 

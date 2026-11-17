@@ -9,6 +9,7 @@ import type { KindergartenSelectOption } from '@shared/ui/kindergarten-select-sh
 import { resolvePublicImageSrc } from '@shared/lib/utils/resolvePublicImageSrc';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { useNativeBackToClose } from '@shared/lib/bridge';
+import { closeOverlayThenNavigate } from '@shared/lib/navigation/closeOverlayThenNavigate';
 import { toast } from '@shared/ui/toast';
 
 interface KindergartenSelectSheetProps {
@@ -105,18 +106,7 @@ function KindergartenSelectSheet({
     }
 
     if (isWriteMode) {
-      // 시트를 닫으면 overlay history.back이 같은 틱의 push를 되돌린다. back 이후에 이동한다.
-      let didNavigate = false;
-      const navigate = () => {
-        if (didNavigate) return;
-        didNavigate = true;
-        window.removeEventListener('popstate', navigate);
-        onSelect(kindergarten.id);
-      };
-
-      window.addEventListener('popstate', navigate);
-      close();
-      window.setTimeout(navigate, 300);
+      closeOverlayThenNavigate(close, () => onSelect(kindergarten.id));
       return;
     }
 
@@ -127,12 +117,12 @@ function KindergartenSelectSheet({
       type: 'success',
       nativeTitle: `${content.toastAccentLabel}${content.toastSuffix}`,
       titleParts: [
-        { text: content.toastAccentLabel, accent: true },
+        { text: content.toastAccentLabel, bold: true },
         { text: content.toastSuffix },
       ],
       title: (
         <>
-          <span className='body1-bold text-text-accent'>{content.toastAccentLabel}</span>
+          <span className='body1-bold text-text-primary-inverse'>{content.toastAccentLabel}</span>
           <span className='body1-medium text-text-primary-inverse'>{content.toastSuffix}</span>
         </>
       ),

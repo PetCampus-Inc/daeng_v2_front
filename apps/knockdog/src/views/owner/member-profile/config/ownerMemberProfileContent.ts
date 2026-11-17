@@ -1,14 +1,21 @@
 const TAB = {
-  DOG: 'dog',
+  USAGE: 'usage',
   GUARDIAN: 'guardian',
   ATTENDANCE: 'attendance',
 } as const;
 
 type OwnerMemberProfileTab = (typeof TAB)[keyof typeof TAB];
 
+/** 이동 경로의 쿼리로 프로필의 시작 탭을 지정할 때 쓰는 이름. 예: `?tab=attendance` */
+const PROFILE_TAB_QUERY_KEY = 'tab';
+
+/** 쿼리 값을 탭으로 바꾼다. 없거나 알 수 없는 값이면 첫 탭(이용권)이다. */
+const toOwnerMemberProfileTab = (value: string | null | undefined): OwnerMemberProfileTab =>
+  Object.values(TAB).find((tab) => tab === value) ?? TAB.USAGE;
+
 const ownerMemberProfileContent = {
   pageTitle: '원생 프로필',
-  dogTabLabel: '강아지 정보',
+  usageTabLabel: '이용 정보',
   guardianTabLabel: '보호자 정보',
   attendanceTabLabel: '등하원 기록',
   basicInfoTitle: '기본 정보',
@@ -25,8 +32,8 @@ const ownerMemberProfileContent = {
   phoneLabel: '연락처',
   emergencyPhoneLabel: '비상 연락처',
   addressLabel: '주소',
-  maleDogLabel: '남자아이',
-  femaleDogLabel: '여자아이',
+  maleDogLabel: '남',
+  femaleDogLabel: '여',
   maleGuardianLabel: '남',
   femaleGuardianLabel: '여',
   neuteredDoneLabel: '중성화 완료',
@@ -39,22 +46,36 @@ const ownerMemberProfileContent = {
   attendanceEmptyText: '선택한 날짜에 등하원 기록이 없어요.',
   todayButtonLabel: '오늘',
   copyToastSuffix: '를 복사했어요',
+  ticketChargeSuccessToast: '이용권 충전이 완료되었어요',
+  ticketLoadErrorText: '이용권을 불러오지 못했어요',
   profileLoadingText: '원생 프로필을 불러오는 중이에요',
   profileErrorText: '원생 프로필을 불러오지 못했어요',
   emptyValue: '-',
-  disconnectButtonLabel: '연결 해제',
   disconnectDialog: {
-    titleSuffix: '의',
-    titleLine2: '유치원 연결을 해제하시겠어요?',
-    description: '연결을 해제하면 더 이상 해당 원생의 일과를\n수행할 수 없어요.',
+    titleSuffix: '의 연결을 해제할까요?',
+    description: '연결 해제 시 원생과 보호자 정보를 볼 수 없어요.',
     cancelLabel: '닫기',
-    confirmLabel: '연결 해제하기',
+    confirmLabel: '해제하기',
     /** 강아지명 말줄임 */
     nameMaxLength: 8,
   },
-  disconnectSuccessToastSuffix: '의 유치원 연결을 해제했어요',
-  /** 권한 해제(API) 실패 시 — 서버 원복 후 프로필 복귀 */
-  disconnectFailToast: '일시적 오류로 요청을 완료하지 못했어요',
+  /** 해제할 수 없을 때 보여주는 바텀시트 */
+  disconnectBlockedSheet: {
+    title: '아직 연결을 해제할 수 없어요.',
+    unknownBody: '연결을 해제할 수 없는 사유를 확인하지 못했어요. 유치원에 문의해 주세요.',
+    ticketBody: '사용할 수 있는 이용권이 아직 남아 있어요.\n이용권을 삭제하거나 종료된 뒤 해제할 수 있어요.',
+    reservationBody: '완료되지 않은 예약이 남아 있어요.\n예약한 날이 지나면 해제할 수 있어요.',
+    confirmLabel: '확인',
+    remainingCountSuffix: '회 남음',
+    reservationTitleSuffix: ' 예약',
+    reservationDescriptionSuffix: ' 등원 예정',
+    reservationStatusLabel: '등원전',
+  },
+  disconnectSuccessToastSuffix: '의 유치원 연결이 해제되었어요',
+  /** 해제 요청이 실패하거나 해제 가능 여부 조회가 실패했을 때 — 프로필 유지 */
+  disconnectFailToast: '연결 해제를 완료하지 못했어요',
+  /** 이미 해제된 원생일 때 */
+  alreadyDisconnectedToast: '이미 연결을 해제한 원생이에요.',
 };
 
 function getGuardianGenderLabel(gender: string) {
@@ -64,7 +85,9 @@ function getGuardianGenderLabel(gender: string) {
 }
 
 export {
+  PROFILE_TAB_QUERY_KEY,
   TAB,
+  toOwnerMemberProfileTab,
   getGuardianGenderLabel,
   ownerMemberProfileContent,
   type OwnerMemberProfileTab,

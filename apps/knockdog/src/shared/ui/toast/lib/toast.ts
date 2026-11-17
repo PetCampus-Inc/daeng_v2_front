@@ -33,6 +33,10 @@ function isToastOptions(value: unknown): value is ToastOptions {
   );
 }
 
+/** 우선 토스트가 뜬 뒤 다른 토스트를 막아 두는 시간(ms). 같은 실패에 대한 화면별 토스트가 덮어쓰지 못하게 한다. */
+const PRIORITY_TOAST_HOLD_MS = 1000;
+let priorityUntil = 0;
+
 function showToast(titleOrOptions: string | ToastOptions, options?: ToastOptions): string {
   const defaults = getDefaults();
 
@@ -42,6 +46,9 @@ function showToast(titleOrOptions: string | ToastOptions, options?: ToastOptions
     : ({ title: titleOrOptions, ...options } as ToastOptions);
 
   const id = resolvedOptions.id ?? generateId();
+
+  // 우선 토스트가 떠 있는 동안에는 다른 토스트를 띄우지 않는다
+  if (Date.now() < priorityUntil) return id;
 
   // 네이티브 환경인 경우 bridge를 통해 앱 toast 호출
   if (isNativeWebView()) {
@@ -94,6 +101,17 @@ function showToast(titleOrOptions: string | ToastOptions, options?: ToastOptions
   return id;
 }
 
+/**
+ * 다른 토스트보다 먼저 보여 줘야 하는 토스트를 띄운다.
+ * 이후 잠시(`PRIORITY_TOAST_HOLD_MS`) 동안 일반 토스트는 무시된다.
+ */
+function showPriorityToast(titleOrOptions: string | ToastOptions, options?: ToastOptions): string {
+  priorityUntil = 0;
+  const id = showToast(titleOrOptions, options);
+  priorityUntil = Date.now() + PRIORITY_TOAST_HOLD_MS;
+  return id;
+}
+
 function dismissToast(id?: string): void {
   // 네이티브 환경인 경우 bridge를 통해 앱 toast dismiss
   if (isNativeWebView()) {
@@ -129,6 +147,7 @@ function clearToast(): void {
 }
 
 export const toast = Object.assign(showToast, {
+  priority: showPriorityToast,
   dismiss: dismissToast,
   clear: clearToast,
   setDefaults,

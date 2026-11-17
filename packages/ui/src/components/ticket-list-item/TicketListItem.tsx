@@ -40,7 +40,7 @@ function TicketListItem({
     >
       <span className='flex min-w-0 flex-1 items-center justify-between'>
         <span className='flex min-w-0 flex-col items-start gap-x1'>
-          <span className='body1-medium text-text-primary'>{title}</span>
+          <span className='body1-medium text-text-primary max-w-full'>{title}</span>
           {description ? <span className='caption1-regular text-fill-secondary-500'>{description}</span> : null}
         </span>
         <span className='-rotate-90 shrink-0'>

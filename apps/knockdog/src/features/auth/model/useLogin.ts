@@ -1,7 +1,11 @@
 'use client';
 
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { METHODS, SocialLoginResult } from '@knockdog/bridge-core';
+import { HTTPError } from 'ky';
+
+import { isSocialLoginCancelled } from '../lib/socialLoginCancelledError';
+import { webSocialLogin } from '../lib/webSocialLogin';
 
 import {
   SOCIAL_PROVIDER,
@@ -12,8 +16,8 @@ import {
   postVerifyOidc,
   useSocialUserStore,
 } from '@entities/social-user';
-import { postRegisterUser, USER_STATUS, useUserStore, User } from '@entities/user';
-import { LOGIN_ERROR_CODE, ApiError, ApiResponse, postLogin, fetchDevLogin } from '@shared/api';
+import { getOwnerRole, ownerRoleQueryKey, postRegisterUser, USER_STATUS, useUserStore, User } from '@entities/user';
+import { LOGIN_ERROR_CODE, ApiError, ApiResponse, postLogin, fetchDevLogin, REQUEST_FAILED_MESSAGE } from '@shared/api';
 import { STORAGE_KEYS } from '@shared/constants';
 import { TypedStorage } from '@shared/lib';
 import { route } from '@shared/constants/route';
@@ -37,10 +41,6 @@ import {
 import { useBridge, useStackNavigation, useNavigationResult, getCurrentTxId } from '@shared/lib/bridge';
 import { isNativeWebView } from '@shared/lib/device';
 import { toast } from '@shared/ui/toast';
-import { HTTPError } from 'ky';
-
-import { isSocialLoginCancelled } from '../lib/socialLoginCancelledError';
-import { webSocialLogin } from '../lib/webSocialLogin';
 
 const SOCIAL_LOGIN_METHOD_MAP = {
   [SOCIAL_PROVIDER.KAKAO]: METHODS.kakaoLogin,
@@ -51,6 +51,7 @@ const SOCIAL_LOGIN_METHOD_MAP = {
 export const useLogin = (options?: { redirectTo?: string; resetToMainAfterSignUp?: boolean }) => {
   const { push, back, replace, reset } = useStackNavigation();
   const bridge = useBridge();
+  const queryClient = useQueryClient();
   const navResult = useNavigationResult<boolean>();
 
   const { mutate: loginMutate } = useMutation<ApiResponse<User>>({ mutationFn: postLogin });
@@ -93,7 +94,7 @@ export const useLogin = (options?: { redirectTo?: string; resetToMainAfterSignUp
     }
   };
 
-  const handleLoginSuccess = (data: User, { isNewSignUp = false }: { isNewSignUp?: boolean } = {}) => {
+  const handleLoginSuccess = async (data: User, { isNewSignUp = false }: { isNewSignUp?: boolean } = {}) => {
     // BE가 200을 주더라도 status가 ACTIVE가 아니면 silent 진행 금지.
     // 정식 흐름에선 handleLoginError에서 잡히지만, dev/guest 라우트처럼
     // status 체크 없이 user를 그대로 반환하는 엔드포인트 대비 안전망.
@@ -119,12 +120,38 @@ export const useLogin = (options?: { redirectTo?: string; resetToMainAfterSignUp
     }
 
     const resultTxId = shouldResetToMain ? null : getCurrentTxId();
+    const getHomePath = async () => {
+      const response = await queryClient.fetchQuery({
+        queryKey: ownerRoleQueryKey(data.userId),
+        queryFn: getOwnerRole,
+        staleTime: 0,
+      });
+      const roleView = new TypedStorage<{ state?: { prefersGuardianView?: boolean } }>(STORAGE_KEYS.MYPAGE_ROLE_VIEW);
+      const prefersGuardianView = roleView.get()?.state?.prefersGuardianView === true;
+      return response.data.isOwner && !prefersGuardianView ? route.owner.root : route.root;
+    };
+    const resetToHome = async () => {
+      try {
+        await reset(await getHomePath());
+      } catch {
+        toast({ title: REQUEST_FAILED_MESSAGE, shape: 'square', position: 'top' });
+      }
+    };
 
     if (!hasSeenDevicePermissionIntro()) {
+      let permissionRedirect = redirectTo;
+      if (!isNewSignUp && !redirectTo && !resultTxId) {
+        try {
+          permissionRedirect = await getHomePath();
+        } catch {
+          toast({ title: REQUEST_FAILED_MESSAGE, shape: 'square', position: 'top' });
+          return;
+        }
+      }
       const query = {
         // 신규 가입자는 권한 안내를 마친 뒤 내 주변에서 필수 약관을 먼저 동의한다.
         // 이 시점에 redirectTo를 전달하면 약관 동의 전에 초대 흐름으로 이동하게 된다.
-        ...(!isNewSignUp && redirectTo ? { redirectTo } : {}),
+        ...(!isNewSignUp && permissionRedirect ? { redirectTo: permissionRedirect } : {}),
         ...(isNewSignUp ? { deferRequiredTerms: 'true' } : {}),
         ...(resultTxId ? { resume: 'stack', _txId: resultTxId } : {}),
       };
@@ -162,15 +189,15 @@ export const useLogin = (options?: { redirectTo?: string; resetToMainAfterSignUp
       // pushForResult(탭 위 Stack): back으로 복귀. auth-only면 wentBack=false → 홈 reset
       void back()
         .then((wentBack) => {
-          if (wentBack === false) return reset(route.root);
+          if (wentBack === false) return resetToHome();
           return undefined;
         })
-        .catch(() => reset(route.root).catch(() => undefined));
+        .catch(() => resetToHome());
       return;
     }
 
     // 게이트가 login으로 replace 한 경우 history가 비어 back()이 무반응/이탈함 → 홈으로 reset
-    reset(route.root).catch(() => undefined);
+    await resetToHome();
   };
 
   const registerCurrentSocialUser = async () => {
@@ -198,7 +225,7 @@ export const useLogin = (options?: { redirectTo?: string; resetToMainAfterSignUp
         phase: 'result',
         result: 'success',
       });
-      handleLoginSuccess(user, { isNewSignUp: true });
+      await handleLoginSuccess(user, { isNewSignUp: true });
     } catch (error) {
       const pending = peekPendingSignUpAnalytics();
       trackSignupStep({
@@ -311,7 +338,7 @@ export const useLogin = (options?: { redirectTo?: string; resetToMainAfterSignUp
   const guestLogin = async () => {
     try {
       const response = await fetchDevLogin<User>();
-      handleLoginSuccess(response.data);
+      await handleLoginSuccess(response.data);
     } catch (error) {
       // 원인 분기: HTTPError(status 포함) vs 네트워크/기타
       if (error instanceof HTTPError) {

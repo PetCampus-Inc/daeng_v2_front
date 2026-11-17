@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import {
   ActionButton,
   Field,
@@ -12,7 +12,16 @@ import {
   TimeRangeField,
   type TimeRangeState,
 } from '@knockdog/ui';
+import { useReservationSettingQuery, type ReservationSetting } from '@entities/owner-reservation-setting';
+import { getUserHydrationStatus, subscribeUserHydration, useUserStore } from '@entities/user';
+import { openOwnerUnsavedExitDialog } from '@features/role-conversion';
+import { useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
+import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGuard';
+import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { OptionSelectSheet } from '@shared/ui/option-select-sheet';
+import { PageError } from '@shared/ui/page-error';
+import { toast } from '@shared/ui/toast';
+import { Header } from '@widgets/Header';
 import {
   TIME_OPTIONS,
   TIME_SHEET_TITLE,
@@ -20,15 +29,7 @@ import {
 } from '@views/mypage-owner-reservation-setting-page/config/timeOptions';
 import { useReservationSettingForm } from '@views/mypage-owner-reservation-setting-page/model/useReservationSettingForm';
 
-import { Header } from '@widgets/Header';
-import { openOwnerUnsavedExitDialog } from '@features/role-conversion';
-import { useNativeBackHandler } from '@shared/lib/bridge';
-import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGuard';
-import { toast } from '@shared/ui/toast';
-
 const SAVE_TOAST_VIEWPORT = 'bottom-[104px] left-1/2 w-full max-w-120 webview:max-w-full -translate-x-1/2';
-/** 휴무 요일이 오기 전까지 보여주는 임시 문구 */
-const MOCK_CLOSED_LINE = '화요일, 목요일 휴무';
 /** 행 높이(py-4 32px + body1 24px + 구분선 1px) × 3 */
 const TIME_SHEET_LIST_CLASS = 'h-[calc(3*(2rem+1.5rem+1px))] max-h-[calc(3*(2rem+1.5rem+1px))]';
 
@@ -64,9 +65,90 @@ function AdmissionTimeRange({ label, start, end, startField, endField, error, on
   );
 }
 
-function MypageOwnerReservationSettingPage() {
-  const form = useReservationSettingForm();
+function ReservationSettingPending({
+  isError,
+  isRetrying,
+  onRetry,
+  title,
+  description,
+}: {
+  isError: boolean;
+  isRetrying: boolean;
+  onRetry: () => void;
+  title?: string;
+  description?: string;
+}) {
+  const { back } = useStackNavigation();
+  const handleBack = useCallback(() => {
+    back?.();
+  }, [back]);
+
+  useNativeBackHandler(handleBack);
+
+  return (
+    <div className='flex h-full flex-col bg-white'>
+      <Header>
+        <Header.LeftSection>
+          <Header.BackButton onClick={handleBack} />
+        </Header.LeftSection>
+        <Header.Title>예약 설정</Header.Title>
+      </Header>
+      {isError ? (
+        <PageError layout='inline' title={title} description={description} onRetry={onRetry} isRetrying={isRetrying} />
+      ) : (
+        <DelayedLoadingSpinner isLoading layout='content' />
+      )}
+    </div>
+  );
+}
+
+function ReservationSettingEditor({ setting }: { setting: ReservationSetting }) {
+  const form = useReservationSettingForm(setting);
   const handleBackRef = useRef(() => {});
+  const capacityRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const userAgent = navigator.userAgent;
+    const isIphoneSafari = /iPhone/.test(userAgent) && /Version\/[\d.]+.*Safari\//.test(userAgent) &&
+      !/CriOS|FxiOS|EdgiOS|OPiOS/.test(userAgent);
+    if (!isIphoneSafari) return;
+
+    const viewport = window.visualViewport;
+    const capacity = capacityRef.current;
+    if (!viewport || !capacity) return;
+
+    let scrollPosition: { top: number; left: number; height: number } | null = null;
+    let frameId = 0;
+
+    const handleFocus = () => {
+      scrollPosition ??= { top: window.scrollY, left: window.scrollX, height: viewport.height };
+    };
+    const handleViewportChange = () => {
+      if (!scrollPosition) return;
+      // 키보드가 닫힌 뒤 남은 문서 이동만 복원한다. 본문 scrollTop은 건드리지 않는다.
+      if (viewport.height < scrollPosition.height - 80) return;
+      window.cancelAnimationFrame(frameId);
+      frameId = window.requestAnimationFrame(() => {
+        if (!scrollPosition) return;
+        window.scrollTo({ top: scrollPosition.top, left: scrollPosition.left, behavior: 'instant' });
+        if (!capacity.contains(document.activeElement) && Math.abs(viewport.offsetTop) < 1) {
+          scrollPosition = null;
+        }
+      });
+    };
+
+    capacity.addEventListener('focusin', handleFocus);
+    capacity.addEventListener('focusout', handleViewportChange);
+    viewport.addEventListener('resize', handleViewportChange);
+    viewport.addEventListener('scroll', handleViewportChange);
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      capacity.removeEventListener('focusin', handleFocus);
+      capacity.removeEventListener('focusout', handleViewportChange);
+      viewport.removeEventListener('resize', handleViewportChange);
+      viewport.removeEventListener('scroll', handleViewportChange);
+    };
+  }, []);
 
   const { releaseAndLeave } = useUnsavedBrowserBackGuard(form.isDirty, () => {
     handleBackRef.current();
@@ -88,40 +170,45 @@ function MypageOwnerReservationSettingPage() {
   handleBackRef.current = handleBack;
   useNativeBackHandler(handleBack);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.isSaveEnabled) return;
 
-    const saved = form.handleSave();
+    const activeElement = document.activeElement;
+    if (activeElement instanceof HTMLInputElement) activeElement.blur();
+
+    const result = await form.handleSave();
+    if (!result) return;
+
+    const saved = result === 'saved';
     toast({
       type: saved ? 'success' : 'default',
       shape: 'rounded',
       position: 'bottom',
-      nativeTitle: saved ? '예약 설정을 저장했어요' : '예약 설정을 저장하지 못했어요',
+      nativeTitle: saved ? '예약 설정을 저장했어요' : result,
       title: saved ? (
         '예약 설정을 저장했어요'
       ) : (
         <span className='inline-flex items-center gap-2'>
           <Icon icon='Close' className='size-6 shrink-0' />
-          예약 설정을 저장하지 못했어요
+          {result}
         </span>
       ),
       viewportClassName: SAVE_TOAST_VIEWPORT,
     });
   };
 
-  const { hoursLine, closedLine } = form.operatingHoursNote;
-  const closedNote = closedLine ?? MOCK_CLOSED_LINE;
+  const { hoursLine, closedLine } = form;
 
   return (
-    <div className='flex h-full flex-col bg-white'>
-      <Header>
-        <Header.LeftSection className='relative z-10'>
+    <div className='flex h-full min-h-0 flex-col overflow-hidden bg-white'>
+      <Header className='relative shrink-0'>
+        <Header.LeftSection>
           <Header.BackButton onClick={handleBack} />
         </Header.LeftSection>
         <Header.Title>예약 설정</Header.Title>
       </Header>
 
-      <div className='flex-1 overflow-y-auto overscroll-y-contain pb-5 [-webkit-overflow-scrolling:touch]'>
+      <div className='min-h-0 flex-1 overflow-y-auto overscroll-y-contain pb-5 [-webkit-overflow-scrolling:touch]'>
         <AdmissionTimeRange
           label='평일 등원 가능 시간'
           start={form.values.weekdayStart}
@@ -146,7 +233,7 @@ function MypageOwnerReservationSettingPage() {
             하루 정원
             <FieldLabelIndicator type='optional' className='text-text-accent' />
           </FieldLabel>
-          <div className='flex flex-col gap-2'>
+          <div ref={capacityRef} className='flex flex-col gap-2'>
             <NumberField
               value={form.values.dailyCapacity}
               onChange={(event) => form.handleCapacityChange(event.target.value)}
@@ -161,13 +248,13 @@ function MypageOwnerReservationSettingPage() {
         </Field>
 
         <section className='caption1-regular text-fill-secondary-500 flex flex-col gap-2.5 px-6 py-5'>
-          {hoursLine ? (
+          {hoursLine || closedLine ? (
             <p>
               * 현재 운영시간
               <br />
-              {`- ${hoursLine}`}
-              <br />
-              {`- ${closedNote}`}
+              {hoursLine ? `- ${hoursLine}` : null}
+              {hoursLine && closedLine ? <br /> : null}
+              {closedLine ? `- ${closedLine}` : null}
             </p>
           ) : null}
           <p>* 운영 시간은 유치원 기본 정보에서 변경 가능해요.</p>
@@ -182,7 +269,7 @@ function MypageOwnerReservationSettingPage() {
           disabled={!form.isSaveEnabled}
           onClick={handleSave}
         >
-          저장하기
+          <span className='body1-bold'>저장하기</span>
         </ActionButton>
       </div>
 
@@ -198,6 +285,57 @@ function MypageOwnerReservationSettingPage() {
       />
     </div>
   );
+}
+
+function MypageOwnerReservationSettingPage() {
+  const userHydrationStatus = useSyncExternalStore(
+    subscribeUserHydration,
+    getUserHydrationStatus,
+    () => 'pending' as const
+  );
+  const [isHydrationRetrying, setIsHydrationRetrying] = useState(false);
+  const userId = useUserStore((state) => state.user?.userId);
+  const settingQuery = useReservationSettingQuery({ userId });
+  const handleAuthRetry = () => {
+    setIsHydrationRetrying(true);
+    void Promise.resolve(useUserStore.persist.rehydrate()).finally(() => {
+      setIsHydrationRetrying(false);
+    });
+  };
+
+  if (userHydrationStatus === 'error') {
+    return <ReservationSettingPending isError isRetrying={isHydrationRetrying} onRetry={handleAuthRetry} />;
+  }
+
+  if (userHydrationStatus !== 'ready') {
+    return <ReservationSettingPending isError={false} isRetrying={false} onRetry={handleAuthRetry} />;
+  }
+
+  if (!userId) {
+    return (
+      <ReservationSettingPending
+        isError
+        isRetrying={false}
+        title='로그인 정보를 불러오지 못했어요'
+        description='다시 로그인한 뒤 시도해 주세요.'
+        onRetry={handleAuthRetry}
+      />
+    );
+  }
+
+  if (!settingQuery.data) {
+    return (
+      <ReservationSettingPending
+        isError={settingQuery.isError}
+        isRetrying={settingQuery.isFetching}
+        onRetry={() => {
+          void settingQuery.refetch();
+        }}
+      />
+    );
+  }
+
+  return <ReservationSettingEditor setting={settingQuery.data} />;
 }
 
 export { MypageOwnerReservationSettingPage };

@@ -44,7 +44,7 @@ setup('CF-AUTH: DEV login → owner / guardian storageState', async ({ browser }
 
   await injectDevLogin(guardianPage);
   await setPrefersGuardianView(guardianPage, true);
-  await guardianPage.goto('/compare', { waitUntil: 'domcontentloaded' });
+  await guardianPage.goto('/kindergarten', { waitUntil: 'domcontentloaded' });
   await expect(guardianPage).not.toHaveURL(/\/auth\/login/);
   await expect(guardianPage.getByTestId('bottom-nav')).toHaveAttribute('data-nav-mode', 'guardian', {
     timeout: 30_000,

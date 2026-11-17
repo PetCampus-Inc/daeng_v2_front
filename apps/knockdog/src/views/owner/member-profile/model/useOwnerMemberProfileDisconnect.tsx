@@ -1,12 +1,18 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { overlay } from 'overlay-kit';
 
+import { useOwnerRole } from '@features/role-conversion';
 import {
   findOwnerMemberByPetId,
+  isAlreadyDisconnectedError,
+  isDisconnectBlockedError,
+  useDisconnectCheckMutation,
   useOwnerMemberDisconnectMutation,
   useOwnerMembersQuery,
+  type OwnerMemberDisconnectBodyKind,
+  type OwnerMemberDisconnectEligibility,
 } from '@entities/owner-member';
 import { useUserStore } from '@entities/user';
 import { trackConnectionStatus } from '@shared/lib/analytics';
@@ -14,6 +20,7 @@ import { useTabNavigation } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
 import { ownerMemberProfileContent } from '@views/owner/member-profile/config/ownerMemberProfileContent';
 import { OwnerMemberProfileDisconnectDialog } from '@views/owner/member-profile/ui/OwnerMemberProfileDisconnectDialog';
+import { DisconnectBlockedSheet } from '@views/owner/member-profile/ui/DisconnectBlockedSheet';
 
 interface UseOwnerMemberProfileDisconnectOptions {
   petId: string;
@@ -24,19 +31,20 @@ interface UseOwnerMemberProfileDisconnectOptions {
 /**
  * 원생 프로필 연결 해제.
  *
- * - 권한 해제(API) 실패 → 공통 오류 토스트 + 프로필 화면 유지(모달 닫음)
+ * - 권한 해제(API) 실패 → 공통 오류 토스트 + 프로필 화면 유지
  * - 권한 해제 성공 후 알림·탭 이동·토스트 오류 → 연결 해제 완료로 간주
  * - 보호자 알림/앨범 미노출/당일 등원 일과 노출은 서버 정책
  */
-function useOwnerMemberProfileDisconnect({
-  petId,
-  dogName,
-  enabled = true,
-}: UseOwnerMemberProfileDisconnectOptions) {
+function useOwnerMemberProfileDisconnect({ petId, dogName, enabled = true }: UseOwnerMemberProfileDisconnectOptions) {
   const content = ownerMemberProfileContent;
+  const isProcessing = useRef(false);
+  const [isChecking, setIsChecking] = useState(false);
   const userId = useUserStore((state) => state.user?.userId);
   const { navigateToTab } = useTabNavigation();
+  const { kindergarten } = useOwnerRole();
+  const kindergartenName = kindergarten?.name ?? '';
   const disconnectMutation = useOwnerMemberDisconnectMutation({ userId });
+  const eligibilityMutation = useDisconnectCheckMutation();
   const membersQuery = useOwnerMembersQuery({
     userId,
     enabled: enabled && Boolean(petId),
@@ -48,49 +56,93 @@ function useOwnerMemberProfileDisconnect({
   );
 
   const showSuccessToast = () => {
-    toast({
-      type: 'success',
-      nativeTitle: `${dogName}${content.disconnectSuccessToastSuffix}`,
-      titleParts: [
-        { text: dogName, accent: true },
-        { text: content.disconnectSuccessToastSuffix },
-      ],
-      title: (
-        <>
-          <span className='text-text-accent'>{dogName}</span>
-          <span className='text-text-primary-inverse'>{content.disconnectSuccessToastSuffix}</span>
-        </>
-      ),
-    });
+    // 성공 토스트는 이름에 강조색을 쓰지 않는다 (Figma `36:16665`)
+    const successTitle = `${dogName}${content.disconnectSuccessToastSuffix}`;
+
+    toast({ type: 'success', title: successTitle, nativeTitle: successTitle });
   };
 
   const showFailToast = () => {
     toast({ title: content.disconnectFailToast });
   };
 
+  const navigateToMembers = async (closeDialog?: () => void) => {
+    if (closeDialog) {
+      // 다이얼로그의 history.back이 목록 이동을 되돌리지 않도록 기다린다.
+      if (window.history.state?.__knockdogOverlayId) {
+        await new Promise<void>((resolve) => {
+          const finish = () => {
+            window.removeEventListener('popstate', finish);
+            window.clearTimeout(timer);
+            resolve();
+          };
+          const timer = window.setTimeout(finish, 300);
+          window.addEventListener('popstate', finish);
+          closeDialog();
+        });
+      } else {
+        closeDialog();
+      }
+    }
+    await navigateToTab('/owner/members', undefined, 'owner');
+  };
+
   const resolveMemberId = async () => {
     if (memberId) return memberId;
 
     const refreshed = await membersQuery.refetch();
+    if (refreshed.isError) throw refreshed.error;
     return findOwnerMemberByPetId(refreshed.data?.members ?? [], petId)?.id ?? null;
+  };
+
+  /**
+   * 그 사이 이용권·예약이 생겨 서버가 해제를 거절(409)한 경우.
+   * 거절 응답에는 사유가 없어 해제 가능 여부를 다시 조회해 해제 불가 시트를 연다.
+   * 다시 조회한 결과가 해제 가능이거나 조회가 실패하면 프로필에 머물며 실패 토스트를 보여준다.
+   */
+  const handleServerBlocked = async (blockedMemberId: string): Promise<'failed'> => {
+    try {
+      const eligibility = await eligibilityMutation.mutateAsync(blockedMemberId);
+
+      if (!eligibility.canDisconnect && eligibility.bodyKind) {
+        openBlockedSheet(eligibility, eligibility.bodyKind);
+        return 'failed';
+      }
+    } catch {
+      // 다시 조회 실패는 아래 실패 토스트로 처리한다
+    }
+
+    showFailToast();
+    return 'failed';
+  };
+
+  /** 이미 해제된 원생이면 구성원 목록으로 이동하고 안내 토스트를 보여준다(목록은 mutation이 다시 불러온다) */
+  const handleAlreadyDisconnected = async (closeDialog?: () => void): Promise<'completed'> => {
+    try {
+      await navigateToMembers(closeDialog);
+    } catch {
+      // 페이지 이동 실패 무시
+    }
+
+    toast({ title: content.alreadyDisconnectedToast });
+    return 'completed';
   };
 
   /**
    * @returns
    * - `'failed'` 권한 해제 실패 — 프로필 복귀
-   * - `'completed'` 권한 해제 성공(이후 이동/토스트 실패 포함)
+   * - `'completed'` 권한 해제 성공 또는 이미 해제됨(이후 이동/토스트 실패 포함)
    */
-  const disconnectAndNotify = async (): Promise<'failed' | 'completed'> => {
-    const resolvedMemberId = await resolveMemberId();
-
-    if (!resolvedMemberId) {
-      showFailToast();
-      return 'failed';
-    }
-
+  const disconnectAndNotify = async (
+    resolvedMemberId: string,
+    closeDialog: () => void
+  ): Promise<'failed' | 'completed'> => {
     try {
       await disconnectMutation.mutateAsync(resolvedMemberId);
-    } catch {
+    } catch (error) {
+      if (isDisconnectBlockedError(error)) return handleServerBlocked(resolvedMemberId);
+      if (isAlreadyDisconnectedError(error)) return handleAlreadyDisconnected(closeDialog);
+
       // 서버 원복 가정 — 프론트는 낙관적 미적용이므로 캐시 그대로 + 프로필 복귀
       showFailToast();
       return 'failed';
@@ -109,7 +161,7 @@ function useOwnerMemberProfileDisconnect({
     }
 
     try {
-      await navigateToTab('/owner/members', undefined, 'owner');
+      await navigateToMembers(closeDialog);
     } catch {
       // 페이지 이동 실패도 해제 완료로 간주
     }
@@ -123,21 +175,74 @@ function useOwnerMemberProfileDisconnect({
     return 'completed';
   };
 
-  const handleDisconnectClick = () => {
-    // OverlayProvider history trap — 시스템/브라우저 뒤로가기는 모달만 닫음
+  const openBlockedSheet = (eligibility: OwnerMemberDisconnectEligibility, bodyKind: OwnerMemberDisconnectBodyKind) => {
     overlay.open(({ isOpen, close }) => (
-      <OwnerMemberProfileDisconnectDialog
+      <DisconnectBlockedSheet
         isOpen={isOpen}
-        dogName={dogName}
         close={close}
-        onDisconnect={disconnectAndNotify}
+        bodyKind={bodyKind}
+        blocks={eligibility.blocks}
+        kindergartenName={kindergartenName}
       />
     ));
   };
 
+  /** 가능 여부 조회 후 true이면 확인 다이얼로그를, false이면 사유 시트를 연다. */
+  const checkAndDisconnect = async () => {
+    let resolvedMemberId: string | null;
+    try {
+      resolvedMemberId = await resolveMemberId();
+    } catch {
+      showFailToast();
+      return;
+    }
+    if (!resolvedMemberId) {
+      await handleAlreadyDisconnected();
+      return;
+    }
+
+    let eligibility: OwnerMemberDisconnectEligibility;
+    try {
+      eligibility = await eligibilityMutation.mutateAsync(resolvedMemberId);
+    } catch (error) {
+      if (isAlreadyDisconnectedError(error)) {
+        await handleAlreadyDisconnected();
+        return;
+      }
+      showFailToast();
+      return;
+    }
+
+    if (eligibility.canDisconnect) {
+      overlay.open(({ isOpen, close }) => (
+        <OwnerMemberProfileDisconnectDialog
+          isOpen={isOpen}
+          dogName={dogName}
+          close={close}
+          onDisconnect={() => disconnectAndNotify(resolvedMemberId, close)}
+        />
+      ));
+      return;
+    }
+
+    openBlockedSheet(eligibility, eligibility.bodyKind ?? 'unknown');
+  };
+
+  const handleDisconnectClick = async () => {
+    if (isProcessing.current) return;
+    isProcessing.current = true;
+    setIsChecking(true);
+    try {
+      await checkAndDisconnect();
+    } finally {
+      isProcessing.current = false;
+      setIsChecking(false);
+    }
+  };
+
   return {
     handleDisconnectClick,
-    isDisconnecting: disconnectMutation.isPending,
+    isDisconnecting: isChecking || disconnectMutation.isPending || eligibilityMutation.isPending,
   };
 }
 

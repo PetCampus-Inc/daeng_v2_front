@@ -194,7 +194,7 @@ function GuardianDailyNoticeListPage() {
         if (wentBack) return;
         // reset 등으로 스택이 없으면 같은 날짜 상세로 재진입
         push({
-          pathname: route.compare.notice.root,
+          pathname: route.kindergarten.notice.root,
           query: {
             date: noticeReturnDate,
             ...(schoolIdFromQuery ? { schoolId: schoolIdFromQuery } : {}),
@@ -203,7 +203,7 @@ function GuardianDailyNoticeListPage() {
       })();
       return;
     }
-    void navigateToTab('/compare');
+    void navigateToTab('/kindergarten');
   }, [back, isFromNoticeDetail, navigateToTab, noticeReturnDate, push, schoolIdFromQuery]);
 
   useNativeBackHandler(handleBack);
@@ -212,7 +212,7 @@ function GuardianDailyNoticeListPage() {
   useEffect(() => {
     if (!isPetsReady || isMembershipPending || isMockMode) return;
     if (kindergartens.length > 0) return;
-    void navigateToTab('/compare');
+    void navigateToTab('/kindergarten');
   }, [isMembershipPending, isMockMode, isPetsReady, kindergartens.length, navigateToTab]);
 
   const handleKindergartenSelect = useCallback(
@@ -261,7 +261,7 @@ function GuardianDailyNoticeListPage() {
         nativeTitle: `${noMoreNoticeToastPrefix}${noMoreNoticeToastAccent}${noMoreNoticeToastSuffix}`,
         titleParts: [
           { text: noMoreNoticeToastPrefix },
-          { text: noMoreNoticeToastAccent, accent: true },
+          { text: noMoreNoticeToastAccent, bold: true },
           { text: noMoreNoticeToastSuffix },
         ],
         title: (
@@ -269,7 +269,7 @@ function GuardianDailyNoticeListPage() {
             <span className='body1-medium text-text-primary-inverse'>
               {noMoreNoticeToastPrefix}
             </span>
-            <span className='body1-bold text-text-accent'>{noMoreNoticeToastAccent}</span>
+            <span className='body1-bold text-text-primary-inverse'>{noMoreNoticeToastAccent}</span>
             <span className='body1-medium text-text-primary-inverse'>
               {noMoreNoticeToastSuffix}
             </span>

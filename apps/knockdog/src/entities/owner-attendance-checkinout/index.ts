@@ -2,6 +2,8 @@ export {
   getAttendanceCheckinoutCandidates,
   getAttendanceCheckinoutSummary,
   getAttendanceCheckinoutToday,
+  postAttendanceAbsent,
+  postAttendanceCancelAbsent,
   postAttendanceCancelCheckIn,
   postAttendanceCancelCheckOut,
   postAttendanceCheckIn,
@@ -20,7 +22,6 @@ export {
   useAttendanceCheckinoutTodayQuery,
 } from './api/useAttendanceCheckinoutQuery';
 export {
-  toAttendanceCheckinoutAction,
   toAttendanceCheckinoutCandidate,
   toAttendanceCheckinoutCandidates,
   toAttendanceCheckinoutSummary,
@@ -28,8 +29,6 @@ export {
   toAttendanceCheckinoutTodayItem,
 } from './model/attendanceCheckinout';
 export type {
-  AttendanceCheckinoutAction,
-  AttendanceCheckinoutActionDto,
   AttendanceCheckinoutCandidate,
   AttendanceCheckinoutCandidateDto,
   AttendanceCheckinoutCandidates,
@@ -37,6 +36,8 @@ export type {
   AttendanceCheckinoutSummary,
   AttendanceCheckinoutSummaryDto,
   AttendanceCheckinoutToday,
+  AttendanceCheckinoutTodayCounts,
+  AttendanceCheckinoutTodayCountsDto,
   AttendanceCheckinoutTodayDto,
   AttendanceCheckinoutTodayItem,
   AttendanceCheckinoutTodayItemDto,

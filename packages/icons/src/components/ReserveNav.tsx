@@ -1,0 +1,46 @@
+import type { SVGProps } from 'react';
+
+/** V4 / Icon / Guardian reservation */
+export function ReserveNav({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      width='20'
+      height='20'
+      viewBox='0 0 20 20'
+      fill='none'
+      xmlns='http://www.w3.org/2000/svg'
+      className={className}
+      {...props}
+    >
+      <path
+        d='M6.66667 1.66667V4.16667'
+        stroke='currentColor'
+        strokeWidth='1.75'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+      />
+      <path
+        d='M13.3333 1.66667V4.16667'
+        stroke='currentColor'
+        strokeWidth='1.75'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+      />
+      <path
+        d='M4.16667 2.5H15.8333C16.7538 2.5 17.5 3.24619 17.5 4.16667V15.8333C17.5 16.7538 16.7538 17.5 15.8333 17.5H4.16667C3.24619 17.5 2.5 16.7538 2.5 15.8333V4.16667C2.5 3.24619 3.24619 2.5 4.16667 2.5Z'
+        stroke='currentColor'
+        strokeWidth='1.75'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+      />
+      <path d='M2.5 7.5H17.5' stroke='currentColor' strokeWidth='1.75' strokeLinecap='round' strokeLinejoin='round' />
+      <path
+        d='M7.5 12.5L9.16667 14.1667L12.5 10.8333'
+        stroke='currentColor'
+        strokeWidth='1.75'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+      />
+    </svg>
+  );
+}

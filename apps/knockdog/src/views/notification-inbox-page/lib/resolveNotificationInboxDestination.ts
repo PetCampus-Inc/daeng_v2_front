@@ -6,6 +6,13 @@ type NotificationInboxDestination =
   | { kind: 'connectionApplyStatus' }
   | { kind: 'album'; petId?: string; schoolId?: string; date?: string }
   | { kind: 'kindergartenNews'; newsId: string; schoolId?: string }
+  | { kind: 'guardianReservation'; petId?: string }
+  | { kind: 'guardianReservationDetail'; petId: string; reservationId: string }
+  | { kind: 'guardianTicketDetail'; petId: string; ticketId: string }
+  | { kind: 'guardianConnectionHistory' }
+  | { kind: 'ownerExpiringMembers' }
+  | { kind: 'ownerDailyLate' }
+  | { kind: 'home' }
   | { kind: 'unavailable' };
 
 const ATTENDANCE_STATUS_TYPES = new Set([
@@ -13,7 +20,12 @@ const ATTENDANCE_STATUS_TYPES = new Set([
   'ATTENDANCE_CANCEL_CHECK_IN',
   'ATTENDANCE_CHECK_OUT',
   'ATTENDANCE_CANCEL_CHECK_OUT',
+  'ATTENDANCE_CANCEL_ABSENT',
+  'ATTENDANCE_LATE_GUARDIAN',
 ]);
+
+/** 원장에게 가는 지각 알림 — 일과 등원처리 탭을 지각 토글이 켜진 상태로 연다. */
+const OWNER_DAILY_LATE_TYPES = new Set(['ATTENDANCE_LATE_OWNER']);
 
 const ATTENDANCE_RECORD_TYPES = new Set(['ATTENDANCE_RECORD_CREATED', 'ATTENDANCE_RECORD_UPDATED']);
 
@@ -22,15 +34,17 @@ const OWNER_MEMBER_APPROVAL_TYPES = new Set([
   'GUARDIAN_APPLICATION_CANCELLED',
 ]);
 
-/** 원장 구성원 목록 — 보호자 연결 해제 등 */
-const OWNER_MEMBERS_TYPES = new Set(['GUARDIAN_MEMBERSHIP_DISCONNECTED']);
+/** 원장 구성원 목록 — 보호자가 연결을 해제한 알림 */
+const OWNER_MEMBERS_TYPES = new Set(['GUARDIAN_MEMBERSHIP_DISCONNECTED', 'GUARDIAN_DISCONNECTED']);
 
 const GUARDIAN_KINDERGARTEN_TYPES = new Set([
   'SCHOOL_MEMBERSHIP_APPROVED',
-  'SCHOOL_MEMBERSHIP_DISCONNECTED',
   'SCHOOL_MEMBERSHIP_SERVICE_ENDED',
   'connection_completed',
 ]);
+
+/** 원장이 연결을 해제하면 유치원 연결 이력 */
+const CONNECTION_HISTORY_TYPES = new Set(['SCHOOL_MEMBERSHIP_DISCONNECTED']);
 
 const CONNECTION_APPLY_TYPES = new Set(['connection_apply_sent', 'SCHOOL_MEMBERSHIP_REJECTED']);
 
@@ -41,6 +55,25 @@ const KINDERGARTEN_NEWS_TYPES = new Set([
   'KINDERGARTEN_NEWS_UPDATED',
   'KINDERGARTEN_NEWS_REMINDED',
 ]);
+
+/** 보호자 이용권 알림 — 예약 탭. petId가 있으면 그 강아지를 맞춘다. */
+const GUARDIAN_TICKET_TYPES = new Set([
+  'PET_TICKET_HOLD_CANCELED',
+  'PET_TICKET_HOLD_ENDED',
+  'PET_TICKET_EXPIRY_EXTENDED',
+  'PET_TICKET_EXPIRING',
+  'PET_TICKET_ONE_LEFT',
+  'PET_TICKET_STARTED',
+]);
+
+/** 이용권 충전·소진 — 그 이용권 상세 */
+const TICKET_DETAIL_TYPES = new Set(['PET_TICKET_CHARGED', 'PET_TICKET_EXHAUSTED']);
+
+/** 등원 전날 리마인드 — 예약 상세 */
+const RESERVATION_DETAIL_TYPES = new Set(['RESERVATION_REMINDER']);
+
+/** 원장 이용권 종료 예정 — 구성원 목록(종료예정) */
+const OWNER_TICKET_EXPIRING_TYPES = new Set(['PET_TICKET_EXPIRING_OWNER']);
 
 function toPositiveId(value: unknown): string | null {
   const parsed = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : NaN;
@@ -70,25 +103,47 @@ function toDateKey(value: unknown): string | null {
 }
 
 /** 알림 type + payload로 이동 대상을 고른다. FCM 라우팅과 동일한 계약. */
-function resolveNotificationInboxDestination(
+const resolveNotificationInboxDestination = (
   type: string,
-  payload: Record<string, unknown> = {}
-): NotificationInboxDestination {
+  payload: Record<string, unknown> = {},
+  options: { isTargetUnavailable?: boolean } = {}
+): NotificationInboxDestination => {
   const petId = toPositiveId(payload.petId);
   const schoolId = toPositiveId(payload.schoolId);
   const newsId = toPositiveId(payload.newsId);
+  const reservationId = toPositiveId(payload.reservationId);
+  const ticketId = toPositiveId(payload.ticketId);
   const date = toDateKey(payload.date);
+  const isTargetUnavailable = Boolean(
+    options.isTargetUnavailable || payload.isTargetUnavailable || payload.disconnected
+  );
 
   if (ATTENDANCE_RECORD_TYPES.has(type)) {
+    if (isTargetUnavailable) return { kind: 'unavailable' };
     return petId && date ? { kind: 'attendanceRecord', petId, date } : { kind: 'unavailable' };
   }
 
   if (ATTENDANCE_STATUS_TYPES.has(type)) {
-    return petId ? { kind: 'guardianKindergarten', petId, date: date ?? undefined } : { kind: 'unavailable' };
+    if (isTargetUnavailable || !petId) return { kind: 'home' };
+    return { kind: 'guardianKindergarten', petId, date: date ?? undefined };
+  }
+
+  if (CONNECTION_HISTORY_TYPES.has(type)) {
+    return { kind: 'guardianConnectionHistory' };
   }
 
   if (GUARDIAN_KINDERGARTEN_TYPES.has(type)) {
+    if (isTargetUnavailable) return { kind: 'unavailable' };
     return petId ? { kind: 'guardianKindergarten', petId } : { kind: 'unavailable' };
+  }
+
+  if (OWNER_DAILY_LATE_TYPES.has(type)) {
+    if (isTargetUnavailable) return { kind: 'home' };
+    return { kind: 'ownerDailyLate' };
+  }
+
+  if (isTargetUnavailable) {
+    return { kind: 'unavailable' };
   }
 
   if (OWNER_MEMBER_APPROVAL_TYPES.has(type)) {
@@ -111,6 +166,24 @@ function resolveNotificationInboxDestination(
     return newsId
       ? { kind: 'kindergartenNews', newsId, schoolId: schoolId ?? undefined }
       : { kind: 'unavailable' };
+  }
+
+  if (RESERVATION_DETAIL_TYPES.has(type)) {
+    return petId && reservationId
+      ? { kind: 'guardianReservationDetail', petId, reservationId }
+      : { kind: 'unavailable' };
+  }
+
+  if (TICKET_DETAIL_TYPES.has(type)) {
+    return petId && ticketId ? { kind: 'guardianTicketDetail', petId, ticketId } : { kind: 'unavailable' };
+  }
+
+  if (GUARDIAN_TICKET_TYPES.has(type)) {
+    return { kind: 'guardianReservation', petId: petId ?? undefined };
+  }
+
+  if (OWNER_TICKET_EXPIRING_TYPES.has(type)) {
+    return { kind: 'ownerExpiringMembers' };
   }
 
   return { kind: 'unavailable' };

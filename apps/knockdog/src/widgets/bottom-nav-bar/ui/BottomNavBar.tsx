@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Icon } from '@knockdog/ui';
+import { cn } from '@knockdog/ui/lib';
 import { GUARDIAN_NAV_ITEMS, OWNER_NAV_ITEMS } from '@widgets/bottom-nav-bar/config/navitem';
 import { useShowOwnerBottomNav } from '@features/role-conversion';
 import { useRequiredTermsConsentOverlayStore } from '@features/required-terms-consent';
@@ -45,22 +46,37 @@ function BottomNavBarLinks() {
       >
         {navItems.map((item) => {
           const isActive = isActiveNavItem(pathname, item.href);
-          const colorClassName = isActive ? 'text-fill-primary-500' : 'text-text-secondary';
+          const colorClassName = isActive ? 'text-fill-primary-500' : 'text-text-tertiary';
+          const usesFigmaIcon =
+            !showOwnerBottomNav &&
+            (item.href === '/' ||
+              item.href === '/save' ||
+              item.href === '/reservation' ||
+              item.href === '/kindergarten' ||
+              item.href === '/mypage');
+          const iconColorClassName =
+            !isActive && (showOwnerBottomNav || usesFigmaIcon) ? 'text-text-caption' : colorClassName;
+          const labelColorClassName = colorClassName;
 
           return (
             <Link
               key={item.href}
               href={item.href}
               data-testid={navItemTestId(item.href)}
-              className={`flex flex-1 flex-col items-center justify-center gap-y-0.5 transition-colors duration-100 motion-reduce:transition-none ${colorClassName}`}
+              className={cn(
+                'flex flex-1 flex-col items-center justify-center gap-y-1 transition-colors duration-100 motion-reduce:transition-none',
+                labelColorClassName
+              )}
             >
               <div className='flex size-6 items-center justify-center'>
                 <Icon
                   icon={item.icon}
-                  className={`transition-colors duration-100 motion-reduce:transition-none ${colorClassName} ${'iconClassName' in item ? item.iconClassName : ''}`}
+                  className={`transition-colors duration-100 motion-reduce:transition-none ${iconColorClassName} ${'iconClassName' in item ? item.iconClassName : ''}`}
                 />
               </div>
-              <span className='caption1-regular tracking-normal'>{item.label}</span>
+              <span className={cn('caption1-semibold leading-[18px] tracking-normal', showOwnerBottomNav && 'tracking-[-0.02em]')}>
+                {item.label}
+              </span>
             </Link>
           );
         })}

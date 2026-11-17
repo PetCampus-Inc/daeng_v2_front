@@ -109,7 +109,9 @@ function MonthlyCalendar({
               key={weekday}
               className={cn(
                 'caption1-semibold flex h-8 w-[42px] items-center justify-center',
-                index === 0 ? 'text-text-accent' : 'text-fill-secondary-500'
+                index === 0 && 'text-text-accent',
+                index === 6 && 'text-info',
+                index !== 0 && index !== 6 && 'text-fill-secondary-500'
               )}
             >
               {weekday}
@@ -124,6 +126,7 @@ function MonthlyCalendar({
 
                 const isSelected = selected ? isSameDay(date, selected) : false;
                 const isSunday = date.getDay() === 0;
+                const isSaturday = date.getDay() === 6;
 
                 return (
                   <button
@@ -140,7 +143,10 @@ function MonthlyCalendar({
                     <span
                       className={cn(
                         'label-medium absolute inset-0 flex items-center justify-center',
-                        isSelected ? 'text-text-primary-inverse' : isSunday ? 'text-text-accent' : 'text-text-primary'
+                        isSelected && 'text-text-primary-inverse',
+                        !isSelected && isSunday && 'text-text-accent',
+                        !isSelected && isSaturday && 'text-info',
+                        !isSelected && !isSunday && !isSaturday && 'text-text-primary'
                       )}
                     >
                       {date.getDate()}

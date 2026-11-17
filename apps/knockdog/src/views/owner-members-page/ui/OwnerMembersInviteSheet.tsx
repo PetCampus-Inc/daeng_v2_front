@@ -210,12 +210,12 @@ function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps
                 key={action.label}
                 type='button'
                 data-testid={inviteActionTestId[action.action]}
-                className='gap-x1 flex h-[76px] min-w-0 flex-col items-center justify-center px-x1 disabled:opacity-40'
+                className='gap-x1 px-x1 flex h-[76px] min-w-0 flex-col items-center justify-center disabled:opacity-40'
                 disabled={isInviteActionDisabled}
                 onClick={() => handleActionClick(action.action)}
               >
                 <span
-                  className={`${action.className} gap-x2_5 flex size-x12 items-center justify-center rounded-full p-x2`}
+                  className={`${action.className} gap-x2_5 size-x12 p-x2 flex items-center justify-center rounded-full`}
                 >
                   {'icon' in action && <Icon icon={action.icon} className='text-text-primary-inverse size-x8' />}
                 </span>
@@ -224,10 +224,7 @@ function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps
             ))}
           </div>
 
-          <div
-            ref={qrCodeContainerRef}
-            className='py-x10 gap-x2_5 flex h-[280px] w-full items-center justify-center'
-          >
+          <div ref={qrCodeContainerRef} className='py-x10 gap-x2_5 flex h-[280px] w-full items-center justify-center'>
             {inviteQrUrl ? (
               <div data-testid='owner-invite-qr'>
                 <QRCodeSVG
@@ -240,9 +237,7 @@ function OwnerMembersInviteSheet({ isOpen, close }: OwnerMembersInviteSheetProps
                 />
               </div>
             ) : inviteQuery.isError ? (
-              <div className='body1-regular text-text-secondary text-center'>
-                초대 링크를 불러오지 못했어요.
-              </div>
+              <div className='body1-regular text-text-secondary text-center'>초대 링크를 불러오지 못했어요.</div>
             ) : (
               <div className='bg-fill-secondary-100 h-[200px] w-[200px]' />
             )}

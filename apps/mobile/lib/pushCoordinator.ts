@@ -26,7 +26,7 @@ type WebRef = RefObject<WebView>;
 
 /** 보호자 전용 / 원장 전용 탭. Mypage처럼 양쪽이 공유하는 탭은 포함하지 않는다 —
  * 이동한 탭 이름만으로 컨텍스트를 판별할 수 있는 경우에만 쓴다. */
-const GUARDIAN_ONLY_TABS: readonly TabName[] = ['Explore', 'Save', 'Compare'];
+const GUARDIAN_ONLY_TABS: readonly TabName[] = ['Explore', 'Save', 'Reserve', 'Kindergarten'];
 const OWNER_ONLY_TABS: readonly TabName[] = ['OwnerHome', 'OwnerDaily', 'OwnerAlbum', 'OwnerMembers'];
 
 class PushCoordinator {
@@ -133,14 +133,14 @@ class PushCoordinator {
         date: destination.date,
         source: 'push',
       });
-      navigationRef.dispatch(StackActions.push('Stack', { path: toStackWebUrl(`/compare/notice?${params}`) }));
+      navigationRef.dispatch(StackActions.push('Stack', { path: toStackWebUrl(`/kindergarten/notice?${params}`) }));
       return;
     }
 
     if (destination.kind === 'guardianKindergarten') {
-      navigationRef.navigate('Tabs', { screen: 'Compare' });
-      this.setCompareTabPet(destination.petId, destination.date);
-      this.applyGuardianViewForDestination('Compare');
+      navigationRef.navigate('Tabs', { screen: 'Kindergarten' });
+      this.setKindergartenTabPet(destination.petId, destination.date);
+      this.applyGuardianViewForDestination('Kindergarten');
       return;
     }
 
@@ -164,10 +164,69 @@ class PushCoordinator {
     if (destination.kind === 'kindergartenNews') {
       const params = new URLSearchParams({ source: 'push' });
       if (destination.schoolId) params.set('schoolId', destination.schoolId);
-      const path = `/compare/news/${destination.newsId}?${params.toString()}`;
-      navigationRef.navigate('Tabs', { screen: 'Compare' });
+      const path = `/kindergarten/news/${destination.newsId}?${params.toString()}`;
+      navigationRef.navigate('Tabs', { screen: 'Kindergarten' });
       navigationRef.dispatch(StackActions.push('Stack', { path: toStackWebUrl(path) }));
-      this.applyGuardianViewForDestination('Compare');
+      this.applyGuardianViewForDestination('Kindergarten');
+      return;
+    }
+
+    if (destination.kind === 'guardianReservation') {
+      navigationRef.navigate('Tabs', { screen: 'Reserve' });
+      this.applyGuardianViewForDestination('Reserve');
+      this.replaceTabQuery('Reserve', {
+        source: 'push',
+        ...(destination.petId ? { pushPetId: destination.petId } : {}),
+      });
+      return;
+    }
+
+    if (destination.kind === 'guardianReservationDetail') {
+      const params = new URLSearchParams({
+        dogId: destination.petId,
+        reservationId: destination.reservationId,
+      });
+      navigationRef.navigate('Tabs', { screen: 'Reserve' });
+      navigationRef.dispatch(
+        StackActions.push('Stack', { path: toStackWebUrl(`/reservation/detail?${params}`) })
+      );
+      this.applyGuardianViewForDestination('Reserve');
+      this.setSelectedGuardianPet('Reserve', destination.petId);
+      return;
+    }
+
+    if (destination.kind === 'guardianTicketDetail') {
+      const params = new URLSearchParams({ dogId: destination.petId });
+      navigationRef.navigate('Tabs', { screen: 'Reserve' });
+      navigationRef.dispatch(
+        StackActions.push('Stack', {
+          path: toStackWebUrl(`/reservation/tickets/${destination.ticketId}?${params}`),
+        })
+      );
+      this.applyGuardianViewForDestination('Reserve');
+      this.setSelectedGuardianPet('Reserve', destination.petId);
+      return;
+    }
+
+    if (destination.kind === 'guardianConnectionHistory') {
+      navigationRef.navigate('Tabs', { screen: 'Kindergarten' });
+      navigationRef.dispatch(
+        StackActions.push('Stack', { path: toStackWebUrl('/kindergarten/connection-history') })
+      );
+      this.applyGuardianViewForDestination('Kindergarten');
+      return;
+    }
+
+    if (destination.kind === 'ownerMembers') {
+      navigationRef.navigate('Tabs', { screen: 'OwnerMembers' });
+      this.applyGuardianViewForDestination('OwnerMembers');
+      return;
+    }
+
+    if (destination.kind === 'ownerExpiringMembers') {
+      navigationRef.navigate('Tabs', { screen: 'OwnerMembers' });
+      this.applyGuardianViewForDestination('OwnerMembers');
+      this.replaceTabQuery('OwnerMembers', { filter: 'expiring', source: 'push' });
       return;
     }
 
@@ -176,25 +235,49 @@ class PushCoordinator {
         schoolId: destination.schoolId,
         date: destination.date,
       });
-      navigationRef.navigate('Tabs', { screen: 'Compare' });
-      navigationRef.dispatch(StackActions.push('Stack', { path: toStackWebUrl(`/compare/album?${params}`) }));
-      this.applyGuardianViewForDestination('Compare');
+      navigationRef.navigate('Tabs', { screen: 'Kindergarten' });
+      navigationRef.dispatch(StackActions.push('Stack', { path: toStackWebUrl(`/kindergarten/album?${params}`) }));
+      this.applyGuardianViewForDestination('Kindergarten');
       // 알림함 진입 시(useNotificationInboxDeepLink.ts)와 동일하게, 강아지가 있으면
-      // 유치원 탭에서 보고 있는 강아지도 같이 맞춰준다.
-      if (destination.petId) this.setSelectedGuardianPet('Compare', destination.petId);
+      // 똑독로그 탭에서 보고 있는 강아지도 같이 맞춰준다.
+      if (destination.petId) this.setSelectedGuardianPet('Kindergarten', destination.petId);
       return;
     }
 
     navigationRef.navigate('Tabs', { screen: 'Explore' });
   }
 
-  /** 콜드 마운트인 Compare 탭은 ref가 생겨도 페이지 JS가 아직 안 떴을 수 있어, 한 번만
+  /** 알림함(useNotificationInboxDeepLink)과 같은 쿼리. filter=expiring. */
+  private replaceTabQuery(tabName: TabName, query: Record<string, string>, attempt = 0) {
+    const webView = tabWebViewStore.get(tabName)?.current;
+    if (webView) {
+      const serializedQuery = serializeForJS(query);
+      webView.injectJavaScript(`
+        (function() {
+          var query = ${serializedQuery};
+          var url = new URL(window.location.href);
+          Object.keys(query).forEach(function(key) {
+            url.searchParams.set(key, query[key]);
+          });
+          history.replaceState(null, '', url.pathname + url.search + url.hash);
+          window.dispatchEvent(new PopStateEvent('popstate', { state: null }));
+        })(); true;
+      `);
+      return;
+    }
+
+    if (attempt < INJECT_RETRY_MAX_ATTEMPTS) {
+      setTimeout(() => this.replaceTabQuery(tabName, query, attempt + 1), INJECT_RETRY_INTERVAL_MS);
+    }
+  }
+
+  /** 콜드 마운트인 Kindergarten 탭은 ref가 생겨도 페이지 JS가 아직 안 떴을 수 있어, 한 번만
    * 주입하면 조용히 씹힐 수 있다. ref를 찾을 때까지만 반복 재시도한다. */
-  private setCompareTabPet(petId: string, _date?: string, attempt = 0) {
-    const compareWebView = tabWebViewStore.get('Compare')?.current;
-    if (compareWebView) {
+  private setKindergartenTabPet(petId: string, _date?: string, attempt = 0) {
+    const kindergartenWebView = tabWebViewStore.get('Kindergarten')?.current;
+    if (kindergartenWebView) {
       const serializedPetId = serializeForJS(petId);
-      compareWebView.injectJavaScript(`
+      kindergartenWebView.injectJavaScript(`
         (function() {
           var petId = ${serializedPetId};
           var url = new URL(window.location.href);
@@ -209,7 +292,7 @@ class PushCoordinator {
     }
 
     if (attempt < INJECT_RETRY_MAX_ATTEMPTS) {
-      setTimeout(() => this.setCompareTabPet(petId, _date, attempt + 1), INJECT_RETRY_INTERVAL_MS);
+      setTimeout(() => this.setKindergartenTabPet(petId, _date, attempt + 1), INJECT_RETRY_INTERVAL_MS);
     }
   }
 

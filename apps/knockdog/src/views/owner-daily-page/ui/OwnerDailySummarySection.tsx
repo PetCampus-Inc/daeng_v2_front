@@ -1,66 +1,50 @@
-import type { OwnerDailySummaryItem } from '@views/owner-daily-page/config/ownerDailyContent';
-import { OwnerDailyDateNav } from '@views/owner-daily-page/ui/OwnerDailyDateNav';
+import { Fragment } from 'react';
+
+import type { OwnerDailySummaryView } from '@views/owner-daily-page/lib/ownerDailySummary';
 
 interface OwnerDailySummarySectionProps {
-  dateLabel: string;
-  summaryItems: OwnerDailySummaryItem[];
-  onPrevDay: () => void;
-  onNextDay: () => void;
-  onOpenDatePicker: () => void;
-  onGoToday: () => void;
-  onSummaryItemClick: (index: number) => void;
-  isNextDayDisabled: boolean;
-  isToday: boolean;
+  /** 조회 중이거나 실패하면 null. 이때는 아무것도 보이지 않는다. */
+  summaryView: OwnerDailySummaryView | null;
 }
 
-function OwnerDailySummarySection({
-  dateLabel,
-  summaryItems,
-  onPrevDay,
-  onNextDay,
-  onOpenDatePicker,
-  onGoToday,
-  onSummaryItemClick,
-  isNextDayDisabled,
-  isToday,
-}: OwnerDailySummarySectionProps) {
+/** 등원 현황 배너와 요약 숫자. 날짜 선택줄은 포함하지 않으며, 탭과 함께 스크롤된다. */
+const OwnerDailySummarySection = ({ summaryView }: OwnerDailySummarySectionProps) => {
   return (
-    <section className='bg-bg-0 flex w-full flex-col gap-4 pt-4 pb-4'>
-      <div className='flex h-[26px] w-full gap-4 px-4'>
-        <OwnerDailyDateNav
-          label={dateLabel}
-          onPrevDay={onPrevDay}
-          onNextDay={onNextDay}
-          onOpenDatePicker={onOpenDatePicker}
-          onGoToday={onGoToday}
-          isNextDayDisabled={isNextDayDisabled}
-          isToday={isToday}
-        />
-      </div>
-      <div className='flex h-[88px] w-full gap-2.5 px-4'>
-        <div className='bg-bg-50 radius-r3 flex h-full w-full justify-between py-4'>
-          {summaryItems.map((item, index) => (
-            <button
-              key={item.label}
-              type='button'
-              aria-label={`${item.label} ${item.count}마리 보기`}
-              className='flex h-14 flex-1 cursor-pointer flex-col items-center justify-center gap-1'
-              onClick={() => onSummaryItemClick(index)}
-            >
-              <span className='caption1-regular text-text-secondary text-center leading-[18px]'>{item.label}</span>
-              <span
-                className={`h1-extrabold text-center ${
-                  isToday && item.label === '오늘 등원' ? 'text-text-accent' : 'text-text-primary'
-                }`}
-              >
-                {item.count}
-              </span>
-            </button>
-          ))}
+    <section className='bg-bg-0 flex w-full flex-col'>
+      {summaryView ? (
+        <div className='pt-x1 px-x4 pb-x5 gap-x4 flex w-full flex-col'>
+          <section aria-label='등원 현황' className='bg-fill-primary-50 radius-r5 px-x5 py-x4'>
+            <p className='body1-medium text-text-primary'>
+              <span className='h3-semibold text-text-accent'>{summaryView.bannerCount}</span>
+              {summaryView.bannerTotal != null ? (
+                <span className='text-fill-secondary-500'>{` / ${summaryView.bannerTotal}`}</span>
+              ) : null}{' '}
+              {summaryView.bannerDescription}
+            </p>
+          </section>
+          {summaryView.stats.length > 0 ? (
+            <div className='bg-bg-50 radius-r3 px-x4 py-x0_5 flex w-full'>
+              <div className='py-x3 flex w-full items-center justify-between'>
+                {summaryView.stats.map((stat, index) => (
+                  <Fragment key={stat.label}>
+                    {index > 0 ? <span aria-hidden className='bg-line-100 h-x10 w-px shrink-0' /> : null}
+                    <div
+                      role='group'
+                      aria-label={stat.label}
+                      className='flex w-[100px] shrink-0 flex-col items-center justify-center'
+                    >
+                      <span className='h1-extrabold text-text-primary text-center'>{stat.count}</span>
+                      <span className='body2-regular text-fill-secondary-500 text-center'>{stat.label}</span>
+                    </div>
+                  </Fragment>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
-      </div>
+      ) : null}
     </section>
   );
-}
+};
 
 export { OwnerDailySummarySection };

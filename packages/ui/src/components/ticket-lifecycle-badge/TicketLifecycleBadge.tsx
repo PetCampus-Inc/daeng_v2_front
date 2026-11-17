@@ -24,7 +24,7 @@ const TICKET_LIFECYCLE_BADGE_LABEL = {
   active: '사용중',
   scheduled: '사용예정',
   onHold: '홀딩중',
-  expired: '만료',
+  expired: '종료',
 } as const;
 
 type TicketLifecycleBadgeStatus = keyof typeof TICKET_LIFECYCLE_BADGE_LABEL;

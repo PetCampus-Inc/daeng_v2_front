@@ -3,13 +3,19 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Icon } from '@knockdog/ui';
+import { DiaryOnboardingNoteBanner } from '@features/diary-onboarding';
 
+import { useGuardianDiaryDateQuery } from '@entities/guardian-diary';
 import {
   useGuardianSchoolConnectionsQuery,
   type GuardianSchoolConnection,
 } from '@entities/guardian-home';
 import { useUserStore } from '@entities/user';
 import { guardianDailyNoticeContent } from '@views/guardian-daily-notice-page/config/guardianDailyNoticeContent';
+import {
+  hasSavedDiaryRecord,
+  shouldShowDiaryNoteBanner,
+} from '@views/guardian-daily-notice-page/lib/shouldShowDiaryNoteBanner';
 import {
   formatNoticeClockTime,
   formatNoticeUpdatedAt,
@@ -29,6 +35,9 @@ import { useGuardianSelectedPetStore } from '@views/guardian-kindergarten-page/m
 import { GuardianKindergartenDateCalendar } from '@views/guardian-kindergarten-page/ui/GuardianKindergartenDateCalendar';
 import { Header } from '@widgets/Header';
 import { route } from '@shared/constants/route';
+import { buildDiaryWriteTarget } from '@shared/lib/diary-write/buildDiaryWriteTarget';
+import { isDiaryRemoved } from '@shared/lib/diary-write/diaryRecord';
+import { useDiaryRecords } from '@shared/lib/diary-write/useDiaryRecords';
 import { trackNotebookView } from '@shared/lib/analytics';
 import { useStackNavigation } from '@shared/lib/bridge';
 import {
@@ -153,6 +162,7 @@ function GuardianDailyNoticeDetailPage() {
     enabled: petIdFromQuery == null || (isPetsReady && !isQueryPetMissing),
   });
   const selectedPetId = petIdFromQuery || storePetId;
+  const selectedDogName = pets.find((pet) => pet.id === selectedPetId)?.name;
 
   const { data: connections, isPending: isConnectionsPending } = useGuardianSchoolConnectionsQuery({
     userId,
@@ -278,6 +288,18 @@ function GuardianDailyNoticeDetailPage() {
     schoolId,
     enabled: !showEmptyWeekNoCheckIn && !isQueryPetMissing && Boolean(schoolId),
   });
+  const diaryRecords = useDiaryRecords();
+  const { data: diaryDate, isLoading: isDiaryDateLoading } = useGuardianDiaryDateQuery({
+    petId: selectedPetId,
+    date: selectedDateKey,
+    enabled: Boolean(selectedPetId) && !isQueryPetMissing,
+  });
+  const serverDiaryId = diaryDate?.diary?.id;
+  const hasWrittenDiary =
+    hasSavedDiaryRecord(diaryRecords, selectedDateKey, selectedPetId) ||
+    (Boolean(serverDiaryId) && !isDiaryRemoved(selectedPetId, serverDiaryId));
+  const showDiaryNoteBanner =
+    !isDiaryDateLoading && shouldShowDiaryNoteBanner(Boolean(dailyNotice), hasWrittenDiary);
 
   useEffect(() => {
     if (!dailyNotice || isPending) return;
@@ -348,7 +370,7 @@ function GuardianDailyNoticeDetailPage() {
   const handleAlbumListClick = () => {
     // 스택에 상세를 남기고 리스트 push — 뒤로가기 시 해당 알림장 상세로 복귀
     push({
-      pathname: route.compare.notice.list.root,
+      pathname: route.kindergarten.notice.list.root,
       query: {
         from: 'notice',
         date: selectedDateKey,
@@ -361,7 +383,7 @@ function GuardianDailyNoticeDetailPage() {
   const handleAlbumViewClick = () => {
     // 해당 일자 앨범 모아보기(그리드)
     push({
-      pathname: route.compare.album.root,
+      pathname: route.kindergarten.album.root,
       query: {
         date: selectedDateKey,
         grid: '1',
@@ -373,7 +395,7 @@ function GuardianDailyNoticeDetailPage() {
   const handleAlbumPhotoClick = (photoId: string) => {
     // 해당 사진 앨범 상세 슬라이드
     push({
-      pathname: route.compare.album.root,
+      pathname: route.kindergarten.album.root,
       query: {
         date: selectedDateKey,
         photoId,
@@ -476,6 +498,21 @@ function GuardianDailyNoticeDetailPage() {
               />
             ) : (
               <>
+                {showDiaryNoteBanner ? (
+                  <DiaryOnboardingNoteBanner
+                    dogName={selectedDogName}
+                    petId={selectedPetId}
+                    onWrite={() =>
+                      push(
+                        buildDiaryWriteTarget({
+                          date: selectedDate,
+                          schoolId,
+                          fromNotice: true,
+                        })
+                      )
+                    }
+                  />
+                ) : null}
                 <div className='flex w-full shrink-0 items-start justify-between'>
                   <div className='flex items-center gap-3'>
                     <div className='flex flex-col gap-0.5'>
