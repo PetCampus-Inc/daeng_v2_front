@@ -21,6 +21,13 @@ const headlessUiAliases = Object.fromEntries(
 export default [
   defineConfig({
     test: {
+      name: 'mobile-push',
+      include: ['./apps/mobile/lib/pushPayload.test.ts'],
+      environment: 'node',
+    },
+  }),
+  defineConfig({
+    test: {
       name: 'knockdog',
       include: ['./apps/knockdog/**/*.test.(ts|tsx)'],
       exclude: [
