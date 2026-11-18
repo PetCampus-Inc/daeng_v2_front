@@ -45,6 +45,7 @@ interface GuardianDiaryGenerateFormProps {
   onConfirmSave: () => void;
   onKeepWriting: () => void;
   onLeave: () => void;
+  hasMissingDraft?: boolean;
 }
 
 function DiaryLoadingDots() {
@@ -69,6 +70,7 @@ function GuardianDiaryGenerateForm({
   onConfirmSave,
   onKeepWriting,
   onLeave,
+  hasMissingDraft = false,
 }: GuardianDiaryGenerateFormProps) {
   const dialogCopy = dialog ? getDiaryDialogCopy(dialog) : null;
 
@@ -91,7 +93,9 @@ function GuardianDiaryGenerateForm({
         {status === 'error' ? (
           <div className='bg-bg-50 radius-r2 p-x4 flex w-full items-start gap-[6px]'>
             <InfoLine className='text-line-accent mt-[5px] size-[14px] shrink-0' />
-            <p className='body1-regular text-fill-secondary-500 flex-1 whitespace-pre-line'>{DIARY_ERROR_TEXT}</p>
+            <p className='body1-regular text-fill-secondary-500 flex-1 whitespace-pre-line'>
+              {hasMissingDraft ? '작성 정보를 불러오지 못했어요. 이전 화면으로 돌아가 다시 만들어 주세요.' : DIARY_ERROR_TEXT}
+            </p>
           </div>
         ) : null}
         {status === 'done' && isSaved ? <p className='body1-regular text-text-primary whitespace-pre-line px-x2 py-x4'>{body}</p> : null}
@@ -104,7 +108,7 @@ function GuardianDiaryGenerateForm({
           {status === 'error' ? (
             <ActionButton type='button' variant='primaryFill' size='large' className='gap-x1_5' onClick={onRetry}>
               <Reset className='size-x5' />
-              다시 시도하기
+              {hasMissingDraft ? '이전 화면으로 돌아가기' : '다시 시도하기'}
             </ActionButton>
           ) : null}
           {status === 'done' ? (

@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { Call, Copy, InfoLine, LocationFill, RsvInfoCircle } from '@knockdog/icons';
-import { ActionButton } from '@knockdog/ui';
+import { ActionButton, Icon } from '@knockdog/ui';
 
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 import { RESERVATION_DETAIL_COPY } from '@views/guardian-reservation-page/config/guardianReservationDetail';
@@ -55,6 +55,7 @@ function GuardianReservationDetailPage() {
   const queryClient = useQueryClient();
   const cancelReservation = useCancelReservationMutation();
   const [isCancelOpen, setIsCancelOpen] = useState(false);
+  const [failedThumbnailUrl, setFailedThumbnailUrl] = useState<string | null>(null);
   const detail = detailQuery.data;
   const pet = pets.find((item) => String(item.id) === petId);
   const canCancel = detail?.cancelable ?? false;
@@ -198,7 +199,18 @@ function GuardianReservationDetailPage() {
 
         <section className='px-x4 py-x5 gap-x2 flex flex-col'>
           <h2 className='body2-bold text-text-primary'>{copy.placeLabel}</h2>
-          <div className='border-line-200 radius-r4 bg-bg-0 h-[150px] w-full border border-solid' />
+          <div className='border-line-200 radius-r4 bg-fill-secondary-50 flex h-[150px] w-full items-center justify-center overflow-hidden border border-solid'>
+            {!detailQuery.isFetching && detail.schoolThumbnailImageUrl && failedThumbnailUrl !== detail.schoolThumbnailImageUrl ? (
+              <img
+                src={detail.schoolThumbnailImageUrl}
+                alt={`${detail.schoolName} 프로필 사진`}
+                className='size-full object-cover'
+                onError={() => setFailedThumbnailUrl(detail.schoolThumbnailImageUrl)}
+              />
+            ) : (
+              <Icon icon='Paw' className='text-fill-secondary-300 size-12' />
+            )}
+          </div>
           <div className='gap-x1 py-x0_5 flex items-start'>
             <LocationFill className='text-text-secondary size-5 shrink-0' />
             <div className='gap-x0_5 flex min-w-0 flex-1 flex-col'>
@@ -220,7 +232,7 @@ function GuardianReservationDetailPage() {
         </section>
       </div>
 
-      <div className='bg-bg-0 p-x4 webview:pb-[calc(var(--safe-area-inset-bottom,0px)+16px)] shrink-0'>
+      <div className='bg-bg-0 p-x4 shrink-0'>
         <ActionButton
           type='button'
           variant={canCancel ? 'secondaryLine' : 'primaryFill'}

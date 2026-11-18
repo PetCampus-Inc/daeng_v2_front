@@ -107,6 +107,19 @@ describe('toGuardianReservations', () => {
     });
   });
 
+  it.each(['https://example.test/school.jpg?signature=temporary', null])('상세의 유치원 사진 URL을 유지한다: %s', (schoolThumbnailImageUrl) => {
+    const detail = toGuardianReservationDetail(parseGuardianReservationDetail({
+      data: {
+        reservation: response.data.reservations[0],
+        schoolAddress: '서울',
+        schoolPhoneNumber: '',
+        cancelable: true,
+        schoolThumbnailImageUrl,
+      },
+    }));
+    expect(detail.schoolThumbnailImageUrl).toBe(schoolThumbnailImageUrl);
+  });
+
   it('취소 응답은 취소 상태여도 통과한다', () => {
     const canceled = parseReservationResponse({
       data: { ...response.data.reservations[0], status: 'CANCELED' },

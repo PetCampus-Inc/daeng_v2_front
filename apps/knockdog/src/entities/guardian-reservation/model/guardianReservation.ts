@@ -107,6 +107,7 @@ const reservationDetailSchema = z.object({
     reservation: reservationDtoSchema,
     schoolAddress: z.string(),
     schoolPhoneNumber: z.string(),
+    schoolThumbnailImageUrl: z.string().nullish(),
     cancelable: z.boolean(),
   }),
 });
@@ -118,6 +119,7 @@ interface GuardianReservationDetail {
   schoolName: string;
   schoolAddress: string;
   schoolPhone: string;
+  schoolThumbnailImageUrl: string | null;
   note: string;
   cancelable: boolean;
 }
@@ -133,6 +135,7 @@ const toGuardianReservationDetail = (dto: ReservationDetailDto): GuardianReserva
   schoolName: dto.reservation.schoolName,
   schoolAddress: dto.schoolAddress,
   schoolPhone: dto.schoolPhoneNumber.trim(),
+  schoolThumbnailImageUrl: dto.schoolThumbnailImageUrl ?? null,
   note: dto.reservation.requestMemo?.trim() ?? '',
   cancelable: dto.cancelable,
 });

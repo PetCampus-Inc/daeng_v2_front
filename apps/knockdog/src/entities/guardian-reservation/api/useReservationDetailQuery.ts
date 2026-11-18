@@ -7,6 +7,8 @@ const useReservationDetailQuery = (petId: string, reservationId: string) =>
     ...createReservationDetailOptions(petId, reservationId),
     enabled: Boolean(petId) && Boolean(reservationId),
     staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: 'always',
   });
 
 export { useReservationDetailQuery };
