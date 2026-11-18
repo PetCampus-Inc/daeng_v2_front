@@ -4,11 +4,16 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 
-import { guardianDiaryDateQueryKey, guardianDiaryMonthQueryKey, postDiaryGeneration, postDiarySave } from '@entities/guardian-diary';
+import {
+  guardianDiaryDateQueryKey,
+  guardianDiaryMonthQueryKey,
+  postDiaryGeneration,
+  postDiarySave,
+} from '@entities/guardian-diary';
 import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { formatDateKey } from '@shared/lib/calendar-date';
 import { buildDiaryDetailTarget } from '@shared/lib/diary-write/buildDiaryWriteTarget';
-import { readDiaryGenerateDraft } from '@shared/lib/diary-write/diaryGenerateDraft';
+import { parseDiaryGenerateDraft, type DiaryGenerateDraft } from '@shared/lib/diary-write/diaryGenerateDraft';
 import { clearDiaryRemoved, saveDiaryHomeReturn, saveDiaryRecord } from '@shared/lib/diary-write/diaryRecord';
 import { toast } from '@shared/ui/toast';
 
@@ -23,8 +28,6 @@ import {
 } from '../lib/diaryGenerate';
 import { GuardianDiaryGenerateForm } from './GuardianDiaryGenerateForm';
 
-const FALLBACK_PHOTOS = ['/images/diary-sample/leaf.png', '/images/diary-sample/flower.png', '/images/diary-sample/sister.png'];
-
 function parseGenerateDate(value: string | null) {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return new Date();
   const [yearText, monthText, dayText] = value.split('-');
@@ -34,13 +37,25 @@ function parseGenerateDate(value: string | null) {
 function GuardianDiaryGeneratePage() {
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
-  const { back, push } = useStackNavigation();
+  const { back, push, getParams } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
-  const draft = useMemo(() => readDiaryGenerateDraft(), []);
-  const date = useMemo(() => parseGenerateDate(searchParams.get('date') ?? draft?.date ?? null), [draft?.date, searchParams]);
-  const photos = draft?.photos.length ? draft.photos : FALLBACK_PHOTOS;
+  const [draft, setDraft] = useState<DiaryGenerateDraft | null>(null);
+  const hasReadDraftRef = useRef(false);
+  useEffect(() => {
+    if (hasReadDraftRef.current) return;
+    hasReadDraftRef.current = true;
+    const params = getParams<{ draft?: unknown }>();
+    const nextDraft = parseDiaryGenerateDraft(params?.draft);
+    setDraft(nextDraft);
+    if (!nextDraft) setStatus('error');
+  }, [getParams]);
+  const date = useMemo(
+    () => parseGenerateDate(searchParams.get('date') ?? draft?.date ?? null),
+    [draft?.date, searchParams]
+  );
+  const photos = draft?.photos ?? [];
   const dogName = draft?.dogName || '강아지';
-  const forcedError = searchParams.get('result') === 'error' || !draft?.petId;
+  const forcedError = searchParams.get('result') === 'error';
   const [status, setStatus] = useState<DiaryGenerateStatus>(forcedError ? 'error' : 'generating');
   const [runId, setRunId] = useState(0);
   const [generationId, setGenerationId] = useState<string | null>(null);
@@ -130,6 +145,10 @@ function GuardianDiaryGeneratePage() {
   }
 
   function handleRetry() {
+    if (!draft) {
+      void back();
+      return;
+    }
     setGenerationId(null);
     setBody('');
     setVisibleBody('');
@@ -153,7 +172,13 @@ function GuardianDiaryGeneratePage() {
       }
       const saved = getDiarySaveToast(dogName);
       try {
-        saveDiaryRecord({ dateKey: detail.date, petId: detail.petId, dogName, body: detail.body, photos: detail.photos });
+        saveDiaryRecord({
+          dateKey: detail.date,
+          petId: detail.petId,
+          dogName,
+          body: detail.body,
+          photos: detail.photos,
+        });
       } catch {
         // 서버 저장은 끝났고, 이 화면의 임시 기록만 실패한 경우다.
       }
@@ -167,10 +192,7 @@ function GuardianDiaryGeneratePage() {
         shape: 'rounded',
         position: 'bottom',
         nativeTitle: saved.nativeTitle,
-        titleParts: [
-          { text: saved.name, bold: true },
-          { text: saved.suffix },
-        ],
+        titleParts: [{ text: saved.name, bold: true }, { text: saved.suffix }],
         title: (
           <>
             <span className='body1-bold text-text-primary-inverse'>{saved.name}</span>
@@ -178,7 +200,14 @@ function GuardianDiaryGeneratePage() {
           </>
         ),
       });
-      void push(buildDiaryDetailTarget({ date, schoolId: searchParams.get('schoolId'), petId: detail.petId, diaryId: detail.id }));
+      void push(
+        buildDiaryDetailTarget({
+          date,
+          schoolId: searchParams.get('schoolId'),
+          petId: detail.petId,
+          diaryId: detail.id,
+        })
+      );
     } catch {
       toast({
         shape: 'rounded',
@@ -197,6 +226,7 @@ function GuardianDiaryGeneratePage() {
       dateLabel={formatDiaryDateLabel(date)}
       photos={photos}
       status={status}
+      hasMissingDraft={status === 'error' && !draft}
       body={isEditing || isSaved ? body : visibleBody}
       isEditing={isEditing}
       isSaved={isSaved}

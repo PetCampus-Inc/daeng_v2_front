@@ -10,7 +10,6 @@ import { useGuardianCalendarDay } from '@views/guardian-kindergarten-page/model/
 import { useStackNavigation } from '@shared/lib/bridge';
 import { formatDateKey, startOfDay } from '@shared/lib/calendar-date';
 import { buildDiaryGenerateTarget } from '@shared/lib/diary-write/buildDiaryWriteTarget';
-import { saveDiaryGenerateDraft } from '@shared/lib/diary-write/diaryGenerateDraft';
 import { toast } from '@shared/ui/toast';
 
 import {
@@ -78,14 +77,20 @@ function GuardianDiaryWritePage() {
     const withNotice = includeNotice === true || isImported;
     setIsImportSheetOpen(false);
     try {
-      saveDiaryGenerateDraft({
+      const draft = {
         date: dateKey,
         dogName: selectedPet?.name || '강아지',
         petId,
         photos: photos.map((photo) => photo.src),
         photoKeys: photos.flatMap((photo) => (photo.tempKey ? [photo.tempKey] : [])),
         text: text.trim(),
-        attendanceRecordId: withNotice ? dateStatus?.attendance?.id ?? null : null,
+        attendanceRecordId: withNotice ? (dateStatus?.attendance?.id ?? null) : null,
+      };
+      void push({
+        ...buildDiaryGenerateTarget({ date, schoolId, petId }),
+        params: { draft },
+      }).catch(() => {
+        toast({ title: '일기를 만들지 못했어요. 잠시 후 다시 시도해주세요', position: 'bottom-above-nav' });
       });
     } catch {
       toast({
@@ -94,7 +99,6 @@ function GuardianDiaryWritePage() {
       });
       return;
     }
-    push(buildDiaryGenerateTarget({ date, schoolId, petId }));
   }
 
   function handleApplyImport() {

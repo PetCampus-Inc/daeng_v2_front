@@ -1,4 +1,25 @@
+import { z } from 'zod';
+
 const DIARY_GENERATE_DRAFT_KEY = 'diary-generate-draft';
+
+const DIARY_DRAFT_SCHEMA = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  dogName: z.string().min(1),
+  petId: z.union([z.string().min(1), z.number().int().positive()]).transform(String),
+  photos: z.array(z.string()),
+  photoKeys: z.array(z.string()).default([]),
+  text: z.string().default(''),
+  attendanceRecordId: z
+    .union([z.string(), z.number()])
+    .nullable()
+    .optional()
+    .transform((value) => (value == null ? null : String(value))),
+});
+
+const parseDiaryGenerateDraft = (value: unknown): DiaryGenerateDraft | null => {
+  const parsed = DIARY_DRAFT_SCHEMA.safeParse(value);
+  return parsed.success ? parsed.data : null;
+};
 
 interface DiaryGenerateDraft {
   date: string;
@@ -37,5 +58,5 @@ function readDiaryGenerateDraft(): DiaryGenerateDraft | null {
   }
 }
 
-export { readDiaryGenerateDraft, saveDiaryGenerateDraft };
+export { readDiaryGenerateDraft, saveDiaryGenerateDraft, parseDiaryGenerateDraft };
 export type { DiaryGenerateDraft };

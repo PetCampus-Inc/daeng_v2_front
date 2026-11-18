@@ -119,24 +119,34 @@ export default function TabNavigator() {
               switch (route.name) {
                 case 'Explore':
                   return (
-                    <GuardianMapIcon width={22} height={22} color={focused ? '#FF6E0C' : '#B4B4BB'} />
+                    <View style={styles.guardianIcon}>
+                      <GuardianMapIcon width={20} height={20} color={focused ? '#FF6E0C' : '#B4B4BB'} />
+                    </View>
                   );
                 case 'Save':
                   return (
-                    <GuardianArchiveIcon width={21} height={21} color={focused ? '#FF6E0C' : '#B4B4BB'} />
+                    <View style={styles.guardianIcon}>
+                      <GuardianArchiveIcon width={20} height={20} color={focused ? '#FF6E0C' : '#B4B4BB'} />
+                    </View>
                   );
                 case 'Reserve':
                   return (
-                    <GuardianReserveIcon
-                      width={20}
-                      height={20}
-                      color={focused ? '#FF6E0C' : '#B4B4BB'}
-                    />
+                    <View style={styles.guardianIcon}>
+                      <GuardianReserveIcon
+                        width={20}
+                        height={20}
+                        color={focused ? '#FF6E0C' : '#B4B4BB'}
+                      />
+                    </View>
                   );
                 case 'Kindergarten':
                   return (
-                    <View style={{ width: 24, height: 24, alignItems: 'center', justifyContent: 'center', paddingBottom: 2 }}>
-                      {focused ? <GuardianLogActiveIcon width={23} height={20} /> : <GuardianLogInactiveIcon width={23} height={20} />}
+                    <View style={styles.guardianIcon}>
+                      {focused ? (
+                        <GuardianLogActiveIcon width={24} height={24} preserveAspectRatio='xMidYMid meet' />
+                      ) : (
+                        <GuardianLogInactiveIcon width={24} height={24} preserveAspectRatio='xMidYMid meet' />
+                      )}
                     </View>
                   );
                 case 'OwnerHome':
@@ -151,7 +161,9 @@ export default function TabNavigator() {
                   return isOwnerMode ? (
                     <OwnerMypageIcon width={21} height={21} {...strokeIconProps} />
                   ) : (
-                    <GuardianMyIcon width={21} height={21} color={focused ? '#FF6E0C' : '#B4B4BB'} />
+                    <View style={styles.guardianIcon}>
+                      <GuardianMyIcon width={21} height={21} color={focused ? '#FF6E0C' : '#B4B4BB'} />
+                    </View>
                   );
                 default:
                   console.warn('❗ tabBarIcon: Unknown route name', route.name);
@@ -206,6 +218,12 @@ export default function TabNavigator() {
 }
 
 const styles = StyleSheet.create({
+  guardianIcon: {
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   container: {
     flex: 1,
   },

@@ -248,7 +248,7 @@ function GuardianReservationListPage() {
         </div>
       </Tabs>
 
-      <div className='bg-bg-0 px-x4 pt-x4 pb-x8 webview:pb-[calc(var(--safe-area-inset-bottom,0px)+32px)] shrink-0'>
+      <div className='bg-bg-0 px-x4 pt-x4 pb-x8 shrink-0'>
         <ActionButton
           type='button'
           variant='primaryFill'
