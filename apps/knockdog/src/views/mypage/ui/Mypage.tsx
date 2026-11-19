@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { Divider, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 import { MypageSectionSkeleton } from '@views/mypage/ui/MypageSectionSkeleton';
@@ -57,6 +57,10 @@ function MypageContent() {
   const userInfo = userInfoResponse?.userId === user?.userId ? userInfoResponse : undefined;
   const { isOwner: isOwnerVerified, isResolved: isOwnerRoleResolved } = useOwnerRole();
   const { isOwnerView, isGuardianView, canToggleRoleView, setRoleView } = useMypageRoleView();
+  const latestRoleView = useRef({ canToggleRoleView, isOwnerView });
+  useLayoutEffect(() => {
+    latestRoleView.current = { canToggleRoleView, isOwnerView };
+  }, [canToggleRoleView, isOwnerView]);
   const { data: hasUnreadNotification = false } = useHasUnreadNotificationQuery({
     userId: user?.userId,
     audience: isOwnerView ? 'OWNER' : 'GUARDIAN',
@@ -111,6 +115,15 @@ function MypageContent() {
     try {
       if (isNativeWebView()) {
         await navigateToTab('/mypage', undefined, nextMode);
+
+        const latest = latestRoleView.current;
+        if (!latest.canToggleRoleView) {
+          const currentMode = latest.isOwnerView ? 'owner' : 'guardian';
+          if (currentMode !== nextMode) {
+            await navigateToTab('/mypage', undefined, currentMode);
+          }
+          return;
+        }
       }
 
       setRoleView(nextMode);

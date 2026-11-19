@@ -46,12 +46,20 @@ function GuardianDiarySegmentFrame({ children, showDiary = true }: GuardianDiary
     const target = buildDiaryDetailTarget({ date, schoolId, petId, diaryId });
     const isNative = isNativeWebView();
     const dateKey = formatDateKey(date);
-    if (isNative) saveDiaryHomeReturn(dateKey, { notify: false });
+    let didSaveReturnDate = false;
+    if (isNative) {
+      try {
+        saveDiaryHomeReturn(dateKey, { notify: false });
+        didSaveReturnDate = true;
+      } catch (error) {
+        console.warn('[GuardianDiarySegmentFrame] Failed to save diary return date', error);
+      }
+    }
 
     try {
       await push({ ...target, query: { ...target.query, fromDiaryTab: true } });
     } catch (error) {
-      if (isNative && peekDiaryHomeReturn() === dateKey) takeDiaryHomeDate();
+      if (didSaveReturnDate && peekDiaryHomeReturn() === dateKey) takeDiaryHomeDate();
       console.error('[GuardianDiarySegmentFrame] Failed to open diary detail', error);
     }
   };

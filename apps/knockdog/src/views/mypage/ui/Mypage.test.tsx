@@ -170,6 +170,26 @@ describe('마이페이지 `내 정보` 진입 항목', () => {
     expect((button as HTMLButtonElement).disabled).toBe(false);
   });
 
+  test('네이티브 전환 응답을 기다리는 동안 보호자 전환이 막히면 원장 탭으로 복구한다', async () => {
+    Object.assign(roleState, { canSwitch: true, isOwnerView: true, isNative: true });
+    let confirmSwitch: () => void = () => {};
+    navigateToTab.mockImplementationOnce(() => new Promise<void>((resolve) => {
+      confirmSwitch = resolve;
+    }));
+
+    const { rerender } = renderMypage();
+    await userEvent.click(await screen.findByRole('button', { name: '보호자로 전환' }));
+    expect(navigateToTab).toHaveBeenCalledExactlyOnceWith('/mypage', undefined, 'guardian');
+
+    roleState.canSwitch = false;
+    rerender(<OverlayProvider><Mypage /></OverlayProvider>);
+    await act(async () => confirmSwitch());
+
+    expect(navigateToTab).toHaveBeenCalledTimes(2);
+    expect(navigateToTab).toHaveBeenLastCalledWith('/mypage', undefined, 'owner');
+    expect(setRoleView).not.toHaveBeenCalled();
+  });
+
   test('`유치원 연결 내역` 항목을 누르면 연결 이력 화면으로 이동한다', async () => {
     renderMypage();
 
