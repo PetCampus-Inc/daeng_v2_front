@@ -1,6 +1,5 @@
 import { Platform } from 'react-native';
 
-const BOTTOM_TAB_BAR_DIM_HEIGHT = 64;
 const ANDROID_TAB_BAR_CONTENT_HEIGHT = 64;
 const IOS_TAB_BAR_CONTENT_HEIGHT = 49;
 const ANDROID_TAB_BAR_MIN_BOTTOM_INSET = 12;
@@ -19,7 +18,6 @@ function getBottomTabBarHeight(safeAreaBottomInset: number) {
 }
 
 export {
-  BOTTOM_TAB_BAR_DIM_HEIGHT,
   ANDROID_TAB_BAR_CONTENT_HEIGHT,
   IOS_TAB_BAR_CONTENT_HEIGHT,
   ANDROID_TAB_BAR_MIN_BOTTOM_INSET,

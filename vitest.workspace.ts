@@ -28,6 +28,13 @@ export default [
   }),
   defineConfig({
     test: {
+      name: 'mobile-navigation',
+      include: ['./apps/mobile/bridges/lib/tabQueryInject.test.ts'],
+      environment: 'node',
+    },
+  }),
+  defineConfig({
+    test: {
       name: 'knockdog',
       include: ['./apps/knockdog/**/*.test.(ts|tsx)'],
       exclude: [

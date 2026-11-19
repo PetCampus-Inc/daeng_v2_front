@@ -1,5 +1,6 @@
 'use client';
 
+import { useLayoutEffect, useRef, useState } from 'react';
 import { Divider, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 import { MypageSectionSkeleton } from '@views/mypage/ui/MypageSectionSkeleton';
@@ -37,8 +38,10 @@ import { useUserInfoQuery, useUserStore } from '@entities/user';
 import { logout } from '@shared/lib/auth/logout';
 import { NotificationBell } from '@shared/ui/notification-bell';
 import { PrivateAccess } from '@shared/ui/private-access';
-import { openConfirmDialog, useStackNavigation } from '@shared/lib/bridge';
+import { openConfirmDialog, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { isNativeWebView } from '@shared/lib/device';
 import { closeOverlayThenNavigate } from '@shared/lib/navigation/closeOverlayThenNavigate';
+import { toast } from '@shared/ui/toast';
 import {
   route,
   RELEASE_PERMISSION_SOURCE,
@@ -47,11 +50,17 @@ import {
 
 function MypageContent() {
   const { push, reset } = useStackNavigation();
+  const { navigateToTab } = useTabNavigation();
+  const [isSwitchingRole, setIsSwitchingRole] = useState(false);
   const user = useUserStore((state) => state.user);
   const { data: userInfoResponse } = useUserInfoQuery(user?.userId);
   const userInfo = userInfoResponse?.userId === user?.userId ? userInfoResponse : undefined;
   const { isOwner: isOwnerVerified, isResolved: isOwnerRoleResolved } = useOwnerRole();
-  const { isOwnerView, isGuardianView, canToggleRoleView, toggleRoleView } = useMypageRoleView();
+  const { isOwnerView, isGuardianView, canToggleRoleView, setRoleView } = useMypageRoleView();
+  const latestRoleView = useRef({ canToggleRoleView, isOwnerView });
+  useLayoutEffect(() => {
+    latestRoleView.current = { canToggleRoleView, isOwnerView };
+  }, [canToggleRoleView, isOwnerView]);
   const { data: hasUnreadNotification = false } = useHasUnreadNotificationQuery({
     userId: user?.userId,
     audience: isOwnerView ? 'OWNER' : 'GUARDIAN',
@@ -97,10 +106,35 @@ function MypageContent() {
     push({ pathname: route.mypage.kindergarten.root });
   };
 
-  const handleRoleViewToggle = () => {
-    if (isOwnerView) showConvertedToGuardianToast();
-    else showConvertedToOwnerToast();
-    toggleRoleView();
+  const handleRoleViewToggle = async () => {
+    if (!canToggleRoleView || isSwitchingRole) return;
+
+    setIsSwitchingRole(true);
+    const nextMode = isOwnerView ? 'guardian' : 'owner';
+
+    try {
+      if (isNativeWebView()) {
+        await navigateToTab('/mypage', undefined, nextMode);
+
+        const latest = latestRoleView.current;
+        if (!latest.canToggleRoleView) {
+          const currentMode = latest.isOwnerView ? 'owner' : 'guardian';
+          if (currentMode !== nextMode) {
+            await navigateToTab('/mypage', undefined, currentMode);
+          }
+          return;
+        }
+      }
+
+      setRoleView(nextMode);
+      if (nextMode === 'guardian') showConvertedToGuardianToast();
+      else showConvertedToOwnerToast();
+    } catch (error) {
+      console.error('[Mypage] Failed to switch role view', error);
+      toast('화면을 전환하지 못했어요. 잠시 후 다시 시도해 주세요.');
+    } finally {
+      setIsSwitchingRole(false);
+    }
   };
 
   const performLogout = async () => {
@@ -232,6 +266,7 @@ function MypageContent() {
         {canToggleRoleView && (
           <RoleConversionButton
             onClick={handleRoleViewToggle}
+            disabled={isSwitchingRole}
             className={isOwnerView ? 'bg-fill-primary-50 text-primitive-orange-400' : undefined}
           >
             {isOwnerView

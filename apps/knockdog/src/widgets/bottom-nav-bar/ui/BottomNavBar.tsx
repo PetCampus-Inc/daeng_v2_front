@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Icon } from '@knockdog/ui';
@@ -46,17 +47,8 @@ function BottomNavBarLinks() {
       >
         {navItems.map((item) => {
           const isActive = isActiveNavItem(pathname, item.href);
-          const colorClassName = isActive ? 'text-fill-primary-500' : 'text-text-tertiary';
-          const usesFigmaIcon =
-            !showOwnerBottomNav &&
-            (item.href === '/' ||
-              item.href === '/save' ||
-              item.href === '/reservation' ||
-              item.href === '/kindergarten' ||
-              item.href === '/mypage');
-          const iconColorClassName =
-            !isActive && (showOwnerBottomNav || usesFigmaIcon) ? 'text-text-caption' : colorClassName;
-          const labelColorClassName = colorClassName;
+          const iconColorClassName = isActive ? 'text-fill-primary-500' : 'text-text-caption';
+          const labelColorClassName = isActive ? 'text-fill-primary-500' : 'text-text-tertiary';
 
           return (
             <Link
@@ -69,10 +61,23 @@ function BottomNavBarLinks() {
               )}
             >
               <div className='flex size-6 items-center justify-center'>
-                <Icon
-                  icon={item.icon}
-                  className={`transition-colors duration-100 motion-reduce:transition-none ${iconColorClassName} ${'iconClassName' in item ? item.iconClassName : ''}`}
-                />
+                {'iconSources' in item ? (
+                  <Image
+                    alt=''
+                    width={21}
+                    height={21}
+                    src={isActive ? item.iconSources.active : item.iconSources.inactive}
+                  />
+                ) : (
+                  <Icon
+                    icon={item.icon}
+                    className={cn(
+                      'transition-colors duration-100 motion-reduce:transition-none',
+                      iconColorClassName,
+                      item.iconClassName
+                    )}
+                  />
+                )}
               </div>
               <span className={cn('caption1-semibold leading-[18px] tracking-normal', showOwnerBottomNav && 'tracking-[-0.02em]')}>
                 {item.label}

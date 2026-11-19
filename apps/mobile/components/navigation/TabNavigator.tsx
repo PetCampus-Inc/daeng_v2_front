@@ -3,7 +3,8 @@ import GuardianLogActiveIcon from '@/assets/icons/guardian_log_active.svg';
 import GuardianLogInactiveIcon from '@/assets/icons/guardian_log_inactive.svg';
 import GuardianMapIcon from '@/assets/icons/guardian_map.svg';
 import GuardianMyIcon from '@/assets/icons/guardian_my.svg';
-import GuardianReserveIcon from '@/assets/icons/guardian_reserve.svg';
+import GuardianReserveActiveIcon from '@/assets/icons/guardian_reserve_active.svg';
+import GuardianReserveInactiveIcon from '@/assets/icons/guardian_reserve_inactive.svg';
 import OwnerAlbumIcon from '@/assets/icons/owner_album.svg';
 import OwnerDailyIcon from '@/assets/icons/owner_daily.svg';
 import OwnerHomeIcon from '@/assets/icons/owner_home.svg';
@@ -29,9 +30,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAndroidTabBack } from './useAndroidTabBack';
 import {
-  BOTTOM_TAB_BAR_DIM_HEIGHT,
   ANDROID_TAB_BAR_CONTENT_HEIGHT,
   getAndroidTabBarBottomInset,
+  getBottomTabBarHeight,
 } from './bottomTabBarHeight';
 
 const Tab = createBottomTabNavigator();
@@ -86,7 +87,6 @@ function notifyCurrentTabWillBlur(tabName: TabName) {
 
 export default function TabNavigator() {
   const { bottom } = useSafeAreaInsets();
-  const androidTabBarBottomInset = getAndroidTabBarBottomInset(bottom);
   const mode = useMainTabModeStore((state) => state.mode);
   const isOwnerMode = mode === 'owner';
   const isTabBarVisible = useBottomTabBarVisibilityStore((state) => state.visible);
@@ -120,32 +120,28 @@ export default function TabNavigator() {
                 case 'Explore':
                   return (
                     <View style={styles.guardianIcon}>
-                      <GuardianMapIcon width={20} height={20} color={focused ? '#FF6E0C' : '#B4B4BB'} />
+                      <GuardianMapIcon color={focused ? '#FF6E0C' : '#B4B4BB'} />
                     </View>
                   );
                 case 'Save':
                   return (
                     <View style={styles.guardianIcon}>
-                      <GuardianArchiveIcon width={20} height={20} color={focused ? '#FF6E0C' : '#B4B4BB'} />
+                      <GuardianArchiveIcon color={focused ? '#FF6E0C' : '#B4B4BB'} />
                     </View>
                   );
                 case 'Reserve':
                   return (
                     <View style={styles.guardianIcon}>
-                      <GuardianReserveIcon
-                        width={20}
-                        height={20}
-                        color={focused ? '#FF6E0C' : '#B4B4BB'}
-                      />
+                      {focused ? <GuardianReserveActiveIcon /> : <GuardianReserveInactiveIcon />}
                     </View>
                   );
                 case 'Kindergarten':
                   return (
                     <View style={styles.guardianIcon}>
                       {focused ? (
-                        <GuardianLogActiveIcon width={24} height={24} preserveAspectRatio='xMidYMid meet' />
+                        <GuardianLogActiveIcon />
                       ) : (
-                        <GuardianLogInactiveIcon width={24} height={24} preserveAspectRatio='xMidYMid meet' />
+                        <GuardianLogInactiveIcon />
                       )}
                     </View>
                   );
@@ -162,7 +158,7 @@ export default function TabNavigator() {
                     <OwnerMypageIcon width={21} height={21} {...strokeIconProps} />
                   ) : (
                     <View style={styles.guardianIcon}>
-                      <GuardianMyIcon width={21} height={21} color={focused ? '#FF6E0C' : '#B4B4BB'} />
+                      <GuardianMyIcon color={focused ? '#FF6E0C' : '#B4B4BB'} />
                     </View>
                   );
                 default:
@@ -204,11 +200,10 @@ export default function TabNavigator() {
         <View
           pointerEvents='auto'
           style={[
-            styles.bottomTabBarDim,
+            styles.dimOverlay,
             {
-              height:
-                BOTTOM_TAB_BAR_DIM_HEIGHT +
-                (Platform.OS === 'android' ? androidTabBarBottomInset : bottom),
+              bottom,
+              height: getBottomTabBarHeight(bottom) - bottom,
             },
           ]}
         />
@@ -227,13 +222,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  bottomTabBarDim: {
+  dimOverlay: {
     position: 'absolute',
-    bottom: 0,
     left: 0,
     right: 0,
     zIndex: 20,
     elevation: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
 });

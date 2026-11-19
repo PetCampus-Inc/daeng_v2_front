@@ -1,10 +1,17 @@
 export const GUARDIAN_NAV_ITEMS = [
-  { href: '/', icon: 'MapNav' as const, label: '내 주변', iconClassName: 'size-5' },
-  { href: '/save', icon: 'ArchiveNav' as const, label: '보관함', iconClassName: 'size-5' },
-  { href: '/reservation', icon: 'ReserveNav' as const, label: '예약', iconClassName: 'size-5' },
-  { href: '/kindergarten', icon: 'LogNav' as const, label: '똑독로그', iconClassName: 'size-6' },
+  { href: '/', icon: 'MapNav' as const, label: '내 주변', iconClassName: 'size-[22px]' },
+  { href: '/save', icon: 'ArchiveNav' as const, label: '보관함', iconClassName: 'size-[21px]' },
+  {
+    href: '/reservation',
+    label: '예약',
+    iconSources: {
+      active: '/images/guardian_reserve_active.svg',
+      inactive: '/images/guardian_reserve_inactive.svg',
+    },
+  },
+  { href: '/kindergarten', icon: 'LogNav' as const, label: '똑독로그', iconClassName: 'size-auto h-5 w-[23px]' },
   { href: '/mypage', icon: 'MyNav' as const, label: '마이', iconClassName: 'size-[21px]' },
-];
+] as const;
 
 export const OWNER_NAV_ITEMS = [
   { href: '/owner', icon: 'OwnerNav' as const, label: '홈', iconClassName: 'size-[21px]' },
