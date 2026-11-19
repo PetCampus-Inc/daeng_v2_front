@@ -9,6 +9,7 @@ import { useParams } from 'next/navigation';
 import {
   resolveSchoolReviewImages,
   toLocalReviewPhoto,
+  uploadSchoolReviewPhotos,
   type ReviewPhotoSource as ReviewPhoto,
 } from '@views/write-review-page/lib/uploadSchoolReviewImages';
 import { WriteReviewComplete } from '@views/write-review-page/ui/WriteReviewComplete';
@@ -398,8 +399,7 @@ export function WriteReviewPage() {
       if (usesReviewUpload) {
         setIsUploadingPhotos(true);
         try {
-          const images = await resolveSchoolReviewImages(await resolveReviewSchoolId(), nextPhotos);
-          uploadedPhotos = nextPhotos.map((photo, index) => ({ ...photo, tempKey: images[index]?.tempKey }));
+          uploadedPhotos = await uploadSchoolReviewPhotos(await resolveReviewSchoolId(), nextPhotos);
         } catch (error) {
           nextPhotos.forEach((photo) => {
             if (photo.url.startsWith('blob:')) URL.revokeObjectURL(photo.url);

@@ -2,6 +2,7 @@ import { METHODS, type ImageAsset } from '@knockdog/bridge-core';
 
 import { postSchoolReviewImageUploadUrls, type SchoolReviewImageWrite } from '@entities/review';
 import { getBridgeInstance } from '@shared/lib/bridge';
+import { getPreviewImage } from '@shared/lib/media';
 
 interface ReviewPhotoSource {
   id: string;
@@ -147,5 +148,19 @@ async function resolveSchoolReviewImages(schoolId: number, photos: ReviewPhotoSo
   });
 }
 
-export { resolveSchoolReviewImages, toLocalReviewPhoto };
+async function uploadSchoolReviewPhotos(schoolId: number, photos: ReviewPhotoSource[]) {
+  const images = await resolveSchoolReviewImages(schoolId, photos);
+
+  return Promise.all(photos.map(async (photo, index) => {
+    const tempKey = images[index]?.tempKey;
+    if (!tempKey) uploadFailed();
+    if (photo.file) return { ...photo, tempKey };
+
+    const { data } = await getPreviewImage(tempKey);
+    if (!data?.preSignedUrl) uploadFailed();
+    return { ...photo, tempKey, url: data.preSignedUrl };
+  }));
+}
+
+export { resolveSchoolReviewImages, toLocalReviewPhoto, uploadSchoolReviewPhotos };
 export type { ReviewPhotoSource };
