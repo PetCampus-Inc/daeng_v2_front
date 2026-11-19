@@ -40,7 +40,9 @@ function formatReviewCount(count: number) {
 }
 
 function getBlogReviewCount(pages: ReviewListResponse[] | undefined) {
-  const paging = pages?.[0]?.paging;
+  const firstPage = pages?.[0];
+  if (typeof firstPage?.totalCount === 'number') return firstPage.totalCount;
+  const paging = firstPage?.paging;
   if (!paging) return null;
   if (typeof paging.totalCount === 'number') return paging.totalCount;
   if (!paging.hasNext) return pages?.reduce((count, page) => count + page.reviews.length, 0) ?? 0;
@@ -202,8 +204,15 @@ export const ReviewSection = function ReviewSection({ kindergartenId, schoolId, 
   const reporterId = useUserStore((state) => state.user?.userId) ?? '';
   const knockdogReviews = useKnockdogReviews();
   const knockdogRatingCountsFromStore = useKnockdogRatingCounts();
-  const { data, isLoading, isError, hasNextPage, isFetchingNextPage, fetchNextPage } = useReviewQuery(id);
-  const { lastElementCallback } = useInfiniteScroll({ hasNextPage, isFetchingNextPage, fetchNextPage });
+  const {
+    data, isLoading, isError, isFetching, isFetchNextPageError, hasNextPage,
+    isFetchingNextPage, fetchNextPage, refetch,
+  } = useReviewQuery(id);
+  const { lastElementCallback } = useInfiniteScroll({
+    hasNextPage: hasNextPage && !isFetchNextPageError,
+    isFetchingNextPage,
+    fetchNextPage,
+  });
   const {
     data: schoolReviewData,
     isLoading: isSchoolReviewLoading,
@@ -430,7 +439,16 @@ export const ReviewSection = function ReviewSection({ kindergartenId, schoolId, 
 
   const renderContent = () => {
     if (isLoading) return <LoadingState isLoading={isLoading} />;
-    if (isError) return <ErrorState />;
+    if (isError && !data) {
+      return (
+        <div className='flex flex-col items-center'>
+          <ErrorState />
+          <ActionButton type='button' size='small' disabled={isFetching} onClick={() => void refetch()}>
+            다시 시도
+          </ActionButton>
+        </div>
+      );
+    }
     if (allReviews.length === 0) return <EmptyState />;
 
     return (
@@ -444,6 +462,12 @@ export const ReviewSection = function ReviewSection({ kindergartenId, schoolId, 
         {isFetchingNextPage ? (
           <div className='flex justify-center py-4'>
             <LoadingSpinner layout='inline' />
+          </div>
+        ) : isFetchNextPageError ? (
+          <div className='flex justify-center'>
+            <ActionButton type='button' size='small' onClick={() => void fetchNextPage()}>
+              추가 리뷰 다시 불러오기
+            </ActionButton>
           </div>
         ) : null}
       </div>
