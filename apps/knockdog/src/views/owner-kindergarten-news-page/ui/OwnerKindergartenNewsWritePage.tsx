@@ -463,6 +463,9 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
   useNativeBackHandler(handleBack);
 
   const openSettingsSheet = useCallback(() => {
+    const focusedElement = document.activeElement;
+    if (focusedElement instanceof HTMLTextAreaElement) focusedElement.blur();
+
     if (showBanner) {
       dismissOwnerKindergartenNewsSettingsBanner(kindergartenKey);
       setShowBanner(false);
