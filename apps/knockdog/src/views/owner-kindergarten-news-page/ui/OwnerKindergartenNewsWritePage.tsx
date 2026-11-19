@@ -782,7 +782,7 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
         <Header.LeftSection>
           <Header.BackButton onClick={handleBack} />
         </Header.LeftSection>
-        <Header.RightSection className='gap-x-3'>
+        <Header.RightSection className='ml-auto flex items-center gap-x-3'>
           <button
             type='button'
             className='label-semibold text-text-primary radius-r1 px-2 py-1'
