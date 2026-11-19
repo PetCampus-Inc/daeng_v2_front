@@ -243,6 +243,7 @@ export function GuardianKindergartenPage() {
         petId={selectedPet?.id ?? null}
         schoolId={diarySchoolId}
         defaultSegment={resolveDefaultDiarySegment(showEmpty)}
+        diaryReturnDate={searchParams.get('diaryReturnDate')}
       >
         <div className='flex h-dvh flex-col' style={homePageStyle}>
           <GuardianKindergartenHeader

@@ -11,7 +11,6 @@ import type { StoreApi } from 'zustand';
 import type { ToastPosition } from '@knockdog/bridge-core';
 import { getBottomTabBarHeight } from '@/components/navigation/bottomTabBarHeight';
 import { useBottomTabBarVisibilityStore } from '@/bridges/model/bottomTabBarVisibilityStore';
-import { useMainTabModeStore } from '@/bridges/model/mainTabModeStore';
 
 type ToastState = {
   items: ToastItem[];
@@ -46,7 +45,6 @@ export function ToastViewport({ store, position }: { store: StoreApi<ToastState>
   const dismiss = useStore(store, (s) => s.dismiss);
   const insets = useSafeAreaInsets();
   const isBottomTabBarVisible = useBottomTabBarVisibilityStore((s) => s.visible);
-  const isOwnerMode = useMainTabModeStore((s) => s.mode === 'owner');
 
   const handleDismiss = useCallback(
     (id: string) => {
@@ -56,7 +54,7 @@ export function ToastViewport({ store, position }: { store: StoreApi<ToastState>
   );
 
   const bottomOffset = isBottomTabBarVisible
-    ? getBottomTabBarHeight(insets.bottom, isOwnerMode) + tokens.viewportOffset.aboveBottomTabBar
+    ? getBottomTabBarHeight(insets.bottom) + tokens.viewportOffset.aboveBottomTabBar
     : insets.bottom + tokens.viewportOffset.bottom;
 
   const topStyle =

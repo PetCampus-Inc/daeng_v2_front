@@ -30,6 +30,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAndroidTabBack } from './useAndroidTabBack';
 import {
+  ANDROID_TAB_BAR_CONTENT_HEIGHT,
   getAndroidTabBarBottomInset,
   getBottomTabBarHeight,
 } from './bottomTabBarHeight';
@@ -39,7 +40,7 @@ const Tab = createBottomTabNavigator();
 const OWNER_TAB_NAMES = new Set(['OwnerHome', 'OwnerDaily', 'OwnerAlbum', 'OwnerMembers']);
 const GUARDIAN_TAB_NAMES = new Set(['Explore', 'Save', 'Reserve', 'Kindergarten']);
 
-function getTabBarStyle(isTabBarVisible: boolean, bottom: number, isOwnerMode: boolean) {
+function getTabBarStyle(isTabBarVisible: boolean, bottom: number) {
   if (!isTabBarVisible) {
     return { display: 'none' as const };
   }
@@ -48,7 +49,7 @@ function getTabBarStyle(isTabBarVisible: boolean, bottom: number, isOwnerMode: b
     const tabBarBottomInset = getAndroidTabBarBottomInset(bottom);
 
     return {
-      height: getBottomTabBarHeight(bottom, isOwnerMode),
+      height: ANDROID_TAB_BAR_CONTENT_HEIGHT + tabBarBottomInset,
       paddingBottom: tabBarBottomInset,
       paddingTop: 6,
       paddingLeft: 12,
@@ -57,7 +58,6 @@ function getTabBarStyle(isTabBarVisible: boolean, bottom: number, isOwnerMode: b
   }
 
   return {
-    ...(!isOwnerMode ? { height: getBottomTabBarHeight(bottom, isOwnerMode), paddingTop: 6 } : {}),
     paddingBottom: bottom,
     paddingLeft: 12,
     paddingRight: 12,
@@ -167,22 +167,19 @@ export default function TabNavigator() {
               }
             },
             tabBarActiveTintColor: '#FF6E0C',
-            tabBarInactiveTintColor: isOwnerMode ? '#70727C' : '#8C8C94',
+            tabBarInactiveTintColor: '#70727C',
             ...(Platform.OS === 'android' ? { tabBarAllowFontScaling: false } : {}),
-            tabBarStyle: getTabBarStyle(isTabBarVisible, bottom, isOwnerMode),
-            ...(!isOwnerMode
-              ? {
-                  tabBarLabelPosition: 'below-icon' as const,
-                  tabBarIconStyle: styles.guardianIcon,
-                }
-              : {}),
+            tabBarStyle: getTabBarStyle(isTabBarVisible, bottom),
             tabBarLabelStyle: {
               fontSize: 12,
               fontFamily: 'SUIT-SemiBold',
               lineHeight: 18,
               marginTop: 4,
-              letterSpacing: -0.24,
-              ...(!isOwnerMode ? { includeFontPadding: false } : {}),
+              ...(isOwnerMode
+                ? {
+                    letterSpacing: -0.24,
+                  }
+                : {}),
             },
             headerShown: false,
             ...(visible ? {} : HIDDEN_TAB_OPTIONS),
@@ -206,7 +203,7 @@ export default function TabNavigator() {
             styles.dimOverlay,
             {
               bottom,
-              height: getBottomTabBarHeight(bottom, isOwnerMode) - bottom,
+              height: getBottomTabBarHeight(bottom) - bottom,
             },
           ]}
         />

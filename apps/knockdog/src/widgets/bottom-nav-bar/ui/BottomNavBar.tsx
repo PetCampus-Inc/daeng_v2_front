@@ -48,11 +48,7 @@ function BottomNavBarLinks() {
         {navItems.map((item) => {
           const isActive = isActiveNavItem(pathname, item.href);
           const iconColorClassName = isActive ? 'text-fill-primary-500' : 'text-text-caption';
-          const labelColorClassName = isActive
-            ? 'text-fill-primary-500'
-            : showOwnerBottomNav
-              ? 'text-text-tertiary'
-              : 'text-fill-secondary-500';
+          const labelColorClassName = isActive ? 'text-fill-primary-500' : 'text-text-tertiary';
 
           return (
             <Link
@@ -64,7 +60,7 @@ function BottomNavBarLinks() {
                 labelColorClassName
               )}
             >
-              <div className='flex size-6 shrink-0 items-center justify-center'>
+              <div className='flex size-6 items-center justify-center'>
                 {'iconSources' in item ? (
                   <Image
                     alt=''
@@ -83,7 +79,7 @@ function BottomNavBarLinks() {
                   />
                 )}
               </div>
-              <span className='caption1-semibold leading-[18px] tracking-[-0.02em]'>
+              <span className={cn('caption1-semibold leading-[18px] tracking-normal', showOwnerBottomNav && 'tracking-[-0.02em]')}>
                 {item.label}
               </span>
             </Link>
