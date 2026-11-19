@@ -24,10 +24,11 @@ function GuardianKindergartenHistoryPage() {
   const currentItem = items.find((item) => item.disconnectedAt == null);
   const previousItems = items.filter((item) => item.disconnectedAt != null);
   const hasNoHistory = hasNoPet || (!isPending && items.length === 0);
-  const [isPetListOpen, setIsPetListOpen] = useState(false);
+  const [isPetSelectorOpen, setIsPetSelectorOpen] = useState(false);
+  const isPetListOpen = isPetSelectorOpen && Boolean(selectedPet) && !isError;
 
   return (
-    <div className='bg-bg-50 flex h-full min-h-0 flex-1 flex-col'>
+    <div className='bg-bg-50 relative flex h-full min-h-0 flex-1 flex-col'>
       <div className='relative z-30 shrink-0'>
         <Header>
           <Header.BackButton />
@@ -35,33 +36,37 @@ function GuardianKindergartenHistoryPage() {
         </Header>
       </div>
 
+      {isPetListOpen ? (
+        <button
+          type='button'
+          aria-label={content.petSelector.closeLabel}
+          className='absolute inset-x-0 top-0 -bottom-[max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px))] z-10 touch-none bg-black/40'
+          onClick={() => setIsPetSelectorOpen(false)}
+        />
+      ) : null}
+
+      {!isError && selectedPet ? (
+        <div className='shrink-0'>
+          <GuardianHistoryPetSelector
+            pets={pets}
+            selectedPet={selectedPet}
+            isOpen={isPetListOpen}
+            onOpenChange={setIsPetSelectorOpen}
+            onSelect={setSelectedPetId}
+          />
+        </div>
+      ) : null}
+
       {isError ? (
         <PageError layout='inline' isRetrying={isFetching} onRetry={refetch} />
       ) : (
         <div
           className={cn(
-            'scrollbar-hide relative min-h-0 flex-1 overscroll-y-contain',
-            isPetListOpen ? 'overflow-hidden' : 'overflow-y-auto [-webkit-overflow-scrolling:touch]'
+            'scrollbar-hide relative min-h-0 flex-1 overscroll-none [-webkit-overflow-scrolling:touch]',
+            isPetListOpen ? 'overflow-hidden' : 'overflow-y-auto'
           )}
+          inert={isPetListOpen}
         >
-          {isPetListOpen ? (
-            <button
-              type='button'
-              aria-label={content.petSelector.closeLabel}
-              className='absolute inset-0 z-10 bg-black/40'
-              onClick={() => setIsPetListOpen(false)}
-            />
-          ) : null}
-          {selectedPet ? (
-            <GuardianHistoryPetSelector
-              pets={pets}
-              selectedPet={selectedPet}
-              isOpen={isPetListOpen}
-              onOpenChange={setIsPetListOpen}
-              onSelect={setSelectedPetId}
-            />
-          ) : null}
-
           {isPending ? (
             <DelayedLoadingSpinner isLoading={isPending} layout='content' className='min-h-[200px]' />
           ) : hasNoHistory ? (
