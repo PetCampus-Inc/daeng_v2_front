@@ -1,7 +1,6 @@
 'use client';
 
 import { overlay } from 'overlay-kit';
-import { AlarmBellDot } from '@knockdog/icons';
 import { Icon } from '@knockdog/ui';
 
 import { guardianKindergartenApprovedContent } from '@views/guardian-kindergarten-page/config/guardianKindergartenApprovedContent';
@@ -16,6 +15,7 @@ import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/
 import { route } from '@shared/constants/route';
 import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { DogProfileAvatar } from '@shared/ui/dog-profile-avatar';
+import { NotificationBell } from '@shared/ui/notification-bell';
 
 import { GuardianDogSelectSheet } from './GuardianDogSelectSheet';
 
@@ -144,18 +144,11 @@ function GuardianKindergartenHeader({
           </button>
         )}
 
-        <button
-          type='button'
+        <NotificationBell
+          hasUnread={hasUnreadAlarm}
           onClick={handleNotificationClick}
-          aria-label='알림함'
           className='bg-bg-0 shrink-0 rounded-full p-1.5'
-        >
-          {hasUnreadAlarm ? (
-            <AlarmBellDot aria-hidden='true' />
-          ) : (
-            <Icon icon='AlarmNone' className='text-text-primary size-6' aria-hidden='true' />
-          )}
-        </button>
+        />
       </div>
     </div>
   );

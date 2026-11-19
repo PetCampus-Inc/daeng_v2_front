@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Image from 'next/image';
 
-import { ChevronRight, Notification, RsvHistory } from '@knockdog/icons';
+import { ChevronRight, RsvHistory } from '@knockdog/icons';
 import { ActionButton, MembershipCard, MembershipCardStatusBadge, SelectDogCard, UpcomingRsvCard } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
 
@@ -21,6 +21,7 @@ import { ReservationEmptyState } from '@views/guardian-reservation-page/ui/Reser
 import { useGuardianHomeQuery } from '@entities/guardian-home';
 import { RESERVATION_SCOPE, useGuardianReservationQuery } from '@entities/guardian-reservation';
 import { useGuardianTicketCardQuery, type GuardianTicket } from '@entities/guardian-ticket';
+import { useHasUnreadNotificationQuery } from '@entities/notification';
 import { formatAge, type Pet } from '@entities/pet';
 import { useUserStore } from '@entities/user';
 
@@ -28,6 +29,7 @@ import { route } from '@shared/constants/route';
 import { useNativeBackToClose, useNativeTabBarDim, useStackNavigation } from '@shared/lib/bridge';
 import { DogProfileAvatar } from '@shared/ui/dog-profile-avatar';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
+import { NotificationBell } from '@shared/ui/notification-bell';
 
 const PROFILE_SURFACE = 'bg-bg-0 rounded-b-[24px] shadow-[0_11px_24px_rgba(235,213,189,0.1)]';
 
@@ -146,6 +148,7 @@ function toReservationKindergarten(
 function GuardianReservationPage() {
   const { push } = useStackNavigation();
   const userId = useUserStore((state) => state.user?.userId);
+  const { data: hasUnreadNotification = false } = useHasUnreadNotificationQuery({ audience: 'GUARDIAN', userId });
   const { pets, selectedPet, setSelectedPetId, isPetsReady, isPetsError, hasNoPet } = useGuardianSelectedPet();
   const [isChevronOpen, setIsChevronOpen] = useState(false);
   const [now, setNow] = useState(() => new Date());
@@ -249,9 +252,7 @@ function GuardianReservationPage() {
               <button type='button' aria-label='내 예약' className='text-text-primary' onClick={handleOpenList}>
                 <RsvHistory />
               </button>
-              <button type='button' aria-label='알림' className='text-text-primary' onClick={handleOpenNotification}>
-                <Notification unread className='translate-y-[0.5px]' />
-              </button>
+              <NotificationBell hasUnread={hasUnreadNotification} onClick={handleOpenNotification} />
             </div>
           </header>
           <div className='gap-x4 px-x6 py-x5 flex items-center'>
@@ -274,9 +275,7 @@ function GuardianReservationPage() {
               <button type='button' aria-label='내 예약' className='text-text-primary' onClick={handleOpenList}>
                 <RsvHistory />
               </button>
-              <button type='button' aria-label='알림' className='text-text-primary' onClick={handleOpenNotification}>
-                <Notification unread className='translate-y-[1px]' />
-              </button>
+              <NotificationBell hasUnread={hasUnreadNotification} onClick={handleOpenNotification} />
             </div>
           </header>
           <SelectDogCard
