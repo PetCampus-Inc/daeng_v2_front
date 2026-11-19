@@ -29,9 +29,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAndroidTabBack } from './useAndroidTabBack';
 import {
-  BOTTOM_TAB_BAR_DIM_HEIGHT,
   ANDROID_TAB_BAR_CONTENT_HEIGHT,
   getAndroidTabBarBottomInset,
+  getBottomTabBarHeight,
 } from './bottomTabBarHeight';
 
 const Tab = createBottomTabNavigator();
@@ -86,7 +86,6 @@ function notifyCurrentTabWillBlur(tabName: TabName) {
 
 export default function TabNavigator() {
   const { bottom } = useSafeAreaInsets();
-  const androidTabBarBottomInset = getAndroidTabBarBottomInset(bottom);
   const mode = useMainTabModeStore((state) => state.mode);
   const isOwnerMode = mode === 'owner';
   const isTabBarVisible = useBottomTabBarVisibilityStore((state) => state.visible);
@@ -204,11 +203,10 @@ export default function TabNavigator() {
         <View
           pointerEvents='auto'
           style={[
-            styles.bottomTabBarDim,
+            styles.dimOverlay,
             {
-              height:
-                BOTTOM_TAB_BAR_DIM_HEIGHT +
-                (Platform.OS === 'android' ? androidTabBarBottomInset : bottom),
+              bottom,
+              height: getBottomTabBarHeight(bottom) - bottom,
             },
           ]}
         />
@@ -227,13 +225,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  bottomTabBarDim: {
+  dimOverlay: {
     position: 'absolute',
-    bottom: 0,
     left: 0,
     right: 0,
     zIndex: 20,
     elevation: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
 });

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Image from 'next/image';
 
 import { ChevronRight, Notification, RsvHistory } from '@knockdog/icons';
@@ -25,7 +25,7 @@ import { formatAge, type Pet } from '@entities/pet';
 import { useUserStore } from '@entities/user';
 
 import { route } from '@shared/constants/route';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { useNativeBackToClose, useNativeTabBarDim, useStackNavigation } from '@shared/lib/bridge';
 import { DogProfileAvatar } from '@shared/ui/dog-profile-avatar';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 
@@ -181,7 +181,23 @@ function GuardianReservationPage() {
           : null
   );
   const canOpenDogList = pets.length > 1;
-  const isDogListOpen = isChevronOpen && canOpenDogList;
+  const isDogListOpen = isChevronOpen && canOpenDogList && isPetsReady && !isPetsError && !hasNoPet && !!selectedPet;
+  const handleCloseDogList = useCallback(() => setIsChevronOpen(false), []);
+
+  useNativeTabBarDim(isDogListOpen);
+  useNativeBackToClose(isDogListOpen, handleCloseDogList);
+
+  useEffect(() => {
+    if (!isDogListOpen) return;
+
+    window.addEventListener('knockdog:native-tab-will-blur', handleCloseDogList);
+    window.addEventListener('knockdog:native-tab-blur', handleCloseDogList);
+
+    return () => {
+      window.removeEventListener('knockdog:native-tab-will-blur', handleCloseDogList);
+      window.removeEventListener('knockdog:native-tab-blur', handleCloseDogList);
+    };
+  }, [handleCloseDogList, isDogListOpen]);
 
   const handleToggleDogList = () => {
     if (!canOpenDogList) return;
@@ -190,7 +206,7 @@ function GuardianReservationPage() {
 
   const handleSelectDog = (nextPetId: string) => {
     setSelectedPetId(nextPetId);
-    setIsChevronOpen(false);
+    handleCloseDogList();
   };
 
   const handleOpenNotification = () => {
@@ -288,8 +304,8 @@ function GuardianReservationPage() {
         <button
           type='button'
           aria-label='강아지 목록 닫기'
-          className='fixed inset-0 z-10 bg-black/40'
-          onClick={() => setIsChevronOpen(false)}
+          className='fixed inset-0 z-10 bg-black/40 webview:top-[max(var(--safe-area-inset-top,0px),env(safe-area-inset-top,0px))]'
+          onClick={handleCloseDogList}
         />
       ) : null}
 

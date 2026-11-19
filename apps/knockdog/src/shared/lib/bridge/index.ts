@@ -4,6 +4,7 @@ export { useTabNavigation } from './useTabNavigation';
 export { useNavigationResult, getCurrentTxId } from './useNavigationResult';
 export { useOpenExternalLink } from './useOpenExternalLink';
 export { useNativeBackHandler, useNativeBackToClose, NATIVE_BACK_EVENT } from './useNativeBackHandler';
+export { useNativeTabBarDim } from './useNativeTabBarDim';
 export { StackLink } from './StackLink';
 export { navigateToLogin } from './navigateToLogin';
 export { openConfirmDialog } from './openConfirmDialog';
