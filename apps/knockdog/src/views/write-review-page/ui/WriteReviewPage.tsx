@@ -16,6 +16,7 @@ import { WriteReviewComplete } from '@views/write-review-page/ui/WriteReviewComp
 
 import { Header } from '@widgets/Header';
 import { useKindergartenMainQuery } from '@features/kindergarten-main';
+import { useManagedKindergarten } from '@features/role-conversion';
 import {
   ReviewActionDialog,
   saveKnockdogReviewEdit,
@@ -240,6 +241,7 @@ export function WriteReviewPage() {
     enabled: Boolean(id),
   });
   const schoolId = parseSchoolId(kindergarten?.schoolId);
+  const { isManaged, isResolved: isOwnerRoleResolved } = useManagedKindergarten(id, schoolId);
   const { data: apiReview, isLoading: isApiReviewLoading } = useSchoolReviewDetailQuery(schoolId, reviewId);
   const { mutateAsync: updateSchoolReview } = useUpdateSchoolReview();
   const [isComplete, setIsComplete] = useState(false);
@@ -268,7 +270,7 @@ export function WriteReviewPage() {
     : rating > 0 || content.length > 0 || photos.length > 0;
   const canSubmit = isEdit
     ? Boolean(baseline) && isDirty && rating > 0 && content.trim().length > 0 && !isSubmitting
-    : rating > 0 && content.trim().length > 0 && !isSubmitting;
+    : isOwnerRoleResolved && !isManaged && rating > 0 && content.trim().length > 0 && !isSubmitting;
 
   const openKnockdogReviewTab = useCallback(() => {
     void replace({
@@ -339,7 +341,7 @@ export function WriteReviewPage() {
   };
 
   const handlePickPhoto = async () => {
-    if (isPickingPhotoRef.current || isSubmittingRef.current) return;
+    if (isPickingPhotoRef.current || isSubmittingRef.current || (!isEdit && (!isOwnerRoleResolved || isManaged))) return;
 
     const remaining = MAX_PHOTO_COUNT - photos.length;
     if (remaining <= 0) {
@@ -500,6 +502,22 @@ export function WriteReviewPage() {
   };
 
   if (isComplete) return <WriteReviewComplete id={id} onConfirm={handleCompleteConfirm} />;
+
+  if (!isEdit && isManaged) {
+    return (
+      <div className='bg-bg-0 flex h-full flex-col'>
+        <Header>
+          <Header.LeftSection>
+            <Header.BackButton onClick={handleBack} />
+          </Header.LeftSection>
+          <Header.Title>유치원 후기 작성</Header.Title>
+        </Header>
+        <main className='flex flex-1 items-center justify-center px-4 text-center'>
+          <p className='body1-regular text-text-secondary'>운영 중인 유치원에는 리뷰를 작성할 수 없어요.</p>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className='bg-bg-0 flex h-full flex-col'>

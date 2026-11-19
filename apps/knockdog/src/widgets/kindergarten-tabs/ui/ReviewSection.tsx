@@ -26,6 +26,7 @@ import {
   type KnockdogReviewSort,
 } from '@features/review';
 import { useReviewQuery } from '@features/review/api/useReviewQuery';
+import { useManagedKindergarten } from '@features/role-conversion';
 import { parseSchoolId, type ReviewListResponse, type SchoolReviewSummary } from '@entities/review';
 import { useUserStore } from '@entities/user';
 import { useInfiniteScroll } from '@shared/lib';
@@ -193,6 +194,8 @@ export const ReviewSection = function ReviewSection({ kindergartenId, schoolId, 
 
   if (!id) throw new Error('Company ID is required for review section');
 
+  const { isManaged } = useManagedKindergarten(id, parseSchoolId(schoolId));
+
   const { push } = useStackNavigation();
   const showKnockdogReviewMock = knockdogReview === '1';
   const [source, setSource] = useState<ReviewSource>('knockdog');
@@ -250,7 +253,9 @@ export const ReviewSection = function ReviewSection({ kindergartenId, schoolId, 
     : !hasSchool
       ? 0
       : (summary?.totalCount ?? null);
-  const writeLabel = showKnockdogReviewMock || !hasSchool
+  const writeLabel = isManaged
+    ? null
+    : showKnockdogReviewMock || !hasSchool
     ? '리뷰 작성하기'
     : summary?.canWrite
       ? '리뷰 작성하기'
@@ -261,6 +266,7 @@ export const ReviewSection = function ReviewSection({ kindergartenId, schoolId, 
     void refetchSchoolReviewSummary();
   };
   const handleWriteReview = () => {
+    if (isManaged) return;
     if (showKnockdogReviewMock || !hasSchool) {
       push({ pathname: `/kindergarten/${id}/write-review` });
       return;
