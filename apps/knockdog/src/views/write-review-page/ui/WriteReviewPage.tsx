@@ -256,8 +256,11 @@ export function WriteReviewPage() {
   const isSubmittingRef = useRef(false);
   const didSaveRef = useRef(false);
   const didHydrateRef = useRef(false);
-  const photosRef = useRef<ReviewPhoto[]>([]);
-  photosRef.current = photos;
+  const photosRef = useRef(photos);
+  const updatePhotos = useCallback((nextPhotos: ReviewPhoto[]) => {
+    photosRef.current = nextPhotos;
+    setPhotos(nextPhotos);
+  }, []);
 
   const isEdit = Boolean(reviewId);
   const baseline = editingReview
@@ -290,8 +293,8 @@ export function WriteReviewPage() {
     didHydrateRef.current = true;
     setRating(apiReview.rating);
     setContent(apiReview.content);
-    setPhotos(toStoredPhotos(apiReview.photos));
-  }, [apiReview, editingReview]);
+    updatePhotos(toStoredPhotos(apiReview.photos));
+  }, [apiReview, editingReview, updatePhotos]);
 
   useEffect(() => {
     return () => {
@@ -343,7 +346,7 @@ export function WriteReviewPage() {
   const handlePickPhoto = async () => {
     if (isPickingPhotoRef.current || isSubmittingRef.current || (!isEdit && (!isOwnerRoleResolved || isManaged))) return;
 
-    const remaining = MAX_PHOTO_COUNT - photos.length;
+    const remaining = MAX_PHOTO_COUNT - photosRef.current.length;
     if (remaining <= 0) {
       showPhotoToast('사진은 최대 10장까지 올릴 수 있어요');
       return;
@@ -409,7 +412,14 @@ export function WriteReviewPage() {
           throw error;
         }
       }
-      setPhotos((current) => [...current, ...uploadedPhotos]);
+      const currentPhotos = photosRef.current;
+      const availableSlots = Math.max(0, MAX_PHOTO_COUNT - currentPhotos.length);
+      const rejectedPhotos = uploadedPhotos.slice(availableSlots);
+      for (const photo of rejectedPhotos) {
+        if (photo.url.startsWith('blob:')) URL.revokeObjectURL(photo.url);
+      }
+      if (rejectedPhotos.length > 0) showPhotoToast('사진은 최대 10장까지 올릴 수 있어요');
+      updatePhotos([...currentPhotos, ...uploadedPhotos.slice(0, availableSlots)]);
     } catch (error) {
       if (error === 'NO_PERMISSION_LIBRARY' || error === 'NO_PERMISSION_CAMERA') return;
       showPhotoToast(PHOTO_NETWORK_MESSAGE);
@@ -422,11 +432,10 @@ export function WriteReviewPage() {
   const handleRemovePhoto = (photoId: string) => {
     if (isSubmittingRef.current) return;
 
-    setPhotos((current) => {
-      const target = current.find((photo) => photo.id === photoId);
-      if (target?.url.startsWith('blob:')) URL.revokeObjectURL(target.url);
-      return current.filter((photo) => photo.id !== photoId);
-    });
+    const current = photosRef.current;
+    const target = current.find((photo) => photo.id === photoId);
+    if (target?.url.startsWith('blob:')) URL.revokeObjectURL(target.url);
+    updatePhotos(current.filter((photo) => photo.id !== photoId));
   };
 
   const handleCreate = async () => {
@@ -460,6 +469,12 @@ export function WriteReviewPage() {
 
   const handleSave = async () => {
     if (isSubmittingRef.current || isPickingPhotoRef.current || !canSubmit || !baseline) return;
+    const photosToSave = photosRef.current;
+    if (photosToSave.length > MAX_PHOTO_COUNT) {
+      setDialog(null);
+      showPhotoToast('사진은 최대 10장까지 올릴 수 있어요');
+      return;
+    }
 
     isSubmittingRef.current = true;
     setIsSubmitting(true);
@@ -468,7 +483,7 @@ export function WriteReviewPage() {
       if (apiReview && schoolId != null && !editingReview) {
         const reviewIdNumber = parseSchoolId(apiReview.id);
         if (reviewIdNumber == null) throw new Error('reviewId required');
-        const images = await resolveSchoolReviewImages(schoolId, photos);
+        const images = await resolveSchoolReviewImages(schoolId, photosToSave);
         await updateSchoolReview({
           schoolId,
           reviewId: reviewIdNumber,
@@ -481,7 +496,7 @@ export function WriteReviewPage() {
         await saveKnockdogReviewEdit(editingReview.id, {
           score: rating,
           content,
-          images: photos.map((photo) => photo.url),
+          images: photosToSave.map((photo) => photo.url),
         });
       } else {
         throw new Error('review required');
