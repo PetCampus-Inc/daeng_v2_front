@@ -47,6 +47,9 @@ const REVIEW_NOTICES = [
   '개인정보, 허위사실, 비방∙욕설, 광고성 내용, 무단 복사한 사진이나 글이 포함되면 숨김 또는 삭제될 수 있어요.',
 ] as const;
 const INVALID_PHOTO_MESSAGE = '20MB 이하의 JPG, JPEG, PNG, HEIC, HEIF 사진만 올릴 수 있어요.';
+const PHOTO_NETWORK_MESSAGE = '사진을 올리지 못했어요. 네트워크 연결을 확인한 뒤 다시 시도해 주세요.';
+
+const showPhotoToast = (message: string) => toast({ nativeTitle: message, title: message });
 
 type EditDialog = 'confirm' | 'failure' | null;
 
@@ -245,6 +248,7 @@ export function WriteReviewPage() {
   const [dialog, setDialog] = useState<EditDialog>(null);
   const [isCreateFailed, setIsCreateFailed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingPhotos, setIsUploadingPhotos] = useState(false);
   const isPickingPhotoRef = useRef(false);
   const isSubmittingRef = useRef(false);
   const didSaveRef = useRef(false);
@@ -296,7 +300,7 @@ export function WriteReviewPage() {
   }, []);
 
   const handleBack = useCallback(() => {
-    if (isSubmittingRef.current) return;
+    if (isSubmittingRef.current || isPickingPhotoRef.current) return;
     if (dialog || isCreateFailed) {
       setDialog(null);
       setIsCreateFailed(false);
@@ -322,11 +326,25 @@ export function WriteReviewPage() {
 
   useNativeBackHandler(handleBack);
 
+  const resolveReviewSchoolId = async () => {
+    if (schoolId != null) return schoolId;
+
+    const issuedSchoolId = await postReviewSchool(id);
+    queryClient.setQueriesData<Kindergarten>(
+      { queryKey: [...kindergartenQueries.keys.all(), 'main', id] },
+      (current) => (current ? { ...current, schoolId: issuedSchoolId } : current)
+    );
+    return issuedSchoolId;
+  };
+
   const handlePickPhoto = async () => {
     if (isPickingPhotoRef.current || isSubmittingRef.current) return;
 
     const remaining = MAX_PHOTO_COUNT - photos.length;
-    if (remaining <= 0) return;
+    if (remaining <= 0) {
+      showPhotoToast('사진은 최대 10장까지 올릴 수 있어요');
+      return;
+    }
 
     isPickingPhotoRef.current = true;
 
@@ -338,40 +356,64 @@ export function WriteReviewPage() {
         allowsMultipleSelection: true,
         orderedSelection: true,
         selectionLimit: remaining,
+        quality: 1,
         skipUpload: usesReviewUpload,
       });
 
       if (result.cancelled) return;
+      if (result.exceededLimit || result.assets.length > remaining) {
+        showPhotoToast('사진은 최대 10장까지 올릴 수 있어요');
+      }
+      if (result.failure === 'network') {
+        showPhotoToast(PHOTO_NETWORK_MESSAGE);
+        return;
+      }
 
-      const nextPhotos = usesReviewUpload
-        ? result.assets.flatMap((asset, index) => {
+      const selectedAssets = result.assets.slice(0, remaining);
+      const nextPhotos: ReviewPhoto[] = usesReviewUpload
+        ? selectedAssets.flatMap((asset, index) => {
             const photo = toLocalReviewPhoto(asset, photos.length + index);
             return photo ? [photo] : [];
           })
-        : result.assets.flatMap((asset) => {
+        : selectedAssets.flatMap((asset) => {
             const url = asset.preSignedUrl || asset.uri;
             if (!url || !asset.key) return [];
             return [{ id: asset.key, url, fileName: '', contentType: '', size: 0 }];
           });
-      if (nextPhotos.length === 0) {
-        toast({ nativeTitle: INVALID_PHOTO_MESSAGE, title: INVALID_PHOTO_MESSAGE });
-        return;
+      const invalidCount = (result.skipped?.invalidSpecCount ?? 0) + (result.skipped?.oversizedCount ?? 0);
+      const unreadableCount = (result.skipped?.unreadableCount ?? 0) + selectedAssets.length - nextPhotos.length;
+      const excludedCount = invalidCount + unreadableCount;
+      if (excludedCount > 0 || nextPhotos.length === 0) {
+        const notice = nextPhotos.length === 0 ? '올릴 수 있는 사진이 없어요.' : '';
+        const excluded = excludedCount > 0 ? `사진 ${excludedCount}장을 제외했어요.` : '';
+        const format = invalidCount > 0 || (nextPhotos.length === 0 && excludedCount === 0)
+          ? INVALID_PHOTO_MESSAGE
+          : '';
+        const unreadable = unreadableCount > 0 ? '읽을 수 없는 사진이 포함되어 있어요.' : '';
+        showPhotoToast([notice, excluded, format, unreadable].filter(Boolean).join(' '));
       }
+      if (nextPhotos.length === 0) return;
 
-      setPhotos((current) => [...current, ...nextPhotos].slice(0, MAX_PHOTO_COUNT));
-
-      const excludedCount =
-        (result.skipped?.invalidSpecCount ?? 0) +
-        (result.skipped?.oversizedCount ?? 0) +
-        (result.skipped?.unreadableCount ?? 0);
-      if (excludedCount > 0) {
-        toast({ nativeTitle: INVALID_PHOTO_MESSAGE, title: INVALID_PHOTO_MESSAGE });
+      let uploadedPhotos = nextPhotos;
+      if (usesReviewUpload) {
+        setIsUploadingPhotos(true);
+        try {
+          const images = await resolveSchoolReviewImages(await resolveReviewSchoolId(), nextPhotos);
+          uploadedPhotos = nextPhotos.map((photo, index) => ({ ...photo, tempKey: images[index]?.tempKey }));
+        } catch (error) {
+          nextPhotos.forEach((photo) => {
+            if (photo.url.startsWith('blob:')) URL.revokeObjectURL(photo.url);
+          });
+          throw error;
+        }
       }
+      setPhotos((current) => [...current, ...uploadedPhotos]);
     } catch (error) {
       if (error === 'NO_PERMISSION_LIBRARY' || error === 'NO_PERMISSION_CAMERA') return;
-      toast({ nativeTitle: INVALID_PHOTO_MESSAGE, title: INVALID_PHOTO_MESSAGE });
+      showPhotoToast(PHOTO_NETWORK_MESSAGE);
     } finally {
       isPickingPhotoRef.current = false;
+      setIsUploadingPhotos(false);
     }
   };
 
@@ -386,22 +428,14 @@ export function WriteReviewPage() {
   };
 
   const handleCreate = async () => {
-    if (isEdit || isSubmittingRef.current || !canSubmit) return;
+    if (isEdit || isSubmittingRef.current || isPickingPhotoRef.current || !canSubmit) return;
     if (isKindergartenPending) return;
 
     isSubmittingRef.current = true;
     setIsSubmitting(true);
 
     try {
-      let resolvedSchoolId = schoolId;
-      if (resolvedSchoolId == null) {
-        resolvedSchoolId = await postReviewSchool(id);
-        const issuedSchoolId = resolvedSchoolId;
-        queryClient.setQueriesData<Kindergarten>(
-          { queryKey: [...kindergartenQueries.keys.all(), 'main', id] },
-          (current) => (current ? { ...current, schoolId: issuedSchoolId } : current)
-        );
-      }
+      const resolvedSchoolId = await resolveReviewSchoolId();
 
       const images = await resolveSchoolReviewImages(resolvedSchoolId, photos);
       await createSchoolReview({
@@ -423,7 +457,7 @@ export function WriteReviewPage() {
   };
 
   const handleSave = async () => {
-    if (isSubmittingRef.current || !canSubmit || !baseline) return;
+    if (isSubmittingRef.current || isPickingPhotoRef.current || !canSubmit || !baseline) return;
 
     isSubmittingRef.current = true;
     setIsSubmitting(true);
@@ -530,7 +564,7 @@ export function WriteReviewPage() {
         <ActionButton
           type='button'
           size='large'
-          disabled={!canSubmit || (!editingReview && isKindergartenPending)}
+          disabled={!canSubmit || isUploadingPhotos || (!editingReview && isKindergartenPending)}
           onClick={() => {
             if (isEdit) {
               setDialog('confirm');
@@ -590,7 +624,7 @@ export function WriteReviewPage() {
           }}
         />
       )}
-      <ActionLoadingOverlay isPending={isSubmitting && !isEdit && !isCreateFailed} />
+      <ActionLoadingOverlay isPending={isUploadingPhotos || (isSubmitting && !isEdit && !isCreateFailed)} />
     </div>
   );
 }

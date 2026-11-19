@@ -257,12 +257,21 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
       let hasNetworkError = false;
 
       for (const pickedAsset of assetsToUpload) {
+        const skipReason = await validateAsset(pickedAsset);
+        if (skipReason === 'invalid_spec') {
+          invalidSpecCount += 1;
+          continue;
+        }
+        if (skipReason === 'oversized') {
+          oversizedCount += 1;
+          continue;
+        }
+        if (skipReason === 'unreadable') {
+          unreadableCount += 1;
+          continue;
+        }
+
         if (skipUpload) {
-          const size = await getAssetSizeBytes(pickedAsset);
-          if (size != null && size > MAX_FILE_SIZE_BYTES) {
-            oversizedCount += 1;
-            continue;
-          }
           try {
             const prepared = await prepareSkipUploadAsset(pickedAsset, resizeThresholdBytes);
             if (!prepared.fileSize || prepared.fileSize <= 0) {
@@ -278,20 +287,6 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
             console.error('[APP] pickImage skipUpload item error', error);
             unreadableCount += 1;
           }
-          continue;
-        }
-
-        const skipReason = await validateAsset(pickedAsset);
-        if (skipReason === 'invalid_spec') {
-          invalidSpecCount += 1;
-          continue;
-        }
-        if (skipReason === 'oversized') {
-          oversizedCount += 1;
-          continue;
-        }
-        if (skipReason === 'unreadable') {
-          unreadableCount += 1;
           continue;
         }
 
