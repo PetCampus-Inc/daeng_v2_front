@@ -9,35 +9,33 @@ import { useOwnerMypageSummary } from './useOwnerMypageSummary';
 import { useOwnerRole } from './useOwnerRole';
 
 function useMypageRoleView() {
-  const { isOwner: isOwnerVerified, isResolved: isOwnerRoleResolved } = useOwnerRole();
+  const { isOwner: isOwnerVerified, isResolved: isOwnerRoleResolved, isFetching } = useOwnerRole();
   const prefersGuardianView = useMypageRoleViewStore((state) => state.prefersGuardianView);
-  const togglePrefersGuardianView = useMypageRoleViewStore((state) => state.togglePrefersGuardianView);
+  const setPrefersGuardianView = useMypageRoleViewStore((state) => state.setPrefersGuardianView);
   const resetPrefersGuardianView = useMypageRoleViewStore((state) => state.resetPrefersGuardianView);
   const { canSwitchToGuardian } = useOwnerMypageSummary();
 
   useEffect(() => {
     // 원장 권한 조회 전에는 isOwner가 false다. 이 시점에 초기화하면
     // localStorage에 저장한 마지막 보호자 화면 선택이 매 진입마다 사라진다.
-    if (isOwnerRoleResolved && !isOwnerVerified) {
+    if (isOwnerRoleResolved && !isFetching && !isOwnerVerified) {
       resetPrefersGuardianView();
     }
-  }, [isOwnerRoleResolved, isOwnerVerified, resetPrefersGuardianView]);
+  }, [isFetching, isOwnerRoleResolved, isOwnerVerified, resetPrefersGuardianView]);
 
   const canToggleRoleView = isOwnerVerified && canSwitchToGuardian;
   const isOwnerView = isOwnerVerified && (!canToggleRoleView || !prefersGuardianView);
   const isGuardianView = !isOwnerView;
 
-  const toggleRoleView = () => {
-    if (!canToggleRoleView) return;
-
-    togglePrefersGuardianView();
+  const setRoleView = (mode: 'owner' | 'guardian') => {
+    setPrefersGuardianView(mode === 'guardian');
   };
 
   return {
     isOwnerView,
     isGuardianView,
     canToggleRoleView,
-    toggleRoleView,
+    setRoleView,
   };
 }
 
