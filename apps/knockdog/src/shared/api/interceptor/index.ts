@@ -155,13 +155,18 @@ const transformErrorInterceptor = async (error: HTTPError | TimeoutError) => {
 
   const { status } = error.response;
 
-  const response = await error.response.clone().json();
+  const response: unknown = await error.response.clone().json().catch(() => undefined);
   const apiError =
-    response.code !== undefined && response.message !== undefined
+    response &&
+    typeof response === 'object' &&
+    'code' in response &&
+    typeof response.code === 'string' &&
+    'message' in response &&
+    typeof response.message === 'string'
       ? new ApiError(status, response.code, response.message)
-      : new ApiError(status, 'UNKNOWN_ERROR', '알 수 없는 오류가 발생했습니다.');
+      : new ApiError(status, 'UNKNOWN_ERROR', REQUEST_FAILED_MESSAGE);
 
-  reportUnexpectedApiError(apiError);
+  reportUnexpectedApiError(apiError, new URL(error.request.url).pathname);
   throw apiError;
 };
 

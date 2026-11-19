@@ -170,7 +170,8 @@ export function BridgeWebView({
       onHttpError={(event) => {
         const failedUrl = event.nativeEvent.url;
         const statusCode = event.nativeEvent.statusCode;
-        if (failedUrl !== uri || statusCode < 400) return;
+        // Both native implementations dispatch this event for main-frame HTTP errors only.
+        if (statusCode < 400) return;
 
         Sentry.captureException(new Error(`WebView HTTP ${statusCode}`), {
           tags: { source: 'webview-http' },

@@ -13,12 +13,13 @@ import { useUserStore } from '@entities/user';
 import { useOwnerRole } from '@features/role-conversion';
 
 import { ownerAlbumContent } from '@views/owner-album-page/config/ownerAlbumContent';
-import { uploadOwnerAlbumPhotos } from '@views/owner-album-page/lib/uploadOwnerAlbumPhotos';
+import { AlbumUploadError, uploadOwnerAlbumPhotos } from '@views/owner-album-page/lib/uploadOwnerAlbumPhotos';
 import type { OwnerAlbumPhoto } from '@views/owner-album-page/model/ownerAlbumPhoto';
 import { openOwnerAlbumAlert } from '@views/owner-album-page/ui/OwnerAlbumAlertDialog';
 
 import { useImagePicker, type WebImageAsset } from '@shared/lib/media';
 import { createAnalyticsId, trackAlbumUploadResult } from '@shared/lib/analytics';
+import { reportCriticalFailure } from '@shared/lib/sentry/reportUnexpectedApiError';
 import { toast } from '@shared/ui/toast';
 
 function showMaxCountToast() {
@@ -106,6 +107,7 @@ function useOwnerAlbumUpload() {
     }
 
     isUploadInFlightRef.current = true;
+    let stage = 'image_picker';
     try {
       const result = await pickImage(
         {
@@ -130,6 +132,7 @@ function useOwnerAlbumUpload() {
 
       if (result.assets.length === 0) {
         if (result.failure === 'network') {
+          reportCriticalFailure('album_upload', stage, new Error('Image picker failed'));
           openOwnerAlbumAlert(
             ownerAlbumContent.upload.networkFailedTitle,
             ownerAlbumContent.upload.networkFailedDescription
@@ -145,6 +148,7 @@ function useOwnerAlbumUpload() {
       }
 
       setIsUploading(true);
+      stage = 'upload';
       const uploadResult = await uploadOwnerAlbumPhotos({
         schoolId,
         assets: result.assets as WebImageAsset[],
@@ -173,6 +177,9 @@ function useOwnerAlbumUpload() {
       });
 
       if (uploadResult.uploaded.length === 0) {
+        if (uploadResult.excludedCount === 0) {
+          reportCriticalFailure('album_upload', 'publish', new Error('No uploaded photos were published'));
+        }
         openOwnerAlbumAlert(
           ownerAlbumContent.upload.noneValidTitle,
           ownerAlbumContent.upload.noneValidDescription
@@ -199,6 +206,10 @@ function useOwnerAlbumUpload() {
     } catch (error) {
       if (error === 'NO_PERMISSION_LIBRARY' || error === 'NO_PERMISSION_CAMERA') return;
 
+      const failureStage = error instanceof AlbumUploadError ? error.stage : stage;
+      if (failureStage !== 'file_validation') {
+        reportCriticalFailure('album_upload', failureStage, error);
+      }
       console.error('[owner-album] upload failed', error);
       if (error && typeof error === 'object' && 'code' in error && 'message' in error) {
         console.error('[owner-album] api error detail', {

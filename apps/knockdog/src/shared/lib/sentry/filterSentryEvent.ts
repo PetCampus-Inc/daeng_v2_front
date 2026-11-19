@@ -1,6 +1,6 @@
 import { isExpectedSessionError } from './apiErrorReport';
 
-const SENSITIVE_KEY = /authorization|cookie|token|email|phone|tel|address|nickname|profile/i;
+const SENSITIVE_KEY = /authorization|cookie|token|password|secret|signature|credential|email|phone|tel|address|nickname|profile/i;
 const BEARER_PATTERN = /Bearer\s+[A-Za-z0-9\-._~+/]+=*/gi;
 const EMAIL_PATTERN = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
 

@@ -38,13 +38,15 @@ describe('apiErrorReport', () => {
       category: 'fetch',
       message: 'user@knockdog.net',
       data: {
-        url: 'https://api.knockdog.net/me?token=abc&page=1',
+        url: 'https://api.knockdog.net/me?token=abc&page=1&X-Amz-Signature=secret',
         headers: { Authorization: 'Bearer secret-token', Accept: 'application/json' },
       },
     });
 
     expect(breadcrumb.message).toBe('[Filtered]');
-    expect(breadcrumb.data.url).toBe('https://api.knockdog.net/me?token=%5BFiltered%5D&page=1');
+    expect(breadcrumb.data.url).toBe(
+      'https://api.knockdog.net/me?token=%5BFiltered%5D&page=1&X-Amz-Signature=%5BFiltered%5D'
+    );
     expect(breadcrumb.data.headers).toEqual({ Authorization: '[Filtered]', Accept: 'application/json' });
   });
 });

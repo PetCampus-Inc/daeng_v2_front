@@ -36,6 +36,7 @@ import {
 } from '@shared/lib/analytics';
 import { useBridge, useStackNavigation, useNavigationResult, getCurrentTxId } from '@shared/lib/bridge';
 import { isNativeWebView } from '@shared/lib/device';
+import { reportCriticalFailure } from '@shared/lib/sentry/reportUnexpectedApiError';
 import { toast } from '@shared/ui/toast';
 import { HTTPError } from 'ky';
 
@@ -65,14 +66,17 @@ export const useLogin = (options?: { redirectTo?: string; resetToMainAfterSignUp
 
   /** OIDC 인증 — 네이티브는 브릿지 SDK, 브라우저는 webSocialLogin */
   const oidcAuth = async (provider: SocialProvider) => {
+    const isNative = isNativeWebView();
+    let stage = isNative ? 'social_bridge' : 'social_provider';
     try {
-      const response = isNativeWebView()
+      const response = isNative
         ? await bridge.request<SocialLoginResult>(SOCIAL_LOGIN_METHOD_MAP[provider], undefined, {
             timeoutMs: 120_000,
           })
         : await webSocialLogin(provider);
 
       // OIDC 검증 요청 (IDToken)
+      stage = 'verify_oidc';
       const { code } = await oidcMutateAsync(
         { provider, idToken: response.idToken, name: response.name, picture: response.picture },
         { onSuccess: ({ data }) => setSocialUser(data) }
@@ -83,6 +87,7 @@ export const useLogin = (options?: { redirectTo?: string; resetToMainAfterSignUp
       // 사용자가 팝업/오버레이를 닫은 경우 — toast·에러 로그 없이 중단
       if (isSocialLoginCancelled(error)) throw error;
 
+      reportCriticalFailure('login', stage, error);
       console.error('[useLogin] OIDC 인증 실패:', error);
       toast({
         title: '로그인에 실패했습니다. 잠시 후 다시 시도해주세요.',
@@ -228,7 +233,10 @@ export const useLogin = (options?: { redirectTo?: string; resetToMainAfterSignUp
     // 재가입 제한 기간 이내
     if (apiError.code === LOGIN_ERROR_CODE.REJOINING_RESTRICTION_PERIOD) {
       push({ pathname: route.auth.rejoinBlocked.root });
+      return;
     }
+
+    reportCriticalFailure('login', 'session', error);
   };
 
   /** 로그인 */
@@ -303,6 +311,7 @@ export const useLogin = (options?: { redirectTo?: string; resetToMainAfterSignUp
         push({ pathname: route.auth.login.root });
       }
     } else {
+      reportCriticalFailure('login', 'verify_oidc', new Error('Unexpected OIDC result'));
       emitAuthResult('unknown');
     }
   };

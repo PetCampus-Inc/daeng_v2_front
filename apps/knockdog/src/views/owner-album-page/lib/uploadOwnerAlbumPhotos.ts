@@ -27,6 +27,13 @@ interface UploadOwnerAlbumPhotosResult {
   s3FailedCount: number;
 }
 
+class AlbumUploadError extends Error {
+  constructor(public readonly stage: 'file_validation' | 'upload-urls' | 's3_upload' | 'commit') {
+    super(`Album upload failed at ${stage}`);
+    this.name = 'AlbumUploadError';
+  }
+}
+
 function normalizeContentType(mimeType: string) {
   const lower = mimeType.toLowerCase().trim();
   if (lower === 'image/jpg') return 'image/jpeg';
@@ -102,7 +109,7 @@ async function uploadOwnerAlbumPhotos({
 
   const invalidSize = prepared.some((item) => item.size <= 0);
   if (invalidSize) {
-    throw new Error('파일 크기를 확인할 수 없는 사진이 있습니다.');
+    throw new AlbumUploadError('file_validation');
   }
 
   const files: AlbumUploadFileRequest[] = prepared.map(({ filename, contentType, size }) => ({
@@ -113,12 +120,12 @@ async function uploadOwnerAlbumPhotos({
 
   const uploadUrlsResponse = await postAlbumUploadUrls(schoolId, { files });
   if (uploadUrlsResponse.status !== 200 || !uploadUrlsResponse.data?.files?.length) {
-    throw new Error(uploadUrlsResponse.message || '업로드 URL을 발급받지 못했습니다.');
+    throw new AlbumUploadError('upload-urls');
   }
 
   const uploadTargets = uploadUrlsResponse.data.files;
   if (uploadTargets.length !== prepared.length) {
-    throw new Error('업로드 URL 개수가 선택한 사진 수와 일치하지 않습니다.');
+    throw new AlbumUploadError('upload-urls');
   }
 
   const commitItems: AlbumCommitItemRequest[] = [];
@@ -155,13 +162,13 @@ async function uploadOwnerAlbumPhotos({
   }
 
   if (commitItems.length === 0) {
-    throw new Error('업로드에 성공한 사진이 없습니다.');
+    throw new AlbumUploadError('s3_upload');
   }
 
   try {
     const commitResponse = await postAlbumPhotosCommit(schoolId, { items: commitItems });
     if (commitResponse.status !== 200 || !commitResponse.data) {
-      throw new Error(commitResponse.message || '업로드 커밋에 실패했습니다.');
+      throw new AlbumUploadError('commit');
     }
 
     const uploaded = (commitResponse.data.uploaded ?? []).map((photo, index) =>
@@ -192,5 +199,5 @@ async function uploadOwnerAlbumPhotos({
   }
 }
 
-export { uploadOwnerAlbumPhotos };
+export { AlbumUploadError, uploadOwnerAlbumPhotos };
 export type { AlbumPickAsset, UploadOwnerAlbumPhotosParams, UploadOwnerAlbumPhotosResult };
