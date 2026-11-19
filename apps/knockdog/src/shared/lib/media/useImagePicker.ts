@@ -413,9 +413,10 @@ function useImagePicker() {
           }
         });
 
-        const unsubResult = bridge.once('media.pickImage.result', async (payload) => {
+        const unsubResult = bridge.on('media.pickImage.result', async (payload) => {
           if (payload.requestId !== requestId) return;
 
+          unsubResult();
           unsubCancel();
           unsubUploading();
 
@@ -494,8 +495,9 @@ function useImagePicker() {
           }
         });
 
-        const unsubCancel = bridge.once('media.pickImage.cancel', (payload) => {
+        const unsubCancel = bridge.on('media.pickImage.cancel', (payload) => {
           if (payload.requestId === requestId) {
+            unsubCancel();
             unsubResult();
             unsubUploading();
             reject(payload.reason || '이미지 선택이 취소되었습니다.');

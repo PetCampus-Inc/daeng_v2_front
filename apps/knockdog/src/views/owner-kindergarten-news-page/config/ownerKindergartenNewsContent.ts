@@ -18,6 +18,10 @@ const ownerKindergartenNewsContent = {
   writePageTitle: '소식 등록',
   write: {
     draftSaveLabel: '임시저장',
+    resumeDraftTitle: '작성하던 소식이 있어요.',
+    resumeDraftDescription: '임시저장한 내용을 이어서 쓸까요?',
+    resumeDraftNewLabel: '새로 쓰기',
+    resumeDraftContinueLabel: '이어 쓰기',
     submitLabel: '등록',
     titlePlaceholder: '제목을 입력하세요.',
     bodyPlaceholder: '연결된 보호자들에게 전달할 소식을 작성해 주세요.',

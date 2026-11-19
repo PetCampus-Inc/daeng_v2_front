@@ -2,11 +2,13 @@ import { METHODS, type ImageAsset } from '@knockdog/bridge-core';
 
 import { postSchoolReviewImageUploadUrls, type SchoolReviewImageWrite } from '@entities/review';
 import { getBridgeInstance } from '@shared/lib/bridge';
+import { getPreviewImage } from '@shared/lib/media';
 
 interface ReviewPhotoSource {
   id: string;
   url: string;
   imageId?: number;
+  tempKey?: string;
   file?: File;
   uri?: string;
   fileName: string;
@@ -93,7 +95,9 @@ function toUploadTarget(item: { tempKey?: string | null; uploadUrl?: string | nu
 }
 
 async function resolveSchoolReviewImages(schoolId: number, photos: ReviewPhotoSource[]) {
-  const pending = photos.flatMap((photo, index) => (isKeptReviewPhoto(photo) ? [] : [{ photo, index }]));
+  const pending = photos.flatMap((photo, index) =>
+    isKeptReviewPhoto(photo) || photo.tempKey ? [] : [{ photo, index }]
+  );
   const uploaded = new Map<number, SchoolReviewImageWrite>();
 
   if (pending.length > 0) {
@@ -139,9 +143,24 @@ async function resolveSchoolReviewImages(schoolId: number, photos: ReviewPhotoSo
 
   return photos.map((photo, index) => {
     if (isKeptReviewPhoto(photo)) return { imageId: photo.imageId };
+    if (photo.tempKey) return { tempKey: photo.tempKey, originalFilename: photo.fileName.slice(0, 255) };
     return uploaded.get(index) ?? uploadFailed();
   });
 }
 
-export { resolveSchoolReviewImages, toLocalReviewPhoto };
+async function uploadSchoolReviewPhotos(schoolId: number, photos: ReviewPhotoSource[]) {
+  const images = await resolveSchoolReviewImages(schoolId, photos);
+
+  return Promise.all(photos.map(async (photo, index) => {
+    const tempKey = images[index]?.tempKey;
+    if (!tempKey) uploadFailed();
+    if (photo.file) return { ...photo, tempKey };
+
+    const { data } = await getPreviewImage(tempKey);
+    if (!data?.preSignedUrl) uploadFailed();
+    return { ...photo, tempKey, url: data.preSignedUrl };
+  }));
+}
+
+export { resolveSchoolReviewImages, toLocalReviewPhoto, uploadSchoolReviewPhotos };
 export type { ReviewPhotoSource };

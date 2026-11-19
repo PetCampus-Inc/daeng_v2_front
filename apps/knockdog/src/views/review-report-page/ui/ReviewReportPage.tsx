@@ -253,7 +253,7 @@ function ReviewReportPage() {
               </span>
               <span className='body2-regular text-text-tertiary'>{formatReviewDate(review.createdAt)}</span>
             </div>
-            <p className='body1-regular text-text-primary line-clamp-3'>{review.content}</p>
+            <p className='body1-regular text-text-primary line-clamp-3 whitespace-pre-wrap'>{review.content}</p>
           </div>
         </section>
 

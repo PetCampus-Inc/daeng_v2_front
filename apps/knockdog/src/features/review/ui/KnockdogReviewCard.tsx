@@ -257,18 +257,20 @@ function KnockdogReviewCard({ review, onHelpfulToggle, onEdit, onDelete, onRepor
         </div>
 
         <div className='flex flex-col gap-4'>
-          <span
-            className={cn(
-              'caption1-semibold w-fit rounded-full border bg-white px-2 py-1',
-              review.enrollment === 'attending'
-                ? 'border-line-accent text-text-accent'
-                : 'border-line-400 text-fill-secondary-500'
-            )}
-          >
-            {ENROLLMENT_LABEL[review.enrollment]}
-          </span>
+          {review.enrollment && (
+            <span
+              className={cn(
+                'caption1-semibold w-fit rounded-full border bg-white px-2 py-1',
+                review.enrollment === 'attending'
+                  ? 'border-line-accent text-text-accent'
+                  : 'border-line-400 text-fill-secondary-500'
+              )}
+            >
+              {ENROLLMENT_LABEL[review.enrollment]}
+            </span>
+          )}
           <div className='flex flex-col gap-1'>
-            <p ref={contentRef} className={cn('body1-regular text-text-primary', !isExpanded && 'line-clamp-3')}>
+            <p ref={contentRef} className={cn('body1-regular text-text-primary whitespace-pre-wrap', !isExpanded && 'line-clamp-3')}>
               {review.content}
             </p>
             {showExpandButton ? (

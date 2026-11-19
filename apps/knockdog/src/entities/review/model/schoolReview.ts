@@ -44,7 +44,7 @@ interface SchoolReview {
   helpedByMe: boolean;
   reportedByMe: boolean;
   mine: boolean;
-  isCurrentlyAttending: boolean;
+  isCurrentlyAttending: boolean | null;
 }
 
 interface SchoolReviewPage {
@@ -202,7 +202,7 @@ function toSchoolReview(dto: SchoolReviewItemDto): SchoolReview | null {
     helpedByMe: dto.helpedByMe === true,
     reportedByMe: dto.reportedByMe === true,
     mine: dto.mine === true,
-    isCurrentlyAttending: dto.isCurrentlyAttending === true,
+    isCurrentlyAttending: dto.isCurrentlyAttending ?? null,
   };
 }
 

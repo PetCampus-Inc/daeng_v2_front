@@ -117,6 +117,7 @@ const useNotificationInboxDeepLink = () => {
           query: {
             source: 'inbox',
             ...(destination.schoolId ? { schoolId: destination.schoolId } : {}),
+            ...(item.kindergartenName ? { kindergartenName: item.kindergartenName } : {}),
           },
         });
         return;

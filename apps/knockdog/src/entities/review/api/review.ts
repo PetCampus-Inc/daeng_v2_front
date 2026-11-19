@@ -10,6 +10,7 @@ interface PagingDto {
 interface ReviewListResponse {
   reviews: Review[];
   paging: PagingDto;
+  totalCount?: number;
 }
 
 // @TODO  API 완성 후 수정 필요

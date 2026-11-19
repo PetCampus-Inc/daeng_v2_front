@@ -54,6 +54,7 @@ function GuardianKindergartenNewsDetailPageContent() {
   const searchParams = useSearchParams();
   const schoolId = searchParams.get('schoolId')?.trim() || undefined;
   const entrySource = parseNotificationEntrySource(searchParams.get('source'));
+  const inboxKindergartenName = entrySource === 'inbox' ? searchParams.get('kindergartenName')?.trim() : undefined;
   const newsId = typeof params.id === 'string' ? params.id : '';
   const { back, push, replace } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
@@ -83,7 +84,7 @@ function GuardianKindergartenNewsDetailPageContent() {
     linkedKindergarten && (!schoolId || linkedKindergarten.id === schoolId)
       ? linkedKindergarten.name
       : null;
-  const pageTitle = formatGuardianKindergartenNewsPageTitle(kindergartenName);
+  const pageTitle = formatGuardianKindergartenNewsPageTitle(inboxKindergartenName || kindergartenName);
 
   const publishedAtLabel = useMemo(() => {
     if (!item) return '';
@@ -93,7 +94,7 @@ function GuardianKindergartenNewsDetailPageContent() {
   const handleBack = useCallback(() => {
     const newsListQuery = schoolId ? { schoolId } : undefined;
 
-    if (entrySource === 'inbox' || entrySource === 'push') {
+    if (entrySource === 'push') {
       void replace({
         pathname: route.kindergarten.news.root,
         query: newsListQuery,
@@ -112,6 +113,10 @@ function GuardianKindergartenNewsDetailPageContent() {
       }
 
       try {
+        if (entrySource === 'inbox') {
+          await replace({ pathname: route.notification.root });
+          return;
+        }
         await push({
           pathname: route.kindergarten.news.root,
           query: newsListQuery,
