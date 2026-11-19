@@ -80,4 +80,18 @@ describe('승인 대기 진입점을 신청 탭으로 변경', () => {
 
     expect(push).toHaveBeenCalledWith({ pathname: '/kindergarten/connection-history' });
   });
+
+  it('유치원 소식 알림에서 상세 헤더에 쓸 유치원명을 전달한다', () => {
+    const { result } = renderHook(() => useNotificationInboxDeepLink());
+
+    result.current.openNotification({
+      ...createItem('KINDERGARTEN_NEWS_CREATED', { schoolId: 2, newsId: 9 }),
+      kindergartenName: '똑독 유치원',
+    });
+
+    expect(push).toHaveBeenCalledWith({
+      pathname: '/kindergarten/news/9',
+      query: { source: 'inbox', schoolId: '2', kindergartenName: '똑독 유치원' },
+    });
+  });
 });
