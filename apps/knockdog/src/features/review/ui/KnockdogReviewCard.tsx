@@ -270,7 +270,7 @@ function KnockdogReviewCard({ review, onHelpfulToggle, onEdit, onDelete, onRepor
             </span>
           )}
           <div className='flex flex-col gap-1'>
-            <p ref={contentRef} className={cn('body1-regular text-text-primary', !isExpanded && 'line-clamp-3')}>
+            <p ref={contentRef} className={cn('body1-regular text-text-primary whitespace-pre-wrap', !isExpanded && 'line-clamp-3')}>
               {review.content}
             </p>
             {showExpandButton ? (
