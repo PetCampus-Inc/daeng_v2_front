@@ -8,6 +8,7 @@ type SearchFieldProps = {
   onChange: (value: string) => void;
   onSubmit?: (value: string) => void;
   placeholder?: string;
+  maxLength?: number;
   autoFocus?: boolean;
 };
 
@@ -16,6 +17,7 @@ function SearchField({
   onChange,
   onSubmit,
   placeholder = '업체 또는 주소를 검색하세요',
+  maxLength,
   autoFocus = true,
 }: SearchFieldProps) {
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -48,6 +50,7 @@ function SearchField({
           ref={searchInputRef}
           type='search'
           placeholder={placeholder}
+          maxLength={maxLength}
           aria-label='검색어 입력'
           value={value}
           onChange={(e) => onChange(e.target.value)}

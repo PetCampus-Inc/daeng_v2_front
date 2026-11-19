@@ -14,6 +14,8 @@ import { KindergartenNewsSearchResultItem } from '@shared/ui/kindergarten-news-s
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { Header } from '@widgets/Header';
 
+const SEARCH_MAX_LENGTH = 30;
+
 /**
  * 원장 유치원 소식 검색
  * - 제목·본문 통합 검색, 최신 등록순 (공지 핀 무시)
@@ -22,7 +24,8 @@ import { Header } from '@widgets/Header';
  */
 function OwnerKindergartenNewsSearchPageContent() {
   const { search } = ownerKindergartenNewsContent;
-  const [query, setQuery] = useQueryState('q', { defaultValue: '' });
+  const [urlQuery, setQuery] = useQueryState('q', { defaultValue: '' });
+  const query = urlQuery.slice(0, SEARCH_MAX_LENGTH);
   const { back, push } = useStackNavigation();
   const { results, hasQuery, hasResults, isSearching } = useOwnerKindergartenNewsSearch(query);
   const {
@@ -50,7 +53,7 @@ function OwnerKindergartenNewsSearchPageContent() {
 
   const commitQuery = useCallback(
     (nextQuery: string) => {
-      const trimmed = nextQuery.trim();
+      const trimmed = nextQuery.slice(0, SEARCH_MAX_LENGTH).trim();
       void setQuery(trimmed || null);
       if (trimmed) addRecentKeyword(trimmed);
     },
@@ -72,8 +75,9 @@ function OwnerKindergartenNewsSearchPageContent() {
         </Header.LeftSection>
         <Header.SearchField
           value={query}
+          maxLength={SEARCH_MAX_LENGTH}
           onChange={(value) => {
-            void setQuery(value || null);
+            void setQuery(value.slice(0, SEARCH_MAX_LENGTH) || null);
           }}
           onSubmit={commitQuery}
           placeholder={search.placeholder}
