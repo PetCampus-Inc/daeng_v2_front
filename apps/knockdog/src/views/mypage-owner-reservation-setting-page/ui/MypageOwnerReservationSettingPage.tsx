@@ -32,6 +32,8 @@ import { useReservationSettingForm } from '@views/mypage-owner-reservation-setti
 const SAVE_TOAST_VIEWPORT = 'bottom-[104px] left-1/2 w-full max-w-120 webview:max-w-full -translate-x-1/2';
 /** 행 높이(py-4 32px + body1 24px + 구분선 1px) × 3 */
 const TIME_SHEET_LIST_CLASS = 'h-[calc(3*(2rem+1.5rem+1px))] max-h-[calc(3*(2rem+1.5rem+1px))]';
+const FIELD_LABEL_CLASS = 'label-medium text-text-secondary px-x1 leading-[18px] font-medium';
+const HEADER_TITLE_CLASS = 'h2-extrabold text-[length:var(--font-size-h2)] leading-7';
 
 function timeRangeState(start: string | null, end: string | null, error?: string | null): TimeRangeState {
   if (error) return 'error';
@@ -51,8 +53,8 @@ interface AdmissionTimeRangeProps {
 
 function AdmissionTimeRange({ label, start, end, startField, endField, error, onOpen }: AdmissionTimeRangeProps) {
   return (
-    <Field className='gap-4 px-4 pt-5'>
-      <FieldLabel className='text-text-secondary px-1'>{label}</FieldLabel>
+    <Field className='shrink-0 gap-4 px-4 pt-5'>
+      <FieldLabel className={FIELD_LABEL_CLASS}>{label}</FieldLabel>
       <TimeRangeField
         startTime={start ?? ''}
         endTime={end ?? ''}
@@ -87,11 +89,11 @@ function ReservationSettingPending({
 
   return (
     <div className='flex h-full flex-col bg-white'>
-      <Header>
+      <Header className='h-[66px] shrink-0' innerClassName='h-full gap-x-1'>
         <Header.LeftSection>
           <Header.BackButton onClick={handleBack} />
         </Header.LeftSection>
-        <Header.Title>예약 설정</Header.Title>
+        <Header.Title className={HEADER_TITLE_CLASS}>예약 설정</Header.Title>
       </Header>
       {isError ? (
         <PageError layout='inline' title={title} description={description} onRetry={onRetry} isRetrying={isRetrying} />
@@ -201,14 +203,14 @@ function ReservationSettingEditor({ setting }: { setting: ReservationSetting }) 
 
   return (
     <div className='flex h-full min-h-0 flex-col overflow-hidden bg-white'>
-      <Header className='relative shrink-0'>
+      <Header className='relative h-[66px] shrink-0' innerClassName='h-full gap-x-1'>
         <Header.LeftSection>
           <Header.BackButton onClick={handleBack} />
         </Header.LeftSection>
-        <Header.Title>예약 설정</Header.Title>
+        <Header.Title className={HEADER_TITLE_CLASS}>예약 설정</Header.Title>
       </Header>
 
-      <div className='min-h-0 flex-1 overflow-y-auto overscroll-y-contain pb-5 [-webkit-overflow-scrolling:touch]'>
+      <div className='flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-y-contain py-4 [-webkit-overflow-scrolling:touch]'>
         <AdmissionTimeRange
           label='평일 등원 가능 시간'
           start={form.values.weekdayStart}
@@ -228,10 +230,10 @@ function ReservationSettingEditor({ setting }: { setting: ReservationSetting }) 
           onOpen={form.openTimeField}
         />
 
-        <Field className='gap-4 px-4 pt-4'>
-          <FieldLabel className='text-text-secondary px-1'>
+        <Field className='shrink-0 gap-4 px-4 pt-5'>
+          <FieldLabel className={FIELD_LABEL_CLASS}>
             하루 정원
-            <FieldLabelIndicator type='optional' className='text-text-accent' />
+            <FieldLabelIndicator type='optional' className='text-text-accent ml-0' />
           </FieldLabel>
           <div ref={capacityRef} className='flex flex-col gap-2'>
             <NumberField
@@ -241,13 +243,13 @@ function ReservationSettingEditor({ setting }: { setting: ReservationSetting }) 
               errorMessage={form.capacityError}
               aria-label='하루 정원'
             />
-            <FieldDescription className='caption1-regular text-text-secondary px-2'>
+            <FieldDescription className='caption1-regular text-text-secondary min-h-5 px-x1 text-left text-[length:var(--font-size-caption1)] leading-[18px] webview:[-webkit-text-size-adjust:100%]'>
               * 미입력시 정원 제한 없이 예약을 받아요.
             </FieldDescription>
           </div>
         </Field>
 
-        <section className='caption1-regular text-fill-secondary-500 flex flex-col gap-2.5 px-6 py-5'>
+        <section className='caption1-regular text-fill-secondary-500 flex shrink-0 flex-col gap-2.5 px-5 py-5 text-left leading-[18px] webview:[-webkit-text-size-adjust:100%]'>
           {hoursLine || closedLine ? (
             <p>
               * 현재 운영시간
