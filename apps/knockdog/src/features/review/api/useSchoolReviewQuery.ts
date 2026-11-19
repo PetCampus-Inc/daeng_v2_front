@@ -33,7 +33,10 @@ function toKnockdogReview(review: SchoolReview): KnockdogReview {
     id: review.id,
     score: review.rating,
     createdAt: review.createdAt,
-    enrollment: review.isCurrentlyAttending ? 'attending' : 'former',
+    enrollment:
+      review.isCurrentlyAttending === null
+        ? null
+        : review.isCurrentlyAttending ? 'attending' : 'former',
     content: review.content,
     images: review.photos.flatMap((photo) => (photo.url ? [photo.url] : [])),
     helpfulCount: review.helpfulCount,
