@@ -10,7 +10,7 @@ import {
   postDiaryGeneration,
   postDiarySave,
 } from '@entities/guardian-diary';
-import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { openConfirmDialog, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { formatDateKey } from '@shared/lib/calendar-date';
 import { buildDiaryDetailTarget } from '@shared/lib/diary-write/buildDiaryWriteTarget';
 import { parseDiaryGenerateDraft, type DiaryGenerateDraft } from '@shared/lib/diary-write/diaryGenerateDraft';
@@ -22,6 +22,7 @@ import {
   DIARY_WORD_INTERVAL_MS,
   formatDiaryDateLabel,
   getDiarySaveToast,
+  getDiaryDialogCopy,
   revealDiaryText,
   type DiaryGenerateDialog,
   type DiaryGenerateStatus,
@@ -132,10 +133,32 @@ function GuardianDiaryGeneratePage() {
       return;
     }
     if (status === 'done' && !isSaved) {
-      setDialog('leave');
+      openGenerateDialog('leave');
       return;
     }
     void back();
+  }
+
+  /** 저장·나가기 확인창을 연다. 앱에서는 앱 확인창을 먼저 시도하고, 쓸 수 없으면 웹 확인창을 띄운다. */
+  function openGenerateDialog(kind: DiaryGenerateDialog) {
+    const copy = getDiaryDialogCopy(kind);
+    openConfirmDialog({
+      title: copy.title,
+      description: copy.lines.join('\n'),
+      cancelLabel: '계속 작성하기',
+      confirmLabel: copy.confirmLabel,
+    }).then((result) => {
+      if (result.status === 'resolved') {
+        if (result.action === 'confirm') {
+          if (kind === 'save') handleConfirmSave();
+          else handleLeave();
+        }
+        return;
+      }
+      if (result.status === 'pending') return;
+
+      setDialog(kind);
+    });
   }
 
   function handleLeave() {
@@ -236,8 +259,8 @@ function GuardianDiaryGeneratePage() {
       onRetry={handleRetry}
       onEdit={() => setIsEditing(true)}
       onBodyChange={setBody}
-      onSave={() => setDialog('save')}
-      onConfirmSave={handleConfirmSave}
+      onSave={() => openGenerateDialog('save')}
+      onConfirmSave={() => handleConfirmSave()}
       onKeepWriting={() => setDialog(null)}
       onLeave={handleLeave}
     />

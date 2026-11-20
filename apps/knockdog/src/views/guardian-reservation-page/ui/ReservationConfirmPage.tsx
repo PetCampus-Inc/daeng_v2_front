@@ -31,7 +31,7 @@ import { useUserStore } from '@entities/user';
 
 import { ApiError } from '@shared/api';
 import { route } from '@shared/constants/route';
-import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { openConfirmDialog, useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 import { DogProfileAvatar } from '@shared/ui/dog-profile-avatar';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
@@ -139,6 +139,27 @@ function ReservationConfirmPage() {
     });
   };
 
+  /** 나가기 확인창을 연다. 앱에서는 앱 확인창을 먼저 시도하고, 쓸 수 없으면 웹 확인창을 띄운다. */
+  const openLeaveDialog = async () => {
+    const result = await openConfirmDialog({
+      title: copy.leaveTitle,
+      description: copy.leaveBody,
+      cancelLabel: copy.stay,
+      confirmLabel: copy.leave,
+    });
+    if (result.status === 'pending') return;
+
+    if (result.status === 'resolved') {
+      if (result.action === 'confirm') {
+        setNote('');
+        leaveToTime();
+      }
+      return;
+    }
+
+    setIsLeaveOpen(true);
+  };
+
   const handleBack = () => {
     if (isPending) return;
     if (isConfirmed) {
@@ -150,7 +171,7 @@ function ReservationConfirmPage() {
       return;
     }
     if (isNoteFilled(note)) {
-      setIsLeaveOpen(true);
+      openLeaveDialog();
       return;
     }
     leaveToTime();

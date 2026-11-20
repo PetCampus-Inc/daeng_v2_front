@@ -13,10 +13,12 @@ import {
 import { isKindergartenId } from '@entities/kindergarten';
 import { useUserStore } from '@entities/user';
 import { trackConnectionStatus } from '@shared/lib/analytics';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { openConfirmDialog, useStackNavigation } from '@shared/lib/bridge';
 import { formatDateKey } from '@shared/lib/calendar-date';
 import { closeOverlayThenNavigate } from '@shared/lib/navigation/closeOverlayThenNavigate';
+import { ConfirmDialog } from '@shared/ui/confirm-dialog';
 import { toast } from '@shared/ui/toast';
+import { ellipsisText } from '@shared/utils';
 import { guardianConnectionHistoryContent } from '@views/guardian-kindergarten-history-page/config/guardianConnectionHistoryContent';
 import {
   toReservationScheduleLabel,
@@ -30,7 +32,6 @@ import {
   GUARDIAN_DISCONNECT_JUDGEMENT,
   judgeGuardianDisconnect,
 } from '@views/guardian-kindergarten-history-page/lib/judgeGuardianDisconnect';
-import { GuardianConnectionDisconnectDialog } from '@views/guardian-kindergarten-history-page/ui/GuardianConnectionDisconnectDialog';
 import { GuardianDisconnectBlockedSheet } from '@views/guardian-kindergarten-history-page/ui/GuardianDisconnectBlockedSheet';
 
 interface UseGuardianConnectionDisconnectOptions {
@@ -121,7 +122,50 @@ function useGuardianConnectionDisconnect({
     openBlockedSheet(bodies.join('\n\n') || blockedSheet.unknownBody, tickets);
   };
 
-  /** 서버가 허용한 경우만 해제하고, 그 외에는 사유 시트를 연다. */
+  /**
+   * 연결 해제 확인창을 연다. 앱에서는 앱 확인창을 먼저 시도하고, 쓸 수 없으면 웹 확인창을 띄운다.
+   * 앱 확인창은 답을 기다리는 동안 이 함수가 끝나지 않으므로, 처리 중 잠금이 풀린 뒤에 불러야 한다.
+   */
+  const openDisconnectDialog = async (membershipId: string) => {
+    const { disconnectDialog } = content;
+    const displayName = ellipsisText(kindergartenName, disconnectDialog.nameMaxLength);
+    const dialog = {
+      title: `${displayName}${disconnectDialog.titleSuffix}`,
+      description: `${disconnectDialog.descriptionPrefix}${petName}${disconnectDialog.descriptionSuffix}`,
+      cancelLabel: disconnectDialog.cancelLabel,
+      confirmLabel: disconnectDialog.confirmLabel,
+    };
+
+    const result = await openConfirmDialog({
+      ...dialog,
+      titleParts: [{ text: displayName, accent: true }, { text: disconnectDialog.titleSuffix }],
+    });
+    if (result.status === 'resolved') {
+      if (result.action === 'confirm') void confirmDisconnect(membershipId);
+      return;
+    }
+    if (result.status === 'pending') return;
+
+    overlay.open(({ isOpen, close }) => (
+      <ConfirmDialog
+        {...dialog}
+        isOpen={isOpen}
+        title={
+          <>
+            <span className='text-text-accent'>{displayName}</span>
+            {disconnectDialog.titleSuffix}
+          </>
+        }
+        onClose={close}
+        onConfirm={() => {
+          close();
+          void confirmDisconnect(membershipId);
+        }}
+      />
+    ));
+  };
+
+  /** 서버가 허용한 경우만 해제 확인창을 열고, 그 외에는 사유 시트를 연다. */
   const checkAndDisconnect = async () => {
     if (isProcessing.current) return;
     if (!schoolPetMembershipId) {
@@ -129,6 +173,7 @@ function useGuardianConnectionDisconnect({
       return;
     }
 
+    let canProceed = false;
     isProcessing.current = true;
     setIsChecking(true);
     try {
@@ -136,17 +181,7 @@ function useGuardianConnectionDisconnect({
       const judgement = judgeGuardianDisconnect(eligibility);
 
       if (judgement === GUARDIAN_DISCONNECT_JUDGEMENT.proceed) {
-        overlay.open(({ isOpen, close }) => (
-          <GuardianConnectionDisconnectDialog
-            isOpen={isOpen}
-            kindergartenName={kindergartenName}
-            petName={petName}
-            close={close}
-            onDisconnect={() => {
-              void confirmDisconnect(schoolPetMembershipId);
-            }}
-          />
-        ));
+        canProceed = true;
       } else {
         openBlockedSheetFor(eligibility);
       }
@@ -156,6 +191,8 @@ function useGuardianConnectionDisconnect({
       isProcessing.current = false;
       setIsChecking(false);
     }
+
+    if (canProceed) await openDisconnectDialog(schoolPetMembershipId);
   };
 
   /** 이용권·예약이 남아 해제가 거절되면 조건을 다시 조회해 해제 불가 시트를 연다 */

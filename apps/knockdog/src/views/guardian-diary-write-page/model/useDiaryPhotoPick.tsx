@@ -1,20 +1,9 @@
 'use client';
 
 import { useCallback } from 'react';
-import { overlay } from 'overlay-kit';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@knockdog/ui';
 
-import { openSystemSetting } from '@shared/lib/bridge/openSystemSetting';
 import { useImagePicker, type WebImageAsset } from '@shared/lib/media';
+import { openPhotoPermissionDialog } from '@shared/ui/photo-uploader/openPhotoPermissionDialog';
 import { toast } from '@shared/ui/toast';
 
 import { DIARY_PHOTO_LIMIT, type DiaryWritePhoto } from '../lib/diaryWriteForm';
@@ -73,23 +62,7 @@ function useDiaryPhotoPick(
         if (uploaded.rejectedCount > 0 || uploaded.failedCount > 0 || skippedCount > 0) showPhotoFailToast();
       } catch (error: unknown) {
         if (error === 'NO_PERMISSION_LIBRARY' || error === 'NO_PERMISSION_CAMERA') {
-          overlay.open(({ isOpen, close }) => (
-            <AlertDialog open={isOpen} onOpenChange={close}>
-              <AlertDialogContent overlayClassName='z-102' className='z-103'>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>사진 접근 권한이 필요해요</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    사용 중인 기기에서 사진 접근 권한을 <br />
-                    &apos;허용&apos;으로 설정해 주세요.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>나중에 하기</AlertDialogCancel>
-                  <AlertDialogAction onClick={openSystemSetting}>설정하기</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          ));
+          openPhotoPermissionDialog().catch(() => undefined);
           return;
         }
         showPhotoFailToast();

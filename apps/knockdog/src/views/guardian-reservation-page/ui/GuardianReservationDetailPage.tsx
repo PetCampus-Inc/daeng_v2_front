@@ -27,7 +27,7 @@ import { guardianTicketQueryKeys } from '@entities/guardian-ticket';
 
 import { ApiError } from '@shared/api';
 import { route } from '@shared/constants/route';
-import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { openConfirmDialog, useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
@@ -113,6 +113,20 @@ function GuardianReservationDetailPage() {
         });
       })
       .catch(() => undefined);
+  };
+
+  /** 취소 확인창을 연다. 예약 일시 박스가 있어 앱 확인창으로는 그릴 수 없으므로 항상 웹 모달을 띄운다. */
+  const handleCancelClick = async () => {
+    const result = await openConfirmDialog({
+      title: copy.cancelTitle,
+      description: copy.cancelBody,
+      cancelLabel: copy.close,
+      confirmLabel: copy.cancel,
+      webOnly: { reason: '예약 일시·요약 박스가 있어 앱 확인창(제목·설명·버튼)으로 그릴 수 없음' },
+    });
+    if (result.status === 'pending') return;
+
+    if (result.status === 'unavailable') setIsCancelOpen(true);
   };
 
   const handleConfirmCancel = () => {
@@ -237,7 +251,7 @@ function GuardianReservationDetailPage() {
           size='large'
           className='body1-bold'
           disabled={!canCancel || isCancelling}
-          onClick={() => setIsCancelOpen(true)}
+          onClick={handleCancelClick}
         >
           {copy.cancel}
         </ActionButton>
