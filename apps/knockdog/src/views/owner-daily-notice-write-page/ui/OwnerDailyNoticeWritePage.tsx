@@ -61,6 +61,7 @@ import { STORAGE_KEYS } from '@shared/constants/storage';
 import { createAnalyticsId, trackNotebookComposeStart, trackNotebookSent, trackNotebookUpdated } from '@shared/lib/analytics';
 import { useStackNavigation, useNativeBackHandler } from '@shared/lib/bridge';
 import { safeLocalStorage, safeSessionStorage } from '@shared/lib/storage';
+import { BottomCta } from '@shared/ui/bottom-cta';
 import { DogProfileAvatar } from '@shared/ui/dog-profile-avatar';
 import { ActionLoadingOverlay } from '@shared/ui/loading-spinner';
 import { SafeArea } from '@shared/ui/safe-area';
@@ -1006,7 +1007,7 @@ function OwnerDailyNoticeWritePage() {
 
         {!isReadOnly ? (
           <SafeArea edges={['bottom']} className='bg-bg-0 shrink-0'>
-            <div className='px-4 py-5'>
+            <BottomCta className='px-4 py-5'>
               <ActionButton
                 type='button'
                 variant='primaryFill'
@@ -1017,7 +1018,7 @@ function OwnerDailyNoticeWritePage() {
               >
                 {ownerDailyNoticeWriteContent.sendButtonLabel}
               </ActionButton>
-            </div>
+            </BottomCta>
           </SafeArea>
         ) : (
           <SafeArea edges={['bottom']} className='bg-bg-0 shrink-0' />
