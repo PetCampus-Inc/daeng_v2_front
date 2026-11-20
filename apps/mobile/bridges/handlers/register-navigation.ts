@@ -398,7 +398,14 @@ function registerNavigationHandlers(router: NativeBridgeRouter, options?: { curr
 
     if (route.screen === 'Tabs') {
       const tabName = resolveTabScreen(route.params?.screen ?? 'Explore');
+      const query = extractQueryFromNavParams(payload.params);
+      if (query && Object.keys(query).length > 0) {
+        pendingTabQueryStore.set(tabName, query);
+      }
       navigationRef.navigate('Tabs', { screen: tabName });
+      if (query && Object.keys(query).length > 0) {
+        await injectTabWebViewQuery(tabName, query);
+      }
     } else {
       navigationRef.dispatch(StackActions.push('Stack', route.params));
     }

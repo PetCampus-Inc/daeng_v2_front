@@ -33,13 +33,14 @@ export default function WebViewScreen({
   onNavigationStateChange,
 }: WebViewScreenProps) {
   const isFocusedRef = useRef(false);
+  const isLoadedRef = useRef(false);
   const internalRef = useRef<WebView>(null);
   const resolvedRef = (webviewRef ?? internalRef) as RefObject<WebView>;
   const resolveWebView = useCallback(() => resolvedRef.current ?? null, [resolvedRef]);
   const tabName = useMemo(() => resolveTabNameFromUri(uri), [uri]);
 
   const applyPendingQuery = useCallback(() => {
-    if (!tabName) return;
+    if (!tabName || !isLoadedRef.current) return;
     applyPendingTabQuery(resolveWebView(), tabName);
   }, [resolveWebView, tabName]);
 
@@ -56,6 +57,14 @@ export default function WebViewScreen({
     }, [applyPendingQuery, resolveWebView])
   );
 
+  const handleLoadStart = useCallback(() => {
+    isLoadedRef.current = false;
+  }, []);
+
+  const handleLoad = useCallback(() => {
+    isLoadedRef.current = true;
+  }, []);
+
   const handleLoadEnd = useCallback(() => {
     applyPendingQuery();
     injectNativeTabFocus(resolveWebView(), isFocusedRef.current);
@@ -66,6 +75,8 @@ export default function WebViewScreen({
       uri={uri}
       webviewRef={resolvedRef}
       initialState={initialState}
+      onLoadStart={handleLoadStart}
+      onLoad={handleLoad}
       onLoadEnd={handleLoadEnd}
       onNavigationStateChange={onNavigationStateChange}
     />
