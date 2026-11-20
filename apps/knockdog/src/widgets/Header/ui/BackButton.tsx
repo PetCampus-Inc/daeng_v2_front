@@ -17,7 +17,7 @@ function BackButton({ children, onClick, ...props }: BackButtonProps) {
   };
 
   return (
-    <button className={cn('size-6', textColor)} onClick={onClick ?? handleBackClick} {...props}>
+    <button className={cn('size-6', textColor)} onClick={onClick ?? handleBackClick} {...props} data-header-back=''>
       {children ?? <Icon icon='ChevronLeft' />}
     </button>
   );

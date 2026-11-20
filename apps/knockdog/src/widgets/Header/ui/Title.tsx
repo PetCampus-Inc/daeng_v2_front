@@ -8,12 +8,13 @@ function Title({ children, center = false, className, ...props }: ComponentProps
   return (
     <span
       className={cn(
-        'h3-extrabold text-text-primary min-w-0',
+        'h2-extrabold text-text-primary min-w-0',
         textColor,
         center ? 'absolute left-1/2 -translate-x-1/2' : 'flex-1 truncate text-left',
         className
       )}
       {...props}
+      data-header-title={center ? undefined : ''}
     >
       {children}
     </span>

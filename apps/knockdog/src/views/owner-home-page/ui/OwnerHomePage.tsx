@@ -58,9 +58,9 @@ const OwnerHomePage = () => {
   return (
     <div data-testid='owner-home-root' className='bg-bg-50 flex min-h-0 flex-1 flex-col'>
       <div className='bg-bg-0 shrink-0 rounded-b-[24px] pt-(--safe-area-inset-top,0px)'>
-        <Header className='pl-x7 pr-x4 h-[66px] border-0' innerClassName='h-[66px]'>
+        <Header className='border-0'>
           <Header.Title className='flex items-center'>
-            <Image src='/images/img_logo_text2.png' alt='똑독' width={48} height={26} priority />
+            <Image className='ml-x1' src='/images/img_logo_text2.png' alt='똑독' width={48} height={26} priority />
           </Header.Title>
           <Header.RightSection>
             <button type='button' aria-label='보호자 초대 QR' onClick={handleInviteClick}>
