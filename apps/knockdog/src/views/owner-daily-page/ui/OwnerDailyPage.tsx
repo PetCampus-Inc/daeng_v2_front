@@ -1,7 +1,6 @@
 'use client';
 
-import { useCallback, useLayoutEffect, useRef, useState, type UIEvent } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useLayoutEffect, useRef, useState, type UIEvent } from 'react';
 import { Float, FloatingActionButton, Tabs, TabsContent, TabsList, TabsTrigger } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 
@@ -37,17 +36,11 @@ import { useUserStore } from '@entities/user';
 
 import { REQUEST_FAILED_MESSAGE } from '@shared/api';
 import { route } from '@shared/constants/route';
-import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
-import { isNativeWebView } from '@shared/lib/device';
+import { useStackNavigation } from '@shared/lib/bridge';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { NotificationBell } from '@shared/ui/notification-bell';
 import { PageError } from '@shared/ui/page-error';
 import { toast } from '@shared/ui/toast';
-
-const OwnerDailyReturnHomeBack = ({ onBack }: { onBack: () => void }) => {
-  useNativeBackHandler(onBack);
-  return null;
-};
 
 const TAB_TRIGGER_CLASS_NAME =
   'text-size-body1 h-x12 px-x4 py-x3 data-[state=inactive]:text-text-secondary border-b-0 leading-6 font-bold';
@@ -60,16 +53,13 @@ const CHECK_TAB_CONTENT_CLASS_NAME = 'bg-bg-50 flex-1 pb-(--bottom-bar-height)';
 
 /** 원장 일과 화면. 날짜 이동·등원 현황·`등원처리`/`등원목록` 탭을 조합한다. */
 const OwnerDailyPage = () => {
-  const { back, push } = useStackNavigation();
-  const { navigateToTab } = useTabNavigation();
+  const { push } = useStackNavigation();
   const userId = useUserStore((state) => state.user?.userId);
   const { data: hasUnreadNotification = false } = useHasUnreadNotificationQuery({
     userId,
     audience: 'OWNER',
     enabled: true,
   });
-  const searchParams = useSearchParams();
-  const fromHome = searchParams.get('from') === 'home';
   const {
     now,
     today,
@@ -131,17 +121,6 @@ const OwnerDailyPage = () => {
     summary && !isNotConfigured && !isLoading && !isError && !isPastNoRecord && !isNoReservation
       ? toOwnerDailySummaryView(summary, dayKind)
       : null;
-
-  const handleBackToOwnerHome = useCallback(() => {
-    if (isNativeWebView()) {
-      navigateToTab('/owner').catch(() => {
-        push({ pathname: '/owner' });
-      });
-      return;
-    }
-
-    back();
-  }, [back, navigateToTab, push]);
 
   const pushOrToastFailure = (pathname: string, query?: Record<string, string>) => {
     push(query ? { pathname, query } : { pathname }).catch(() => {
@@ -214,16 +193,8 @@ const OwnerDailyPage = () => {
   return (
     <div data-testid='owner-daily-root' className='bg-bg-50 relative flex h-dvh flex-col'>
       <div className='bg-bg-0 pt-(--safe-area-inset-top,0px)'>
-        {fromHome ? <OwnerDailyReturnHomeBack onBack={handleBackToOwnerHome} /> : null}
-        <Header className='h-[66px]' innerClassName='h-[66px]'>
-          {fromHome ? (
-            <Header.LeftSection>
-              <Header.BackButton aria-label='이전' onClick={handleBackToOwnerHome} />
-            </Header.LeftSection>
-          ) : null}
-          <Header.Title className='pl-x2 text-size-h2 leading-7 font-extrabold [color:var(--color-text-primary)]'>
-            일과
-          </Header.Title>
+        <Header>
+          <Header.Title>일과</Header.Title>
           <Header.RightSection>
             <NotificationBell
               hasUnread={hasUnreadNotification}
