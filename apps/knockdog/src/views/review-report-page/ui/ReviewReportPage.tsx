@@ -21,6 +21,7 @@ import { useStackNavigation } from '@shared/lib/bridge';
 import { ActionLoadingOverlay } from '@shared/ui/loading-spinner';
 import { PageError } from '@shared/ui/page-error';
 import { toast } from '@shared/ui/toast';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 const REPORT_REASONS = [
   '유치원과 관련 없는 내용이에요',
@@ -253,7 +254,7 @@ function ReviewReportPage() {
               </span>
               <span className='body2-regular text-text-tertiary'>{formatReviewDate(review.createdAt)}</span>
             </div>
-            <p className='body1-regular text-text-primary line-clamp-3'>{review.content}</p>
+            <p className='body1-regular text-text-primary line-clamp-3 whitespace-pre-wrap'>{review.content}</p>
           </div>
         </section>
 
@@ -313,7 +314,7 @@ function ReviewReportPage() {
         </section>
       </div>
 
-      <div className='bg-bg-0 shrink-0 p-4'>
+      <BottomCta className='bg-bg-0 shrink-0 p-4'>
         <ActionButton
           type='button'
           size='large'
@@ -324,7 +325,7 @@ function ReviewReportPage() {
         >
           신고 접수
         </ActionButton>
-      </div>
+      </BottomCta>
       <ActionLoadingOverlay isPending={isSubmitting && !isFailureOpen} />
       <ReviewActionDialog
         isOpen={isFailureOpen}

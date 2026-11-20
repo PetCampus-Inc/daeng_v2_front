@@ -29,6 +29,7 @@ import { Header } from '@widgets/Header';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 interface FieldLabelProps {
   label: string;
@@ -90,12 +91,12 @@ function OwnerDailyNoticeTemplateDetailPage() {
                   toast({
                     nativeTitle: '템플릿을 삭제하지 못했어요',
                     titleParts: [
-                      { text: '템플릿', accent: true },
+                      { text: '템플릿', bold: true },
                       { text: '을 삭제하지 못했어요. 다시 시도해 주세요' },
                     ],
                     title: (
                       <>
-                        <span className='text-text-accent'>템플릿</span>
+                        <span className='body1-bold text-text-primary-inverse'>템플릿</span>
                         <span className='text-text-primary-inverse'>
                           을 삭제하지 못했어요. 다시 시도해 주세요
                         </span>
@@ -176,7 +177,7 @@ function OwnerDailyNoticeTemplateDetailPage() {
           </div>
         </section>
 
-        <div className='bg-bg-50 shrink-0'>
+        <BottomCta className='bg-bg-50 shrink-0'>
           <div className='flex gap-2 py-5'>
             <ActionButton
               type='button'
@@ -198,7 +199,7 @@ function OwnerDailyNoticeTemplateDetailPage() {
               {ownerDailyNoticeTemplateDetailContent.editButtonLabel}
             </ActionButton>
           </div>
-        </div>
+        </BottomCta>
       </div>
     </div>
   );

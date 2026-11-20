@@ -15,6 +15,7 @@ import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/
 import { route } from '@shared/constants/route';
 import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { DogProfileAvatar } from '@shared/ui/dog-profile-avatar';
+import { NotificationBell } from '@shared/ui/notification-bell';
 
 import { GuardianDogSelectSheet } from './GuardianDogSelectSheet';
 
@@ -98,7 +99,7 @@ function GuardianKindergartenHeader({
         onSelect={(petId) => {
           setSelectedPetId(petId);
           // 이전 강아지 알림장 리스트/스택이 뒤로가기에 남지 않게 유치원 홈으로 정리
-          navigateToTab('/compare').catch(() => undefined);
+          navigateToTab('/kindergarten').catch(() => undefined);
         }}
       />
     ));
@@ -143,18 +144,11 @@ function GuardianKindergartenHeader({
           </button>
         )}
 
-        <button
-          type='button'
+        <NotificationBell
+          hasUnread={hasUnreadAlarm}
           onClick={handleNotificationClick}
-          aria-label='알림함'
           className='bg-bg-0 shrink-0 rounded-full p-1.5'
-        >
-          {hasUnreadAlarm ? (
-            <Icon icon='AlarmLineActive' className='text-fill-primary-500 size-6' aria-hidden='true' />
-          ) : (
-            <Icon icon='AlarmNone' className='text-fill-primary-500 size-6' aria-hidden='true' />
-          )}
-        </button>
+        />
       </div>
     </div>
   );

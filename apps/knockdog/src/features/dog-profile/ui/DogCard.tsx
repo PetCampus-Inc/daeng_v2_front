@@ -12,10 +12,11 @@ interface DogCardProps {
   age?: number;
   imageUrl?: string;
   isRepresentative?: boolean;
+  gender?: 'MALE' | 'FEMALE' | null;
   onClick?: () => void;
 }
 
-function DogCard({ name, breed, age, imageUrl, isRepresentative, onClick }: DogCardProps) {
+function DogCard({ name, breed, age, imageUrl, isRepresentative, gender, onClick }: DogCardProps) {
   const ageLabel = age === undefined ? undefined : age < 1 ? '1살 미만' : `${age}살`;
   const resolvedImageUrl = imageUrl?.trim() ? resolvePublicImageSrc(imageUrl.trim()) : '';
   const [hasImageError, setHasImageError] = useState(false);
@@ -30,55 +31,39 @@ function DogCard({ name, breed, age, imageUrl, isRepresentative, onClick }: DogC
     <div
       onClick={onClick}
       onDragStart={(event) => event.preventDefault()}
-      className={cn(
-        'relative h-[200px] w-[150px] shrink-0 overflow-hidden rounded-2xl',
-        !showImage && 'bg-bg-100'
-      )}
-      style={
-        !showImage
-          ? {
-              backgroundImage: 'linear-gradient(180deg, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.8) 80%)',
-            }
-          : undefined
-      }
+      className='border-line-200 bg-bg-0 relative flex h-[190px] w-[140px] shrink-0 flex-col gap-2 overflow-hidden rounded-2xl border pb-3'
     >
-      {showImage ? (
-        // plain img — next/image(/_next/image AVIF)는 AOS WebView에서 깨짐. 펫 수정과 동일 경로.
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={resolvedImageUrl}
-          alt={name}
-          draggable={false}
-          className='absolute inset-0 size-full object-cover'
-          loading='lazy'
-          decoding='async'
-          referrerPolicy='no-referrer'
-          onError={() => setHasImageError(true)}
-        />
-      ) : (
-        <div className='flex h-full w-full items-center justify-center pb-[34px]'>
-          <Icon icon='Paw' className='text-primitive-neutral-300 h-[52px] w-[52px]' />
-        </div>
-      )}
+      <div className='bg-bg-100 relative h-[130px] w-full shrink-0'>
+        {showImage ? (
+          // plain img — next/image(/_next/image AVIF)는 AOS WebView에서 깨짐. 펫 수정과 동일 경로.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={resolvedImageUrl}
+            alt={name}
+            draggable={false}
+            className='absolute inset-0 size-full object-cover'
+            loading='lazy'
+            decoding='async'
+            referrerPolicy='no-referrer'
+            onError={() => setHasImageError(true)}
+          />
+        ) : (
+          <div className='flex size-full items-center justify-center'>
+            <Icon icon='Paw' className='text-primitive-neutral-300 size-[52px]' />
+          </div>
+        )}
+        {isRepresentative && <Icon icon='Maindog' className='text-text-accent absolute top-2 left-2 size-6' />}
+      </div>
 
-      {/* Gradient dim overlay */}
-      {showImage && (
-        <div
-          className='absolute inset-x-0 bottom-0 h-[80px]'
-          style={{
-            background: 'linear-gradient(to bottom, #00000000 0%, #000000CC 80%)',
-          }}
-        />
-      )}
-
-      <div className='absolute bottom-4 left-3 z-10 flex flex-col gap-y-1'>
-        <div className='h3-semibold flex max-w-[126px] items-center gap-x-0.5'>
-          {isRepresentative && <Icon icon='Maindog' className='text-text-accent size-6 shrink-0' />}
-          <span className='text-text-primary-inverse min-w-0 truncate'>{name}</span>
+      <div className='flex min-w-0 flex-col px-3'>
+        <div className='flex items-center gap-x-0.5'>
+          <span className='body1-bold text-text-primary min-w-0 truncate'>{name}</span>
+          {gender === 'FEMALE' && <Icon icon='Female' className='text-text-accent size-4 shrink-0' />}
+          {gender === 'MALE' && <Icon icon='Male' className='text-text-accent size-4 shrink-0' />}
         </div>
-        <div className='body2-regular text-text-primary-inverse flex max-w-[126px] items-center gap-x-1'>
+        <div className='caption1-regular text-text-secondary flex items-center gap-x-1'>
           {breed && <span className='min-w-0 truncate'>{breed}</span>}
-          {breed && ageLabel && <span className='shrink-0'>•</span>}
+          {breed && ageLabel && <span className='bg-text-secondary size-0.5 shrink-0 rounded-full' />}
           {ageLabel && <span className='shrink-0 whitespace-nowrap'>{ageLabel}</span>}
         </div>
       </div>

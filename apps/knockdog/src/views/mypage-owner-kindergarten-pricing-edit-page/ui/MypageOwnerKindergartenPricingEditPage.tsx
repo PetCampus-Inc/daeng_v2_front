@@ -15,6 +15,7 @@ import { useOpenExternalLink, useNativeBackHandler } from '@shared/lib/bridge';
 import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGuard';
 import { PhotoUploader } from '@shared/ui/photo-uploader';
 import { toast } from '@shared/ui/toast';
+import { BottomCta } from '@shared/ui/bottom-cta';
 import { useKindergartenPricingEditForm } from '@views/mypage-owner-kindergarten-pricing-edit-page/model/useKindergartenPricingEditForm';
 
 function selectionChipClassName(isSelected: boolean) {
@@ -99,12 +100,12 @@ function MypageOwnerKindergartenPricingEditPage() {
       position: 'bottom',
       nativeTitle: ownerMypageContent.kindergartenEditSaveSuccessToastFallback,
       titleParts: [
-        { text: ownerMypageContent.kindergartenEditSaveSuccessToastPrefix, accent: true },
+        { text: ownerMypageContent.kindergartenEditSaveSuccessToastPrefix, bold: true },
         { text: ownerMypageContent.kindergartenEditSaveSuccessToastSuffix },
       ],
       title: (
         <>
-          <span className='body1-bold text-text-accent'>
+          <span className='body1-bold text-text-primary-inverse'>
             {ownerMypageContent.kindergartenEditSaveSuccessToastPrefix}
           </span>
           <span className='body1-medium text-text-primary-inverse'>
@@ -172,7 +173,7 @@ function MypageOwnerKindergartenPricingEditPage() {
           </div>
         </div>
 
-        <div className='relative shrink-0 px-4 pt-5 pb-5'>
+        <BottomCta className='relative shrink-0 px-4 pt-5 pb-5'>
           <div className='pointer-events-none absolute inset-x-0 -top-28 h-28 bg-gradient-to-b from-transparent to-white' />
           <ActionButton
             type='button'
@@ -184,7 +185,7 @@ function MypageOwnerKindergartenPricingEditPage() {
           >
             {ownerMypageContent.profileSaveButtonLabel}
           </ActionButton>
-        </div>
+        </BottomCta>
       </div>
     </div>
   );

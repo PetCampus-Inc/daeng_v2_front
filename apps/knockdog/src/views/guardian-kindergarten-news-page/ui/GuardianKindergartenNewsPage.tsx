@@ -56,7 +56,7 @@ function GuardianKindergartenNewsPageContent() {
       } catch {
         // fall through
       }
-      void navigateToTab('/compare');
+      void navigateToTab('/kindergarten');
     })();
   }, [back, navigateToTab]);
 
@@ -64,7 +64,7 @@ function GuardianKindergartenNewsPageContent() {
 
   const handleSearchClick = () => {
     void push({
-      pathname: route.compare.news.search.root,
+      pathname: route.kindergarten.news.search.root,
       query: schoolId ? { schoolId } : undefined,
     });
   };

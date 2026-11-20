@@ -11,7 +11,8 @@ type TabRoute =
   | '/'
   | '/search'
   | '/save'
-  | '/compare'
+  | '/reservation'
+  | '/kindergarten'
   | '/mypage'
   | '/owner'
   | '/owner/daily'
@@ -23,7 +24,8 @@ const MAIN_TAB_ROUTES: readonly string[] = [
   '/',
   '/search',
   '/save',
-  '/compare',
+  '/reservation',
+  '/kindergarten',
   '/mypage',
   '/owner',
   '/owner/daily',

@@ -2,7 +2,7 @@ interface KnockdogReview {
   id: string;
   score: number;
   createdAt: string;
-  enrollment: 'attending' | 'former';
+  enrollment: 'attending' | 'former' | null;
   content: string;
   images: string[];
   helpfulCount: number;

@@ -1,55 +1,111 @@
 'use client';
 
+import { useState } from 'react';
+
+import { cn } from '@knockdog/ui/lib';
+
 import { guardianConnectionHistoryContent } from '@views/guardian-kindergarten-history-page/config/guardianConnectionHistoryContent';
 import { useGuardianConnectionHistory } from '@views/guardian-kindergarten-history-page/model/useGuardianConnectionHistory';
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
+
+import { GuardianConnectionHistoryCard } from '@views/guardian-kindergarten-history-page/ui/GuardianConnectionHistoryCard';
+import { GuardianConnectionHistoryEmpty } from '@views/guardian-kindergarten-history-page/ui/GuardianConnectionHistoryEmpty';
+import { GuardianHistoryPetSelector } from '@views/guardian-kindergarten-history-page/ui/GuardianHistoryPetSelector';
 import { Header } from '@widgets/Header';
 import { PageError } from '@shared/ui/page-error';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
-import { getSubjectParticle } from '@shared/utils';
-
-import { GuardianConnectionHistoryCard } from './GuardianConnectionHistoryCard';
 
 function GuardianKindergartenHistoryPage() {
   const content = guardianConnectionHistoryContent;
-  const { selectedPet } = useGuardianSelectedPet();
-  const { items, isPending, isError, isFetching, refetch } = useGuardianConnectionHistory();
+  const { pets, selectedPet, hasNoPet, setSelectedPetId } = useGuardianSelectedPet();
+  const { items, isPending, isError, isFetching, refetch, markDisconnected } = useGuardianConnectionHistory();
 
   const petName = selectedPet?.name?.trim() || '강아지';
-  const subjectParticle = getSubjectParticle(petName);
+  const currentItem = items.find((item) => item.disconnectedAt == null);
+  const previousItems = items.filter((item) => item.disconnectedAt != null);
+  const hasNoHistory = hasNoPet || (!isPending && items.length === 0);
+  const [isPetSelectorOpen, setIsPetSelectorOpen] = useState(false);
+  const isPetListOpen = isPetSelectorOpen && Boolean(selectedPet) && !isError;
 
   return (
-    <div className='bg-bg-0 flex h-full min-h-0 flex-1 flex-col'>
-      <div className='shrink-0'>
+    <div className='bg-bg-50 relative flex h-full min-h-0 flex-1 flex-col'>
+      <div className='relative z-30 shrink-0'>
         <Header>
           <Header.BackButton />
           <Header.Title>{content.pageTitle}</Header.Title>
         </Header>
       </div>
 
+      {isPetListOpen ? (
+        <button
+          type='button'
+          aria-label={content.petSelector.closeLabel}
+          className='absolute inset-x-0 top-0 -bottom-[max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px))] z-10 touch-none bg-black/40'
+          onClick={() => setIsPetSelectorOpen(false)}
+        />
+      ) : null}
+
+      {!isError && selectedPet ? (
+        <div className='shrink-0'>
+          <GuardianHistoryPetSelector
+            pets={pets}
+            selectedPet={selectedPet}
+            isOpen={isPetListOpen}
+            onOpenChange={setIsPetSelectorOpen}
+            onSelect={setSelectedPetId}
+          />
+        </div>
+      ) : null}
+
       {isError ? (
         <PageError layout='inline' isRetrying={isFetching} onRetry={refetch} />
       ) : (
-        <div className='scrollbar-hide min-h-0 flex-1 overflow-y-auto overscroll-y-contain [-webkit-overflow-scrolling:touch]'>
-          <div className='px-x4 flex flex-col gap-1 pt-5 pb-3'>
-            <p className='h2-extrabold text-text-primary'>
-              <span className='text-text-accent'>{petName}</span>
-              <span>
-                {subjectParticle} {content.titleSuffix}
-              </span>
-            </p>
-            <p className='body1-medium text-text-primary'>{content.subtitle}</p>
-          </div>
+        <div
+          className={cn(
+            'scrollbar-hide relative min-h-0 flex-1 overscroll-none [-webkit-overflow-scrolling:touch]',
+            isPetListOpen ? 'overflow-hidden' : 'overflow-y-auto'
+          )}
+          inert={isPetListOpen}
+        >
+          {isPending ? (
+            <DelayedLoadingSpinner isLoading={isPending} layout='content' className='min-h-[200px]' />
+          ) : hasNoHistory ? (
+            <GuardianConnectionHistoryEmpty />
+          ) : (
+            <div className='px-x4 flex flex-col gap-7 pt-5 pb-[max(2rem,var(--safe-area-inset-bottom,0px))]'>
+              <section aria-label={content.currentSectionTitle} className='flex flex-col gap-2.5'>
+                <h2 className='body2-semibold text-text-secondary'>{content.currentSectionTitle}</h2>
+                {currentItem ? (
+                  <GuardianConnectionHistoryCard
+                    item={currentItem}
+                    petName={petName}
+                    onDisconnected={(disconnectedAt) => markDisconnected(currentItem.id, disconnectedAt)}
+                    onHistoryOutdated={refetch}
+                  />
+                ) : (
+                  <p className='body2-semibold text-text-caption border-line-200 radius-r3 px-x4 flex min-h-[52px] items-center justify-center border border-solid text-center'>
+                    {content.currentEmpty}
+                  </p>
+                )}
+              </section>
 
-          <div className='px-x4 flex flex-col gap-3 pb-[max(2rem,var(--safe-area-inset-bottom,0px))]'>
-            {isPending ? (
-              <DelayedLoadingSpinner isLoading={isPending} layout='content' className='min-h-[200px]' />
-            ) : (
-              items.map((item) => (
-                <GuardianConnectionHistoryCard key={item.id} item={item} />
-              ))
-            )}
-          </div>
+              <section aria-label={content.previousSectionTitle} className='flex flex-col gap-2.5'>
+                <h2 className='body2-semibold text-text-secondary flex items-center gap-1.5'>
+                  {content.previousSectionTitle}
+                  <span className='text-text-caption'>{previousItems.length}</span>
+                </h2>
+                {previousItems.length > 0 ? (
+                  <ul className='flex flex-col gap-3'>
+                    {previousItems.map((item) => (
+                      <li key={item.id}>
+                        <GuardianConnectionHistoryCard item={item} petName={petName} />
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </section>
+            </div>
+          )}
         </div>
       )}
     </div>

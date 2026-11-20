@@ -16,6 +16,8 @@ type PickImageParams = {
   quality?: number;
   /** 이 크기 이상인 이미지만 업로드 전 리사이징한다. */
   resizeThresholdBytes?: number;
+  /** 웹에서도 선택한 이미지를 JPEG로 정규화한다. */
+  normalizeToJpeg?: boolean;
   /**
    * 이미지 종횡비 default: [1, 1]
    */
@@ -47,7 +49,7 @@ interface ImageAsset  {
   /**
    * 업로드된 이미지 pre-signed URL (skipUpload면 local uri/objectURL)
    */
-  preSignedUrl: string; 
+  preSignedUrl: string;
   /**
    * 업로드된 이미지 키 (skipUpload면 빈 문자열)
    */

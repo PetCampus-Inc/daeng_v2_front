@@ -1,15 +1,22 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type CSSProperties } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { useGuardianKindergartenHome } from '@views/guardian-kindergarten-page/model/useGuardianKindergartenHome';
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
+import { DiaryOnboardingProvider } from '@features/diary-onboarding';
+import {
+  GuardianDiarySegmentProvider,
+  resolveDefaultDiarySegment,
+} from '@views/guardian-kindergarten-page/model/guardianDiarySegment';
 import { OwnerVerificationEntry, useOwnerRole } from '@features/role-conversion';
 import { useGuardianApplicationsQuery } from '@entities/guardian-application';
 import { useUserStore } from '@entities/user';
 import { useTrackConnectionResults } from '@shared/lib/analytics';
-import { useTabNavigation } from '@shared/lib/bridge';
+import { useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { startOfDay } from '@shared/lib/calendar-date';
+import { buildDiaryWriteTarget } from '@shared/lib/diary-write/buildDiaryWriteTarget';
 import {
   isPetIdInList,
   parseNotificationEntrySource,
@@ -32,8 +39,10 @@ export function GuardianKindergartenPage() {
   const [isMounted, setIsMounted] = useState(false);
   const searchParams = useSearchParams();
   const { navigateToTab } = useTabNavigation();
+  const { push } = useStackNavigation();
   const {
     pets,
+    selectedPet,
     isPetsReady,
     isPetsError,
     setSelectedPetId,
@@ -151,6 +160,12 @@ export function GuardianKindergartenPage() {
     setIsLoggedIn(hasAuth);
   }, [hasAuth]);
 
+  const diarySchoolId =
+    linkedKindergarten && (status === 'approved' || status === 'disconnected') ? linkedKindergarten.id : null;
+  const openOnboardingDiary = useCallback(() => {
+    push(buildDiaryWriteTarget({ date: startOfDay(new Date()), schoolId: diarySchoolId }));
+  }, [diarySchoolId, push]);
+
   const handleRetry = useCallback(() => {
     if (isPetsError) {
       void refetchPets();
@@ -193,7 +208,7 @@ export function GuardianKindergartenPage() {
           isDismissed={false}
           checkInAt={null}
           checkOutAt={null}
-          hasUnreadAlarm={false}
+          hasUnreadAlarm={hasUnreadAlarm}
           hasNoPet={hasNoPet}
         />
         <div className='bg-bg-0 relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[24px]'>
@@ -216,58 +231,68 @@ export function GuardianKindergartenPage() {
   // 강아지 미등록 또는 연결된 유치원이 아예 없는 경우에만 노출한다.
   const shouldShowOwnerVerification =
     isLoggedIn && isOwnerRoleResolved && !isOwnerVerified && (hasNoPet || showEmpty);
+  const homePageStyle = {
+    ...pageGradientStyle,
+    '--floating-banner-offset': shouldShowOwnerVerification ? '112px' : '0px',
+  } as CSSProperties;
 
   return (
-    <div
-      className='flex h-dvh flex-col'
-      style={pageGradientStyle}
-    >
-      <GuardianKindergartenHeader
-        status={status}
-        isAttending={Boolean(showDayState && isAttending)}
-        isDismissed={Boolean(showDayState && isDismissed)}
-        checkInAt={checkInAt}
-        checkOutAt={checkOutAt}
-        hasUnreadAlarm={hasUnreadAlarm}
-        hasNoPet={hasNoPet}
-      />
-
-      <div className='bg-bg-0 relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[24px]'>
-        {hasNoPet ? (
-          <GuardianKindergartenNoPetState />
-        ) : showDayState ? (
-          <GuardianKindergartenAttendingState
-            kindergarten={linkedKindergarten}
+    <DiaryOnboardingProvider dogName={selectedPet?.name} petId={selectedPet?.id ?? null} onStart={openOnboardingDiary}>
+      <GuardianDiarySegmentProvider
+        dogName={selectedPet?.name}
+        petId={selectedPet?.id ?? null}
+        schoolId={diarySchoolId}
+        defaultSegment={resolveDefaultDiarySegment(showEmpty)}
+        diaryReturnDate={searchParams.get('diaryReturnDate')}
+      >
+        <div className='flex h-dvh flex-col' style={homePageStyle}>
+          <GuardianKindergartenHeader
+            status={status}
+            isAttending={Boolean(showDayState && isAttending)}
+            isDismissed={Boolean(showDayState && isDismissed)}
             checkInAt={checkInAt}
             checkOutAt={checkOutAt}
-            hasDailyNotice={hasDailyNotice}
-            albumPhotos={albumPhotos}
-            albumLatestCreatedAt={albumLatestCreatedAt}
-            firstAttendedAt={firstAttendedAt}
+            hasUnreadAlarm={hasUnreadAlarm}
+            hasNoPet={hasNoPet}
           />
-        ) : showDisconnected ? (
-          <GuardianKindergartenDisconnectedState
-            kindergarten={linkedKindergarten}
-            albumPhotos={albumPhotos}
-            firstAttendedAt={firstAttendedAt}
-          />
-        ) : showApproved ? (
-          <GuardianKindergartenApprovedState
-            kindergarten={linkedKindergarten}
-            firstAttendedAt={firstAttendedAt}
-          />
-        ) : showPending ? (
-          <GuardianKindergartenPendingState kindergarten={linkedKindergarten} />
-        ) : (
-          <GuardianKindergartenEmptyState />
-        )}
-      </div>
 
-      {shouldShowOwnerVerification && (
-        <div className='web:bottom-[calc(var(--bottom-bar-height)+20px)] webview:bottom-5 fixed inset-x-0 z-50 mx-auto w-full max-w-120 px-4'>
-          <OwnerVerificationEntry requiresLogin={false} variant='banner' />
+          <div className='bg-bg-0 relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[24px]'>
+            {hasNoPet ? (
+              <GuardianKindergartenNoPetState />
+            ) : showDayState ? (
+              <GuardianKindergartenAttendingState
+                kindergarten={linkedKindergarten}
+                checkOutAt={checkOutAt}
+                hasDailyNotice={hasDailyNotice}
+                albumPhotos={albumPhotos}
+                albumLatestCreatedAt={albumLatestCreatedAt}
+                firstAttendedAt={firstAttendedAt}
+              />
+            ) : showDisconnected ? (
+              <GuardianKindergartenDisconnectedState
+                kindergarten={linkedKindergarten}
+                albumPhotos={albumPhotos}
+                firstAttendedAt={firstAttendedAt}
+              />
+            ) : showApproved ? (
+              <GuardianKindergartenApprovedState
+                kindergarten={linkedKindergarten}
+                firstAttendedAt={firstAttendedAt}
+              />
+            ) : showPending ? (
+              <GuardianKindergartenPendingState kindergarten={linkedKindergarten} />
+            ) : (
+              <GuardianKindergartenEmptyState />
+            )}
+          </div>
+
+          {shouldShowOwnerVerification && (
+            <div className='web:bottom-[calc(var(--bottom-bar-height)+20px)] webview:bottom-5 fixed inset-x-0 z-50 mx-auto w-full max-w-120 px-4'>
+              <OwnerVerificationEntry requiresLogin={false} variant='banner' />
+            </div>
+          )}
         </div>
-      )}
-    </div>
+      </GuardianDiarySegmentProvider>
+    </DiaryOnboardingProvider>
   );
 }

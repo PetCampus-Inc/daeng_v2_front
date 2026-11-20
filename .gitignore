@@ -9,6 +9,7 @@ node_modules
 # Local env files
 .env
 .env.local
+.env.development
 .env.development.local
 .env.test.local
 .env.production.local
@@ -53,3 +54,5 @@ storybook-static
 
 # Sentry
 .env.sentry-build-plugin
+# PRD 원본과 Figma 캐시는 로컬 보관한다. PRD·결정 기록·테스트 목록은 공유한다.
+/docs/prd/*/original/

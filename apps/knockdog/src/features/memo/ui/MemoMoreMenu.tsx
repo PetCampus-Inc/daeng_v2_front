@@ -66,13 +66,13 @@ function MemoMoreMenu({ targetId, onEdit }: MemoMoreMenuProps) {
         nativeTitle: '자유메모를 삭제하지 못했어요',
         titleParts: [
           { text: '자유메모를 ', accent: false },
-          { text: '삭제', accent: true },
+          { text: '삭제', bold: true },
           { text: '하지 못했어요', accent: false },
         ],
         title: (
           <>
             <span className='text-text-primary-inverse'>자유메모를 </span>
-            <span className='text-text-accent'>삭제</span>
+            <span className='body1-bold text-text-primary-inverse'>삭제</span>
             <span className='text-text-primary-inverse'>하지 못했어요</span>
           </>
         ),
@@ -85,13 +85,13 @@ function MemoMoreMenu({ targetId, onEdit }: MemoMoreMenuProps) {
         nativeTitle: '자유메모를 삭제했어요',
         titleParts: [
           { text: '자유메모를 ', accent: false },
-          { text: '삭제', accent: true },
+          { text: '삭제', bold: true },
           { text: '했어요', accent: false },
         ],
         title: (
           <>
             <span className='text-text-primary-inverse'>자유메모를 </span>
-            <span className='text-text-accent'>삭제</span>
+            <span className='body1-bold text-text-primary-inverse'>삭제</span>
             <span className='text-text-primary-inverse'>했어요</span>
           </>
         ),

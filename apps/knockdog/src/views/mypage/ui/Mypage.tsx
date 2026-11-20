@@ -1,7 +1,16 @@
 'use client';
 
+import { useLayoutEffect, useRef, useState } from 'react';
 import { Divider, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
+import { MypageSectionSkeleton } from '@views/mypage/ui/MypageSectionSkeleton';
+import {
+  AccountSection,
+  DogHouseSection,
+  QuickActionsSection,
+  SettingsSection,
+} from '@views/mypage/ui/MypageLazySections';
+import { OwnerPassTemplateManagementSection } from '@views/mypage/ui/OwnerPassTemplateManagementSection';
 
 import { Header } from '@widgets/Header';
 
@@ -29,27 +38,29 @@ import { useUserInfoQuery, useUserStore } from '@entities/user';
 import { logout } from '@shared/lib/auth/logout';
 import { NotificationBell } from '@shared/ui/notification-bell';
 import { PrivateAccess } from '@shared/ui/private-access';
-import { openConfirmDialog, useStackNavigation } from '@shared/lib/bridge';
+import { openConfirmDialog, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { isNativeWebView } from '@shared/lib/device';
+import { closeOverlayThenNavigate } from '@shared/lib/navigation/closeOverlayThenNavigate';
+import { toast } from '@shared/ui/toast';
 import {
   route,
   RELEASE_PERMISSION_SOURCE,
   RELEASE_PERMISSION_SOURCE_QUERY_KEY,
 } from '@shared/constants/route';
-import { MypageSectionSkeleton } from '@views/mypage/ui/MypageSectionSkeleton';
-import {
-  AccountSection,
-  DogHouseSection,
-  QuickActionsSection,
-  SettingsSection,
-} from '@views/mypage/ui/MypageLazySections';
 
 function MypageContent() {
   const { push, reset } = useStackNavigation();
+  const { navigateToTab } = useTabNavigation();
+  const [isSwitchingRole, setIsSwitchingRole] = useState(false);
   const user = useUserStore((state) => state.user);
   const { data: userInfoResponse } = useUserInfoQuery(user?.userId);
   const userInfo = userInfoResponse?.userId === user?.userId ? userInfoResponse : undefined;
   const { isOwner: isOwnerVerified, isResolved: isOwnerRoleResolved } = useOwnerRole();
-  const { isOwnerView, isGuardianView, canToggleRoleView, toggleRoleView } = useMypageRoleView();
+  const { isOwnerView, isGuardianView, canToggleRoleView, setRoleView } = useMypageRoleView();
+  const latestRoleView = useRef({ canToggleRoleView, isOwnerView });
+  useLayoutEffect(() => {
+    latestRoleView.current = { canToggleRoleView, isOwnerView };
+  }, [canToggleRoleView, isOwnerView]);
   const { data: hasUnreadNotification = false } = useHasUnreadNotificationQuery({
     userId: user?.userId,
     audience: isOwnerView ? 'OWNER' : 'GUARDIAN',
@@ -95,10 +106,35 @@ function MypageContent() {
     push({ pathname: route.mypage.kindergarten.root });
   };
 
-  const handleRoleViewToggle = () => {
-    if (isOwnerView) showConvertedToGuardianToast();
-    else showConvertedToOwnerToast();
-    toggleRoleView();
+  const handleRoleViewToggle = async () => {
+    if (!canToggleRoleView || isSwitchingRole) return;
+
+    setIsSwitchingRole(true);
+    const nextMode = isOwnerView ? 'guardian' : 'owner';
+
+    try {
+      if (isNativeWebView()) {
+        await navigateToTab('/mypage', undefined, nextMode);
+
+        const latest = latestRoleView.current;
+        if (!latest.canToggleRoleView) {
+          const currentMode = latest.isOwnerView ? 'owner' : 'guardian';
+          if (currentMode !== nextMode) {
+            await navigateToTab('/mypage', undefined, currentMode);
+          }
+          return;
+        }
+      }
+
+      setRoleView(nextMode);
+      if (nextMode === 'guardian') showConvertedToGuardianToast();
+      else showConvertedToOwnerToast();
+    } catch (error) {
+      console.error('[Mypage] Failed to switch role view', error);
+      toast('화면을 전환하지 못했어요. 잠시 후 다시 시도해 주세요.');
+    } finally {
+      setIsSwitchingRole(false);
+    }
   };
 
   const performLogout = async () => {
@@ -177,12 +213,10 @@ function MypageContent() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
+            <AlertDialogCancel>{ownerMypageContent.withdrawBlockedModalCancelLabel}</AlertDialogCancel>
             <AlertDialogAction
               className='bg-fill-secondary-700 active:bg-fill-secondary-400'
-              onClick={() => {
-                close();
-                goToReleasePermission();
-              }}
+              onClick={() => closeOverlayThenNavigate(close, goToReleasePermission)}
             >
               {ownerMypageContent.withdrawBlockedModalConfirmLabel}
             </AlertDialogAction>
@@ -201,8 +235,8 @@ function MypageContent() {
     const result = await openConfirmDialog({
       title: `${ownerMypageContent.withdrawBlockedModalTitleLine1}\n${ownerMypageContent.withdrawBlockedModalTitleLine2}`,
       description: `${ownerMypageContent.withdrawBlockedModalDescriptionLine1}\n${ownerMypageContent.withdrawBlockedModalDescriptionLine2}`,
+      cancelLabel: ownerMypageContent.withdrawBlockedModalCancelLabel,
       confirmLabel: ownerMypageContent.withdrawBlockedModalConfirmLabel,
-      showCancelButton: false,
       confirmVariant: 'neutral',
     });
 
@@ -232,7 +266,8 @@ function MypageContent() {
         {canToggleRoleView && (
           <RoleConversionButton
             onClick={handleRoleViewToggle}
-            className={isOwnerView ? 'bg-fill-secondary-600' : undefined}
+            disabled={isSwitchingRole}
+            className={isOwnerView ? 'bg-fill-primary-50 text-primitive-orange-400' : undefined}
           >
             {isOwnerView
               ? roleConversionButtonContent.convertoGuardian
@@ -262,6 +297,8 @@ function MypageContent() {
               />
             ) : null}
 
+            <OwnerPassTemplateManagementSection />
+
             <Divider size='thick' />
           </div>
         ) : (
@@ -275,23 +312,14 @@ function MypageContent() {
                   showRegistrationEmptyState
                   onAddDog={() => push({ pathname: '/mypage/pet-add' })}
                 />
-                {shouldShowOwnerVerification ? <OwnerVerificationEntry requiresLogin={false} variant='banner' /> : null}
               </div>
             ) : (
-              <>
-                <DogHouseSection
-                  dogs={petListResponse?.data || []}
-                  withBottomPadding={!shouldShowOwnerVerification}
-                  onChangeRepresentative={openDogSelectSheet}
-                  onDogClick={handleDogClick}
-                  onAddDog={handleAddDog}
-                />
-                {shouldShowOwnerVerification ? (
-                  <div className='bg-bg-0 flex flex-col items-center px-4 py-5'>
-                    <OwnerVerificationEntry requiresLogin={false} variant='banner' />
-                  </div>
-                ) : null}
-              </>
+              <DogHouseSection
+                dogs={petListResponse?.data || []}
+                onChangeRepresentative={openDogSelectSheet}
+                onDogClick={handleDogClick}
+                onAddDog={handleAddDog}
+              />
             )}
 
             <Divider size='thick' />
@@ -313,6 +341,7 @@ function MypageContent() {
           }
           onProfileClick={() => push({ pathname: route.mypage.guardian.profile.root })}
           onLocationClick={() => push({ pathname: '/mypage/profile/location' })}
+          onConnectionHistoryClick={() => push({ pathname: route.kindergarten.connectionHistory.root })}
           onConnectionApplicationsClick={() => push({ pathname: route.guardian.connectionApply.status.root })}
           onMyReviewsClick={() => push({ pathname: route.mypage.guardian.reviews.root })}
           onReleasePermissionClick={() => push({ pathname: route.roleConversion.releasePermission.root })}
@@ -320,7 +349,13 @@ function MypageContent() {
 
         <Divider size='thick' />
 
-        <QuickActionsSection />
+        <QuickActionsSection variant={isOwnerView ? 'owner' : 'guardian'} />
+
+        {!isOwnerView && shouldShowOwnerVerification ? (
+          <div className='bg-bg-0 -mt-2 px-4 pb-5'>
+            <OwnerVerificationEntry requiresLogin={false} variant='banner' />
+          </div>
+        ) : null}
 
         <SettingsSection
           otherInfoTitle={ownerMypageContent.otherInfoTitle}

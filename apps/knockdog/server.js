@@ -2,6 +2,11 @@ const express = require('express');
 const next = require('next');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 require('dotenv').config();
+// 커스텀 서버는 Next가 .env.development를 읽기 전에 process.env를 쓰므로 개발 값을 직접 덮어쓴다.
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config({ path: '.env.development', override: true });
+}
+require('dotenv').config({ path: '.env.local', override: true });
 
 // Next.js가 자동으로 NODE_ENV를 설정하도록 함
 const dev = process.env.NODE_ENV !== 'production';
@@ -9,7 +14,7 @@ const app = next({ dev, turbopack: true });
 const handle = app.getRequestHandler();
 
 const proxyMiddleware = createProxyMiddleware({
-  target: 'https://api.knockdog.net',
+  target: process.env.NEXT_PUBLIC_API_BASE_URL,
   changeOrigin: true,
   pathRewrite: { '^/': '/api/v0/' },
   cookieDomainRewrite: { '*': '' }, // 쿠키 도메인 제거 (localhost에서는 Domain 생략 필요)

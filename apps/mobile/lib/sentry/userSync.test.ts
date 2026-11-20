@@ -16,7 +16,7 @@ vi.mock('@react-native-firebase/analytics', () => ({
 }));
 
 describe('네이티브 Sentry 사용자 동기화', () => {
-  let syncUser: (params: { user_id: string | null }) => Promise<unknown>;
+  let syncUser: (params: { user_id: string | null; collection_enabled?: boolean }) => Promise<unknown>;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -39,5 +39,13 @@ describe('네이티브 Sentry 사용자 동기화', () => {
     mocks.setUserId.mockRejectedValueOnce(new Error('Firebase unavailable'));
     await expect(syncUser({ user_id: null })).rejects.toThrow('Firebase unavailable');
     expect(mocks.setUser).toHaveBeenCalledWith(null);
+  });
+
+  it('수집 제외 요청은 Firebase와 Sentry의 사용자 정보를 모두 해제한다', async () => {
+    await syncUser({ user_id: 'user-a', collection_enabled: true });
+    await syncUser({ user_id: 'user-b', collection_enabled: false });
+
+    expect(mocks.setUserId).toHaveBeenLastCalledWith(expect.anything(), null);
+    expect(mocks.setUser).toHaveBeenLastCalledWith(null);
   });
 });

@@ -11,6 +11,7 @@ import { navBridgeHub } from '@/bridges/model/navBridgeHub';
 import { isExternalWebViewUrl } from '@/bridges/lib/isFirstPartyWebViewUrl';
 import { clearExitArm } from '@/bridges/lib/androidTabBackNavigation';
 import { NATIVE_BACK_INJECT } from '@/bridges/lib/nativeBackInject';
+import { queueDiaryTabReturn } from '@/bridges/lib/tabQueryInject';
 
 type StackRoute = RouteProp<RootStackParamList, 'Stack'>;
 
@@ -54,7 +55,9 @@ export default function StackScreen() {
 
   // 뒤로가기 감지: beforeRemove 이벤트 리스너
   useEffect(() => {
-    const unsubscribe = navigation.addListener('beforeRemove', () => {
+    const unsubscribe = navigation.addListener('beforeRemove', ({ data }) => {
+      queueDiaryTabReturn(currentUrlRef.current, data.action.type);
+
       // 현재 페이지에 _txId가 있으면 (pushForResult로 열린 페이지)
       const txId = initialState?._txId;
       if (txId && typeof txId === 'string') {

@@ -25,9 +25,7 @@ export function HeaderWrapper() {
         <Header.LeftSection>
           <Header.BackButton />
         </Header.LeftSection>
-        <Header.CenterSection>
-          <Header.Title>{title}</Header.Title>
-        </Header.CenterSection>
+        <Header.Title>{title}</Header.Title>
       </Header>
     );
   }
@@ -61,9 +59,7 @@ export function HeaderWrapper() {
         <Header.LeftSection>
           <Header.BackButton />
         </Header.LeftSection>
-        <Header.CenterSection>
-          <Header.Title>{title}</Header.Title>
-        </Header.CenterSection>
+        <Header.Title>{title}</Header.Title>
       </Header>
     );
   }

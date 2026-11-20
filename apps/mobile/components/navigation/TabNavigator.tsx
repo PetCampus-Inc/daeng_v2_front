@@ -1,17 +1,22 @@
-import CompareIcon from '@/assets/icons/compare_basic.svg';
-import ExploreIcon from '@/assets/icons/explore_basic.svg';
-import GalleryIcon from '@/assets/icons/gallery_basic.svg';
-import HomeIcon from '@/assets/icons/home_basic.svg';
-import MembersIcon from '@/assets/icons/members_basic.svg';
-import MypageIcon from '@/assets/icons/mypage_basic.svg';
-import NoticebookIcon from '@/assets/icons/noticebook_basic.svg';
-import SaveIcon from '@/assets/icons/save_basic.svg';
+import GuardianArchiveIcon from '@/assets/icons/guardian_archive.svg';
+import GuardianLogActiveIcon from '@/assets/icons/guardian_log_active.svg';
+import GuardianLogInactiveIcon from '@/assets/icons/guardian_log_inactive.svg';
+import GuardianMapIcon from '@/assets/icons/guardian_map.svg';
+import GuardianMyIcon from '@/assets/icons/guardian_my.svg';
+import GuardianReserveActiveIcon from '@/assets/icons/guardian_reserve_active.svg';
+import GuardianReserveInactiveIcon from '@/assets/icons/guardian_reserve_inactive.svg';
+import OwnerAlbumIcon from '@/assets/icons/owner_album.svg';
+import OwnerDailyIcon from '@/assets/icons/owner_daily.svg';
+import OwnerHomeIcon from '@/assets/icons/owner_home.svg';
+import OwnerMembersIcon from '@/assets/icons/owner_members.svg';
+import OwnerMypageIcon from '@/assets/icons/owner_mypage.svg';
 import { useMainTabModeStore } from '@/bridges/model/mainTabModeStore';
 import { useBottomTabBarVisibilityStore } from '@/bridges/model/bottomTabBarVisibilityStore';
 import { tabWebViewStore } from '@/bridges/model/tabWebViewStore';
 import type { TabName } from '@/bridges/lib/tabRoutes';
-import CompareTab from '@/screens/compare';
 import ExploreTab from '@/screens/explore';
+import KindergartenTab from '@/screens/kindergarten';
+import ReservationTab from '@/screens/reservation';
 import MypageTab from '@/screens/mypage';
 import OwnerAlbumTab from '@/screens/owner-album';
 import OwnerDailyTab from '@/screens/owner-daily';
@@ -25,15 +30,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAndroidTabBack } from './useAndroidTabBack';
 import {
-  BOTTOM_TAB_BAR_DIM_HEIGHT,
   ANDROID_TAB_BAR_CONTENT_HEIGHT,
   getAndroidTabBarBottomInset,
+  getBottomTabBarHeight,
 } from './bottomTabBarHeight';
 
 const Tab = createBottomTabNavigator();
 
 const OWNER_TAB_NAMES = new Set(['OwnerHome', 'OwnerDaily', 'OwnerAlbum', 'OwnerMembers']);
-const GUARDIAN_TAB_NAMES = new Set(['Explore', 'Save', 'Compare']);
+const GUARDIAN_TAB_NAMES = new Set(['Explore', 'Save', 'Reserve', 'Kindergarten']);
 
 function getTabBarStyle(isTabBarVisible: boolean, bottom: number) {
   if (!isTabBarVisible) {
@@ -82,7 +87,6 @@ function notifyCurrentTabWillBlur(tabName: TabName) {
 
 export default function TabNavigator() {
   const { bottom } = useSafeAreaInsets();
-  const androidTabBarBottomInset = getAndroidTabBarBottomInset(bottom);
   const mode = useMainTabModeStore((state) => state.mode);
   const isOwnerMode = mode === 'owner';
   const isTabBarVisible = useBottomTabBarVisibilityStore((state) => state.visible);
@@ -109,40 +113,73 @@ export default function TabNavigator() {
 
           return {
             tabBarIcon: ({ focused }) => {
-              const iconProps = {
-                fill: focused ? '#FF6E0C' : '#8C8C94',
-                color: focused ? '#FF6E0C' : '#8C8C94',
-              };
+              const tint = focused ? '#FF6E0C' : isOwnerMode ? '#B4B4BB' : '#8C8C94';
+              const strokeIconProps = { color: tint };
 
               switch (route.name) {
                 case 'Explore':
-                  return <ExploreIcon width={21} height={21} {...iconProps} />;
+                  return (
+                    <View style={styles.guardianIcon}>
+                      <GuardianMapIcon color={focused ? '#FF6E0C' : '#B4B4BB'} />
+                    </View>
+                  );
                 case 'Save':
-                  return <SaveIcon width={21} height={21} {...iconProps} />;
-                case 'Compare':
-                  return <CompareIcon width={25} height={25} {...iconProps} />;
+                  return (
+                    <View style={styles.guardianIcon}>
+                      <GuardianArchiveIcon color={focused ? '#FF6E0C' : '#B4B4BB'} />
+                    </View>
+                  );
+                case 'Reserve':
+                  return (
+                    <View style={styles.guardianIcon}>
+                      {focused ? <GuardianReserveActiveIcon /> : <GuardianReserveInactiveIcon />}
+                    </View>
+                  );
+                case 'Kindergarten':
+                  return (
+                    <View style={styles.guardianIcon}>
+                      {focused ? (
+                        <GuardianLogActiveIcon />
+                      ) : (
+                        <GuardianLogInactiveIcon />
+                      )}
+                    </View>
+                  );
                 case 'OwnerHome':
-                  return <HomeIcon width={24} height={24} {...iconProps} />;
+                  return <OwnerHomeIcon width={21} height={21} {...strokeIconProps} />;
                 case 'OwnerDaily':
-                  return <NoticebookIcon width={24} height={24} {...iconProps} />;
+                  return <OwnerDailyIcon width={20} height={20} {...strokeIconProps} />;
                 case 'OwnerAlbum':
-                  return <GalleryIcon width={24} height={24} {...iconProps} />;
+                  return <OwnerAlbumIcon width={20} height={20} {...strokeIconProps} />;
                 case 'OwnerMembers':
-                  return <MembersIcon width={24} height={24} {...iconProps} />;
+                  return <OwnerMembersIcon width={21} height={21} {...strokeIconProps} />;
                 case 'Mypage':
-                  return <MypageIcon width={24} height={24} style={{ marginTop: 2 }} {...iconProps} />;
+                  return isOwnerMode ? (
+                    <OwnerMypageIcon width={21} height={21} {...strokeIconProps} />
+                  ) : (
+                    <View style={styles.guardianIcon}>
+                      <GuardianMyIcon color={focused ? '#FF6E0C' : '#B4B4BB'} />
+                    </View>
+                  );
                 default:
                   console.warn('❗ tabBarIcon: Unknown route name', route.name);
                   return null;
               }
             },
             tabBarActiveTintColor: '#FF6E0C',
-            tabBarInactiveTintColor: '#8C8C94',
+            tabBarInactiveTintColor: '#70727C',
             ...(Platform.OS === 'android' ? { tabBarAllowFontScaling: false } : {}),
             tabBarStyle: getTabBarStyle(isTabBarVisible, bottom),
             tabBarLabelStyle: {
               fontSize: 12,
-              marginTop: 2,
+              fontFamily: 'SUIT-SemiBold',
+              lineHeight: 18,
+              marginTop: 4,
+              ...(isOwnerMode
+                ? {
+                    letterSpacing: -0.24,
+                  }
+                : {}),
             },
             headerShown: false,
             ...(visible ? {} : HIDDEN_TAB_OPTIONS),
@@ -151,7 +188,8 @@ export default function TabNavigator() {
       >
         <Tab.Screen name='Explore' component={ExploreTab} options={{ title: '내 주변' }} />
         <Tab.Screen name='Save' component={SaveTab} options={{ title: '보관함' }} />
-        <Tab.Screen name='Compare' component={CompareTab} options={{ title: '유치원' }} />
+        <Tab.Screen name='Reserve' component={ReservationTab} options={{ title: '예약' }} />
+        <Tab.Screen name='Kindergarten' component={KindergartenTab} options={{ title: '똑독로그' }} />
         <Tab.Screen name='OwnerHome' component={OwnerHomeTab} options={{ title: '홈' }} />
         <Tab.Screen name='OwnerDaily' component={OwnerDailyTab} options={{ title: '일과' }} />
         <Tab.Screen name='OwnerAlbum' component={OwnerAlbumTab} options={{ title: '앨범' }} />
@@ -162,11 +200,10 @@ export default function TabNavigator() {
         <View
           pointerEvents='auto'
           style={[
-            styles.bottomTabBarDim,
+            styles.dimOverlay,
             {
-              height:
-                BOTTOM_TAB_BAR_DIM_HEIGHT +
-                (Platform.OS === 'android' ? androidTabBarBottomInset : bottom),
+              bottom,
+              height: getBottomTabBarHeight(bottom) - bottom,
             },
           ]}
         />
@@ -176,16 +213,21 @@ export default function TabNavigator() {
 }
 
 const styles = StyleSheet.create({
+  guardianIcon: {
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   container: {
     flex: 1,
   },
-  bottomTabBarDim: {
+  dimOverlay: {
     position: 'absolute',
-    bottom: 0,
     left: 0,
     right: 0,
     zIndex: 20,
     elevation: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
 });

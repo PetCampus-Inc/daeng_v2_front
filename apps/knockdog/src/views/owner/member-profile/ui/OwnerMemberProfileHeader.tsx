@@ -1,17 +1,21 @@
 import { Avatar, AvatarFallback, AvatarImage, Icon } from '@knockdog/ui';
 
 import type { OwnerPet } from '@entities/owner-pet';
-import { DogMetaLine } from '@shared/ui/dog-meta-line';
+
+import { ownerMemberProfileContent } from '../config/ownerMemberProfileContent';
 
 interface OwnerMemberProfileHeaderProps {
   dog: OwnerPet;
+  phone: string | null;
+  isPhoneReady: boolean;
 }
 
-function OwnerMemberProfileHeader({ dog }: OwnerMemberProfileHeaderProps) {
+function OwnerMemberProfileHeader({ dog, phone, isPhoneReady }: OwnerMemberProfileHeaderProps) {
   const genderIcon = dog.gender === 'MALE' ? 'Male' : dog.gender === 'FEMALE' ? 'Female' : null;
+  const phoneLabel = isPhoneReady ? (phone ?? ownerMemberProfileContent.emptyValue) : '\u00a0';
 
   return (
-    <div className='bg-bg-0 flex w-full min-w-0 flex-col items-center gap-2 pt-5'>
+    <div className='bg-bg-0 flex w-full min-w-0 flex-col items-center gap-2 pt-6'>
       <Avatar className='size-[120px]'>
         {dog.profileImageUrl ? (
           <AvatarImage src={dog.profileImageUrl} alt={`${dog.name} 프로필`} className='object-cover' />
@@ -26,13 +30,7 @@ function OwnerMemberProfileHeader({ dog }: OwnerMemberProfileHeaderProps) {
           <h1 className='h1-extrabold text-text-primary min-w-0 truncate'>{dog.name}</h1>
           {genderIcon ? <Icon icon={genderIcon} className='text-text-accent size-6 shrink-0' /> : null}
         </div>
-        <DogMetaLine
-          breed={dog.breed}
-          weightKg={dog.weightKg}
-          birthYear={dog.birthYear}
-          centered
-          className='body1-medium text-text-secondary'
-        />
+        <p className='body1-medium text-text-secondary'>{phoneLabel}</p>
       </div>
     </div>
   );

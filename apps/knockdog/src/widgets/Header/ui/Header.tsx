@@ -38,7 +38,7 @@ export function Header({
         )}
         {...props}
       >
-        <div className={cn('flex h-16 w-full items-center justify-between', innerClassName)}>{children}</div>
+        <div className={cn('flex h-16 w-full items-center gap-x-4', innerClassName)}>{children}</div>
       </header>
     </>
   );

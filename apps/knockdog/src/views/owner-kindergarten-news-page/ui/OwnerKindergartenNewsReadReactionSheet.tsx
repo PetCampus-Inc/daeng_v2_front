@@ -61,13 +61,13 @@ function showNotifySuccessToast(guardianName: string) {
     nativeTitle: readReactionSheet.notifySuccessToast.nativeTitle.replace('{name}', guardianName),
     titleParts: [
       { text: prefix },
-      { text: '알림', accent: true },
+      { text: '알림', bold: true },
       { text: '을 전송했어요' },
     ],
     title: (
       <>
         <span className='text-text-primary-inverse'>{prefix}</span>
-        <span className='text-text-accent'>알림</span>
+        <span className='body1-bold text-text-primary-inverse'>알림</span>
         <span className='text-text-primary-inverse'>을 전송했어요</span>
       </>
     ),

@@ -1,10 +1,7 @@
 const guardianKindergartenAttendingContent = {
   checkInLabel: '등원',
   checkOutLabel: '하원',
-  dayFinishedLabel: '오늘 하루를 마쳤어요',
-  noticePreparingMessage: '선생님이 알림장을 준비하고 있어요',
-  noticePreparingIconSrc: '/images/ico_note_writing_none.png',
-  noticePreparingIconAlt: '알림장 준비 중',
+  noticePreparingMessage: '등원하면 소식을 전해드릴게요',
   noticeArrivedMessage: '오늘의 알림장이 도착했어요',
   noticeArrivedIconSrc: '/images/ico_note_complete.png',
   noticeArrivedIconAlt: '알림장 도착',

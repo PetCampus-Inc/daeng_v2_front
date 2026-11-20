@@ -10,39 +10,15 @@ import {
   ownerMemberProfileContent,
   type OwnerMemberProfileTab,
 } from '../config/ownerMemberProfileContent';
-import { useOwnerMemberProfileDisconnect } from '../model/useOwnerMemberProfileDisconnect';
 import { useOwnerMemberProfilePage } from '../model/useOwnerMemberProfilePage';
+import { formatProfilePhone } from '../lib/formatProfilePhone';
+import { AttendanceRecordSection } from './AttendanceRecordSection';
 import { DogBasicInfoSection } from './DogBasicInfoSection';
 import { GuardianBasicInfoSection } from './GuardianBasicInfoSection';
-import { AttendanceRecordSection } from './AttendanceRecordSection';
 import { OwnerMemberConnectionHistorySection } from './OwnerMemberConnectionHistorySection';
+import { OwnerMemberProfileDisconnectButton } from './OwnerMemberProfileDisconnectButton';
 import { OwnerMemberProfileHeader } from './OwnerMemberProfileHeader';
-
-function OwnerMemberProfileDisconnectButton({
-  petId,
-  dogName,
-}: {
-  petId: string;
-  dogName: string;
-}) {
-  const { handleDisconnectClick, isDisconnecting } = useOwnerMemberProfileDisconnect({
-    petId,
-    dogName,
-  });
-
-  return (
-    <button
-      type='button'
-      disabled={isDisconnecting}
-      onClick={() => {
-        void handleDisconnectClick();
-      }}
-      className='label-semibold text-text-primary px-2 py-1 disabled:opacity-50'
-    >
-      {ownerMemberProfileContent.disconnectButtonLabel}
-    </button>
-  );
-}
+import { OwnerMemberTicketSection } from './OwnerMemberTicketSection';
 
 function OwnerMemberProfilePage() {
   const {
@@ -54,9 +30,12 @@ function OwnerMemberProfilePage() {
     handleCopy,
     isDogLoading,
     isDogError,
+    isDogAccessDenied,
     isGuardianLoading,
     isGuardianError,
   } = useOwnerMemberProfilePage();
+
+  if (isDogAccessDenied) return <DelayedLoadingSpinner isLoading layout='screen' />;
 
   return (
     <div className='bg-bg-50 flex h-full flex-col'>
@@ -87,9 +66,13 @@ function OwnerMemberProfilePage() {
           className='flex min-h-0 flex-1 flex-col overflow-hidden'
         >
           <div className='bg-bg-0 shrink-0'>
-            <OwnerMemberProfileHeader dog={dog} />
+            <OwnerMemberProfileHeader
+              dog={dog}
+              phone={formatProfilePhone(guardian?.phone)}
+              isPhoneReady={!isGuardianLoading}
+            />
             <TabsList className='mt-5'>
-              <TabsTrigger value={TAB.DOG}>{ownerMemberProfileContent.dogTabLabel}</TabsTrigger>
+              <TabsTrigger value={TAB.USAGE}>{ownerMemberProfileContent.usageTabLabel}</TabsTrigger>
               <TabsTrigger value={TAB.GUARDIAN}>
                 {ownerMemberProfileContent.guardianTabLabel}
               </TabsTrigger>
@@ -100,8 +83,9 @@ function OwnerMemberProfilePage() {
           </div>
 
           <div className='min-h-0 flex-1 overflow-y-auto'>
-            <TabsContent value={TAB.DOG}>
-              <div className='flex flex-col gap-5'>
+            <TabsContent value={TAB.USAGE}>
+              <div className='flex flex-col gap-5 py-5'>
+                <OwnerMemberTicketSection petId={petId} />
                 <DogBasicInfoSection dog={dog} />
                 <OwnerMemberConnectionHistorySection petId={petId} />
               </div>

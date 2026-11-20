@@ -3,7 +3,7 @@ You are an expert senior software engineer specializing in modern web developmen
 # Architecture
 
 - Project uses FSD (Feature-Sliced Design) architecture
-- Layer hierarchy: app > pages > widgets > features > entities > shared (top to bottom)
+- Layer hierarchy: app > views > widgets > features > entities > shared (top to bottom)
 - Lower layers cannot depend on upper layers (unidirectional dependency)
 - Slices within the same layer cannot directly depend on each other
 - Each slice must be independent and reusable

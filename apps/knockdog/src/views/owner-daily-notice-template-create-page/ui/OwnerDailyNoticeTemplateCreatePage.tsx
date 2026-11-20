@@ -33,6 +33,7 @@ import { Header } from '@widgets/Header';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { useFocusScrollLock, useKeyboardAwareScrollHeight } from '@shared/lib/device';
 import { toast } from '@shared/ui/toast';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 interface FieldLabelProps {
   label: string;
@@ -151,10 +152,9 @@ function OwnerDailyNoticeTemplateCreatePage() {
       toast({
         nativeTitle: '본문을 작성해 주세요',
         icon: 'info',
-        iconAccent: true,
         title: (
           <div className='flex items-center gap-1'>
-            <Icon icon='InfoLine' className='text-text-accent size-6 shrink-0' />
+            <Icon icon='InfoLine' className='text-text-primary-inverse size-6 shrink-0' />
             <span className='body1-medium text-text-primary-inverse'>본문을 작성해 주세요</span>
           </div>
         ),
@@ -178,12 +178,12 @@ function OwnerDailyNoticeTemplateCreatePage() {
       toast({
         nativeTitle: '템플릿을 저장하지 못했어요',
         titleParts: [
-          { text: '템플릿', accent: true },
+          { text: '템플릿', bold: true },
           { text: '을 저장하지 못했어요. 다시 시도해 주세요' },
         ],
         title: (
           <>
-            <span className='text-text-accent'>템플릿</span>
+            <span className='body1-bold text-text-primary-inverse'>템플릿</span>
             <span className='text-text-primary-inverse'>을 저장하지 못했어요. 다시 시도해 주세요</span>
           </>
         ),
@@ -238,7 +238,7 @@ function OwnerDailyNoticeTemplateCreatePage() {
           />
         </section>
 
-        <div className='bg-bg-50 shrink-0'>
+        <BottomCta className='bg-bg-50 shrink-0'>
           <div className='py-5'>
             <ActionButton
               type='button'
@@ -251,7 +251,7 @@ function OwnerDailyNoticeTemplateCreatePage() {
               {ownerDailyNoticeTemplateCreateContent.createButtonLabel}
             </ActionButton>
           </div>
-        </div>
+        </BottomCta>
       </div>
     </div>
   );

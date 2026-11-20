@@ -38,11 +38,14 @@ function TermsDetailPage({ title, type }: { title: string; type: LegalDocumentTy
   const selectedVersion = Number.isSafeInteger(queryVersionId)
     ? versionsQuery.data?.find((version) => version.id === queryVersionId)
     : undefined;
-  const selectedVersionId = selectedVersion?.id;
+  // 버전 목록 로딩 전에는 쿼리 값을 그대로 쓰고, 로딩 후 목록에 없는 id면 현행 버전으로 되돌린다.
+  const isKnownVersion = versionsQuery.data == null || selectedVersion != null;
+  const selectedVersionId =
+    Number.isSafeInteger(queryVersionId) && queryVersionId > 0 && isKnownVersion ? queryVersionId : undefined;
   const detailQuery = useLegalDocumentDetailQuery(
     type,
     selectedVersionId,
-    currentVersion != null || selectedVersionId != null
+    true
   );
   const displayedVersion = selectedVersion ?? currentVersion;
 

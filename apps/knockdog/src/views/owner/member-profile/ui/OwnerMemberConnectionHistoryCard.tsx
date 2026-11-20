@@ -27,9 +27,9 @@ function OwnerMemberConnectionHistoryCard({ item }: OwnerMemberConnectionHistory
     >
       {isCurrent ? (
         <div className='flex min-w-0 flex-1 items-center gap-1 overflow-hidden'>
-          <span className='body2-semibold text-text-primary shrink-0'>{connectedLabel}</span>
-          <span className='body2-semibold text-text-primary shrink-0'>~</span>
-          <span className='body2-bold text-text-accent shrink-0'>{disconnectedLabel}</span>
+          <span className='body1-medium text-text-primary shrink-0'>{connectedLabel}</span>
+          <span className='body1-medium text-text-primary shrink-0'>~</span>
+          <span className='body1-medium text-text-accent shrink-0'>{disconnectedLabel}</span>
         </div>
       ) : (
         <p className='body2-semibold text-text-secondary min-w-0 flex-1 truncate'>

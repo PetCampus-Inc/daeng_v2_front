@@ -61,6 +61,7 @@ import { STORAGE_KEYS } from '@shared/constants/storage';
 import { createAnalyticsId, trackNotebookComposeStart, trackNotebookSent, trackNotebookUpdated } from '@shared/lib/analytics';
 import { useStackNavigation, useNativeBackHandler } from '@shared/lib/bridge';
 import { safeLocalStorage, safeSessionStorage } from '@shared/lib/storage';
+import { BottomCta } from '@shared/ui/bottom-cta';
 import { DogProfileAvatar } from '@shared/ui/dog-profile-avatar';
 import { ActionLoadingOverlay } from '@shared/ui/loading-spinner';
 import { SafeArea } from '@shared/ui/safe-area';
@@ -529,12 +530,12 @@ function OwnerDailyNoticeWritePage() {
         position: 'bottom',
         nativeTitle: '작성 중인 알림장을 임시저장했어요',
         titleParts: [
-          { text: '작성 중인 알림장', accent: true },
+          { text: '작성 중인 알림장', bold: true },
           { text: '을 임시저장했어요' },
         ],
         title: (
           <>
-            <span className='body1-bold text-text-accent'>작성 중인 알림장</span>
+            <span className='body1-bold text-text-primary-inverse'>작성 중인 알림장</span>
             <span className='body1-medium text-text-primary-inverse'>을 임시저장했어요</span>
           </>
         ),
@@ -545,12 +546,12 @@ function OwnerDailyNoticeWritePage() {
         position: 'bottom',
         nativeTitle: '임시저장하지 못했어요. 다시 시도해 주세요',
         titleParts: [
-          { text: '임시저장', accent: true },
+          { text: '임시저장', bold: true },
           { text: '하지 못했어요. 다시 시도해 주세요' },
         ],
         title: (
           <>
-            <span className='body1-bold text-text-accent'>임시저장</span>
+            <span className='body1-bold text-text-primary-inverse'>임시저장</span>
             <span className='body1-medium text-text-primary-inverse'>하지 못했어요. 다시 시도해 주세요</span>
           </>
         ),
@@ -670,12 +671,12 @@ function OwnerDailyNoticeWritePage() {
         position: 'bottom',
         nativeTitle: '알림장을 보냈어요. 오늘까지 수정할 수 있어요',
         titleParts: [
-          { text: '알림장', accent: true },
+          { text: '알림장', bold: true },
           { text: '을 보냈어요. 오늘까지 수정할 수 있어요' },
         ],
         title: (
           <>
-            <span className='body1-bold text-text-accent'>알림장</span>
+            <span className='body1-bold text-text-primary-inverse'>알림장</span>
             <span className='body1-medium text-text-primary-inverse'>을 보냈어요. 오늘까지 수정할 수 있어요</span>
           </>
         ),
@@ -1001,12 +1002,17 @@ function OwnerDailyNoticeWritePage() {
               onChange={setNotice}
               readOnly={isReadOnly}
             />
+            {!isReadOnly && (
+              <p className='caption1-regular text-text-caption'>
+                {ownerDailyNoticeWriteContent.noticeAiDisclosure}
+              </p>
+            )}
           </section>
         </div>
 
         {!isReadOnly ? (
           <SafeArea edges={['bottom']} className='bg-bg-0 shrink-0'>
-            <div className='px-4 py-5'>
+            <BottomCta className='px-4 py-5'>
               <ActionButton
                 type='button'
                 variant='primaryFill'
@@ -1017,7 +1023,7 @@ function OwnerDailyNoticeWritePage() {
               >
                 {ownerDailyNoticeWriteContent.sendButtonLabel}
               </ActionButton>
-            </div>
+            </BottomCta>
           </SafeArea>
         ) : (
           <SafeArea edges={['bottom']} className='bg-bg-0 shrink-0' />

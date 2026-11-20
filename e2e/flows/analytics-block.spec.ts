@@ -24,14 +24,14 @@ test.describe('analytics block', () => {
     await page.goto('/auth/login', { waitUntil: 'load' });
 
     const disabled = await page.evaluate(() => {
-      return Boolean((window as unknown as Record<string, boolean>)['ga-disable-G-3XK1LPFE9J']);
+      return Boolean((window as unknown as Record<string, boolean>)['ga-disable-G-SYYR0V8GLB']);
     });
     expect(disabled).toBe(true);
 
     await page.evaluate(() => {
       const gtag = (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag;
       gtag?.('event', 'e2e_should_not_send', { debug_mode: true });
-      gtag?.('config', 'G-3XK1LPFE9J');
+      gtag?.('config', 'G-SYYR0V8GLB');
     });
 
     // lazyOnload gtag 시도 시간 — 성공 응답이 쌓이지 않아야 함

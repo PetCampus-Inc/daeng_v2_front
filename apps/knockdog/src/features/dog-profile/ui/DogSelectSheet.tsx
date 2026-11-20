@@ -65,12 +65,12 @@ export const DogSelectSheet = ({ isOpen, close, dogs }: DogSelectSheetProps) => 
         shape: 'rounded',
         nativeTitle: `${dog.name}${josa} 변경되었습니다`,
         titleParts: [
-          { text: dog.name, accent: true },
+          { text: dog.name, bold: true },
           { text: `${josa} 변경되었습니다` },
         ],
         title: (
           <>
-            <span className='text-text-accent'>{dog.name}</span>
+            <span className='body1-bold text-text-primary-inverse'>{dog.name}</span>
             {`${josa} 변경되었습니다`}
           </>
         ),

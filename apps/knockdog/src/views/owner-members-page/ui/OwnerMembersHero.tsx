@@ -1,8 +1,10 @@
-import { Icon, TextField, TextFieldInput } from '@knockdog/ui';
+import { overlay } from 'overlay-kit';
+import { Icon, SearchField } from '@knockdog/ui';
 import {
   OWNER_MEMBER_SEARCH_MAX_LENGTH,
   ownerMembersContent,
 } from '@views/owner-members-page/config/ownerMembersContent';
+import { OwnerMembersInviteSheet } from '@views/owner-members-page/ui/OwnerMembersInviteSheet';
 import { Header } from '@widgets/Header';
 import { useHasUnreadNotificationQuery } from '@entities/notification';
 import { useUserStore } from '@entities/user';
@@ -17,6 +19,7 @@ interface OwnerMembersHeroProps {
   onSearchQueryChange: (value: string) => void;
 }
 
+/** 구성원 화면 위쪽: 제목·QR코드·알림과 검색창 */
 function OwnerMembersHero({ searchQuery, onSearchQueryChange }: OwnerMembersHeroProps) {
   const { push } = useStackNavigation();
   const userId = useUserStore((state) => state.user?.userId);
@@ -27,64 +30,44 @@ function OwnerMembersHero({ searchQuery, onSearchQueryChange }: OwnerMembersHero
   });
   const { fieldRef, handleFocus, handleBlur, handlePointerDown } = useFocusScrollLock<HTMLInputElement>();
 
-  return (
-    <div className='relative overflow-hidden pt-(--safe-area-inset-top,0px) pb-6'>
-      <Icon
-        icon='Paw'
-        aria-hidden='true'
-        className='text-primitive-orange-300 pointer-events-none absolute top-[2px] -left-[86px] size-[240px] rotate-[30deg] opacity-20'
-      />
+  const handleInviteClick = () => {
+    overlay.open(({ isOpen, close }) => <OwnerMembersInviteSheet isOpen={isOpen} close={close} />);
+  };
 
-      <Header variant='transparent'>
-        <Header.Title className='text-text-primary-inverse'>구성원</Header.Title>
+  return (
+    <div className='bg-bg-0 pt-(--safe-area-inset-top,0px)'>
+      <Header>
+        <Header.Title>구성원</Header.Title>
         <Header.RightSection>
           <button
             type='button'
-            className='body2-semibold text-text-primary-inverse h-x7 radius-r1'
-            onClick={() => push({ pathname: route.owner.members.approval.root })}
+            aria-label='보호자 초대 QR코드'
+            data-testid='owner-members-qr-button'
+            onClick={handleInviteClick}
           >
-            연결 승인
+            <Icon icon='Qr' className='text-text-primary size-6' />
           </button>
           <NotificationBell
             hasUnread={hasUnreadNotification}
-            inverse
             onClick={() => push({ pathname: route.notification.root })}
           />
         </Header.RightSection>
       </Header>
 
-      <div className='px-x4 py-x2 relative z-10 flex h-16 items-center'>
-        <TextField
-          prefix={<Icon icon='Search' className='size-x6 text-fill-secondary-700' />}
-          className='bg-bg-0 h-x12 border-0'
-        >
-          <TextFieldInput
-            ref={fieldRef}
-            type='search'
-            inputMode='search'
-            value={searchQuery}
-            maxLength={OWNER_MEMBER_SEARCH_MAX_LENGTH}
-            placeholder={ownerMembersContent.searchPlaceholder}
-            aria-label='구성원 검색어 입력'
-            onChange={(e) => onSearchQueryChange(e.target.value)}
-            onPointerDown={handlePointerDown}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
-          />
-          {searchQuery && (
-            <button
-              type='button'
-              onMouseDown={(event) => {
-                event.preventDefault();
-                onSearchQueryChange('');
-              }}
-              aria-label='검색어 초기화'
-              className='absolute top-1/2 right-4 flex -translate-y-1/2 cursor-pointer items-center justify-center'
-            >
-              <Icon icon='DeleteInput' className='size-x5 text-primitive-neutral-700' />
-            </button>
-          )}
-        </TextField>
+      <div className='px-x4 pt-x5 pb-x4'>
+        <SearchField
+          ref={fieldRef}
+          type='search'
+          inputMode='search'
+          value={searchQuery}
+          maxLength={OWNER_MEMBER_SEARCH_MAX_LENGTH}
+          placeholder={ownerMembersContent.searchPlaceholder}
+          aria-label='구성원 검색어 입력'
+          onChange={(event) => onSearchQueryChange(event.target.value)}
+          onPointerDown={handlePointerDown}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+        />
       </div>
     </div>
   );

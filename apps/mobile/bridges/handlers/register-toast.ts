@@ -40,6 +40,7 @@ async function processToastCommandQueue() {
             type: payload.type,
             icon: payload.icon,
             iconAccent: payload.iconAccent,
+            bottomOffset: payload.bottomOffset,
           });
           resolve();
         });

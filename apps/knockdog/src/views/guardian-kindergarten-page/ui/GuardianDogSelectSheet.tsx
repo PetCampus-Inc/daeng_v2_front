@@ -87,12 +87,12 @@ function GuardianDogSelectSheet({
       type: 'success',
       nativeTitle: toastTitle,
       titleParts: [
-        { text: dog.name, accent: true },
+        { text: dog.name, bold: true },
         { text: guardianDogSelectContent.toastSuffix },
       ],
       title: (
         <>
-          <span className='body1-bold text-text-accent'>{dog.name}</span>
+          <span className='body1-bold text-text-primary-inverse'>{dog.name}</span>
           <span className='body1-medium text-text-primary-inverse'>
             {guardianDogSelectContent.toastSuffix}
           </span>

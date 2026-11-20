@@ -2,9 +2,9 @@
 
 import { useEffect, useState, type ReactNode } from 'react';
 import {
-  ActionButton,
   Divider,
   Icon,
+  IconButton,
   SwiperRoot,
   SwiperSlideItem,
   Tabs,
@@ -49,7 +49,7 @@ function InfoRow({ label, value, lines, firstLineClamp = 1 }: InfoRowProps) {
   const isMultiline = displayLines.length > 1 || firstLineClamp > 1;
 
   return (
-    <div className={`flex justify-between gap-x-4 p-4 ${isMultiline ? 'items-start' : 'items-center'}`}>
+    <div className={`flex justify-between gap-x-4 px-1 py-4 ${isMultiline ? 'items-start' : 'items-center'}`}>
       <span className='body1-medium text-text-tertiary shrink-0'>{label}</span>
       {displayLines.length > 0 ? (
         <div className='flex min-w-0 flex-1 flex-col items-end'>
@@ -240,7 +240,7 @@ function OwnerKindergartenImageBanner({
 
   if (usesDefaultImage || total === 0) {
     return (
-      <div className='radius-r3 bg-bg-0 relative h-[200px] w-full overflow-hidden'>
+      <div className='radius-r4 bg-bg-0 relative h-[200px] w-full overflow-hidden'>
         <div className='bg-fill-secondary-50 flex size-full items-center justify-center' aria-hidden='true'>
           <Icon icon='Paw' className='text-fill-secondary-300 size-12' />
         </div>
@@ -249,7 +249,7 @@ function OwnerKindergartenImageBanner({
   }
 
   return (
-    <div className='radius-r3 bg-bg-0 relative h-[200px] w-full overflow-hidden'>
+    <div className='radius-r4 bg-bg-0 relative h-[200px] w-full overflow-hidden'>
       <SwiperRoot
         className='size-full'
         loop={total > 1}
@@ -363,6 +363,15 @@ function MypageOwnerKindergartenPage() {
           <Header.BackButton />
         </Header.LeftSection>
         <Header.Title>{ownerMypageContent.kindergartenPageTitle}</Header.Title>
+        <Header.RightSection>
+          <IconButton
+            type='button'
+            icon='EditV4'
+            aria-label={ownerMypageContent.editInfoButtonLabel}
+            iconClassName='text-text-primary size-6'
+            onClick={handleEditClick}
+          />
+        </Header.RightSection>
       </Header>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className='flex flex-1 flex-col overflow-hidden'>
@@ -402,18 +411,6 @@ function MypageOwnerKindergartenPage() {
             />
           </TabsContent>
 
-          <div className='flex items-center justify-center px-4 pt-4 pb-10'>
-            <ActionButton
-              type='button'
-              size='medium'
-              variant='tertiaryFill'
-              className='w-[136px]'
-              onClick={handleEditClick}
-            >
-              <Icon icon='Edit' className='size-5' />
-              {ownerMypageContent.editInfoButtonLabel}
-            </ActionButton>
-          </div>
         </div>
       </Tabs>
     </div>

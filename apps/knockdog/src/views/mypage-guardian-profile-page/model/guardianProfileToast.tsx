@@ -7,12 +7,12 @@ export function showGuardianProfileSaveSuccessToast() {
     position: 'bottom',
     nativeTitle: '변경사항이 저장됐어요',
     titleParts: [
-      { text: '변경사항이', accent: true },
+      { text: '변경사항이', bold: true },
       { text: ' 저장됐어요' },
     ],
     title: (
       <>
-        <span className='body1-bold text-text-accent'>변경사항이</span>
+        <span className='body1-bold text-text-primary-inverse'>변경사항이</span>
         <span className='body1-medium text-text-primary-inverse'> 저장됐어요</span>
       </>
     ),

@@ -2,6 +2,8 @@ import { api, type ApiResponse } from '@shared/api';
 
 interface UserAgreementsStatus {
   hasAgreedRequiredTerms: boolean;
+  agreedCurrentTerms: UserAgreementTerm[];
+  currentLegalDocumentIds: LegalDocumentIds;
 }
 
 const USER_AGREEMENT_TERM = {
@@ -12,8 +14,11 @@ const USER_AGREEMENT_TERM = {
 
 type UserAgreementTerm = (typeof USER_AGREEMENT_TERM)[keyof typeof USER_AGREEMENT_TERM];
 
+type LegalDocumentIds = { TERMS_OF_SERVICE: number; PRIVACY_POLICY: number };
+
 interface CreateUserAgreementsRequest {
   agreedTerms: UserAgreementTerm[];
+  legalDocumentIds: LegalDocumentIds;
 }
 
 /** `POST` - 필수 약관 동의 처리 */

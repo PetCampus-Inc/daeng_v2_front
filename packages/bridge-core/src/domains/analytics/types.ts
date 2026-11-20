@@ -25,6 +25,11 @@ interface AnalyticsLogScreenViewResult {
 /** Firebase setUserId. null이면 로그아웃/계정 전환으로 식별을 지운다. */
 interface AnalyticsSetUserIdParams {
   user_id: string | null;
+  /**
+   * false면 네이티브 수집을 끈다.
+   * 없으면 기존 앱은 무시하고 수집을 켠다.
+   */
+  collection_enabled?: boolean;
 }
 
 interface AnalyticsSetUserIdResult {

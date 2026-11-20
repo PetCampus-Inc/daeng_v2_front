@@ -24,6 +24,7 @@ import {
 import { Header } from '@widgets/Header';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { route } from '@shared/constants/route';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 function toRoleReleaseGaReason(reason: (typeof RELEASE_PERMISSION_REASON)[keyof typeof RELEASE_PERMISSION_REASON]) {
   if (reason === RELEASE_PERMISSION_REASON.CLOSURE) return 'closure';
@@ -124,7 +125,7 @@ function ReleasePermissionVerifyPage() {
         </div>
       </div>
 
-      <div className='shrink-0 px-4 py-5'>
+      <BottomCta className='shrink-0 px-4 py-5'>
         <ActionButton
           type='button'
           variant='secondaryFill'
@@ -135,7 +136,7 @@ function ReleasePermissionVerifyPage() {
         >
           {releasePermissionContent.releaseButtonLabel}
         </ActionButton>
-      </div>
+      </BottomCta>
     </div>
   );
 }

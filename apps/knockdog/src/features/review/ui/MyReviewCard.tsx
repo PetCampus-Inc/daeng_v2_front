@@ -207,7 +207,7 @@ function MyReviewCard({ review, onEdit, onDelete }: MyReviewCardProps) {
           </div>
         </div>
       </div>
-      <p className='body1-regular text-text-primary'>{review.content}</p>
+      <p className='body1-regular text-text-primary whitespace-pre-wrap'>{review.content}</p>
       {review.images.length > 0 ? <MyReviewPhotoStrip images={review.images} /> : null}
       <button
         type='button'

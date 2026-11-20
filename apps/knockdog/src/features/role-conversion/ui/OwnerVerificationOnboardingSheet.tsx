@@ -10,6 +10,7 @@ import { ownerVerificationOnboardingSteps } from '@features/role-conversion/conf
 
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { closeOverlayThenNavigate } from '@shared/lib/navigation/closeOverlayThenNavigate';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 
 interface OwnerVerificationOnboardingSheetProps {
@@ -82,17 +83,19 @@ function OwnerVerificationOnboardingSheet({
   };
 
   const goToVerification = () => {
-    close();
+    const navigate = () => {
+      if (requiresLogin) {
+        push({
+          pathname: route.auth.login.root,
+          params: { redirectTo: route.roleConversion.kindergartenSearch.root },
+        });
+        return;
+      }
 
-    if (requiresLogin) {
-      push({
-        pathname: route.auth.login.root,
-        params: { redirectTo: route.roleConversion.kindergartenSearch.root },
-      });
-      return;
-    }
+      push({ pathname: route.roleConversion.kindergartenSearch.root });
+    };
 
-    push({ pathname: route.roleConversion.kindergartenSearch.root });
+    closeOverlayThenNavigate(close, navigate);
   };
 
   const handleNext = () => setCurrentStep((step) => clampStep(step + 1));

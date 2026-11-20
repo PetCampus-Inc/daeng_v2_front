@@ -4,3 +4,5 @@ export { useSaveImage } from './useSaveImage';
 export { useShareAlbumPhoto } from './useShareAlbumPhoto';
 export { useMoveImageMutation, type MoveImageParams } from './useMoveImageMutation';
 export { getPreviewImage } from './api/getPreviewImage';
+export { uploadPickedAssets, PICKED_UPLOAD_FAIL } from './uploadPickedAssets';
+export type { UploadPickedAssetsResult } from './uploadPickedAssets';

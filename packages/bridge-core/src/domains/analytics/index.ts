@@ -1,3 +1,4 @@
+export { isExcludedAnalyticsUserId } from './excludedUserIds';
 export type { AnalyticsRPCSchema } from './rpc-schema';
 export type {
   AnalyticsLogEventParams,

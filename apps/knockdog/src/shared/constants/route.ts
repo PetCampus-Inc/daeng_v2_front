@@ -85,6 +85,10 @@ const route = {
     kindergarten: {
       /** 원장 유치원 정보 페이지 */
       root: '/mypage/kindergarten',
+      reservation: {
+        /** 원장 예약 설정 */
+        root: '/mypage/kindergarten/reservation',
+      },
       edit: {
         /** 원장 유치원 운영 정보 수정 페이지 */
         root: '/mypage/kindergarten/edit',
@@ -96,6 +100,18 @@ const route = {
           /** 원장 유치원 요금 정보 수정 페이지 */
           root: '/mypage/kindergarten/edit/pricing',
         },
+      },
+    },
+    passTemplate: {
+      /** 원장 이용권 템플릿 목록 */
+      root: '/mypage/pass-templates',
+      create: {
+        /** 원장 이용권 템플릿 등록 */
+        root: '/mypage/pass-templates/create',
+      },
+      detail: {
+        /** 원장 이용권 템플릿 수정 */
+        root: '/mypage/pass-templates/[id]',
       },
     },
     profile: {
@@ -156,6 +172,8 @@ const route = {
     },
   },
   owner: {
+    /** 원장 홈 */
+    root: '/owner',
     /** 원장 일과 탭 */
     daily: {
       root: '/owner/daily',
@@ -204,10 +222,18 @@ const route = {
       detail: {
         /** 원장 원생 프로필 페이지 */
         root: '/owner/members/[id]',
-      },
-      approval: {
-        /** 원장 구성원 연결 승인 대기 목록 페이지 */
-        root: '/owner/members/approval',
+        ticketCharge: {
+          /** 원장 원생 이용권 충전 페이지 */
+          root: '/owner/members/[id]/ticket-charge',
+        },
+        tickets: {
+          /** 원장 원생 이용권 목록 페이지 */
+          root: '/owner/members/[id]/tickets',
+          detail: {
+            /** 원장 원생 이용권 상세 페이지 */
+            root: '/owner/members/[id]/tickets/[ticketId]',
+          },
+        },
       },
     },
   },
@@ -305,35 +331,85 @@ const route = {
       root: '/terms/location',
     },
   },
-  compare: {
-    /** 보호자 유치원 탭 */
-    root: '/compare',
+  kindergarten: {
+    /** 보호자 똑독로그 탭 */
+    root: '/kindergarten',
     connectionHistory: {
       /** 보호자 유치원 연결 이력 */
-      root: '/compare/connection-history',
+      root: '/kindergarten/connection-history',
     },
     album: {
       /** 보호자 유치원 앨범 전체 보기 */
-      root: '/compare/album',
+      root: '/kindergarten/album',
+    },
+    attendanceRecord: {
+      /** 보호자 등원 기록 */
+      root: '/kindergarten/attendance-record',
     },
     notice: {
       /** 보호자 알림장 상세. query: date(필수), schoolId(권장·재연결 스코프), petId?, source? */
-      root: '/compare/notice',
+      root: '/kindergarten/notice',
       /** 보호자 알림장 월별 리스트. query: month?, schoolId?, from?=notice, date?(from=notice 복귀용) */
       list: {
-        root: '/compare/notice/list',
+        root: '/kindergarten/notice/list',
+      },
+    },
+    diary: {
+      write: {
+        /** 보호자 일기 쓰기. query: date, schoolId? */
+        root: '/kindergarten/diary/write',
+      },
+      generate: {
+        /** 보호자 AI 일기 생성. query: date, schoolId? */
+        root: '/kindergarten/diary/generate',
+      },
+      detail: {
+        /** 보호자 일기 상세. query: date */
+        root: '/kindergarten/diary',
       },
     },
     news: {
       /** 보호자 유치원 소식 목록. query: schoolId? */
-      root: '/compare/news',
+      root: '/kindergarten/news',
       search: {
         /** 보호자 유치원 소식 검색. query: schoolId? */
-        root: '/compare/news/search',
+        root: '/kindergarten/news/search',
       },
       detail: {
         /** 보호자 유치원 소식 상세. query: schoolId?, source?=inbox|push (알림 진입 시 뒤로가기 → 목록) */
-        root: '/compare/news/[id]',
+        root: '/kindergarten/news/[id]',
+      },
+    },
+  },
+  reservation: {
+    /** 보호자 예약 탭 */
+    root: '/reservation',
+    schedule: {
+      /** 보호자 예약. 원장이 등원 가능 시간을 아직 안 연 안내 */
+      root: '/reservation/schedule',
+    },
+    time: {
+      /** 보호자 예약. 날짜와 시간 선택 */
+      root: '/reservation/time',
+    },
+    confirm: {
+      /** 보호자 예약. 예약 정보 확인 */
+      root: '/reservation/confirm',
+    },
+    list: {
+      /** 보호자 예약. 내 예약 */
+      root: '/reservation/list',
+    },
+    detail: {
+      /** 보호자 예약. 예약 상세 */
+      root: '/reservation/detail',
+    },
+    tickets: {
+      /** 보호자 이용권 관리 */
+      root: '/reservation/tickets',
+      detail: {
+        /** 보호자 이용권 상세 */
+        root: '/reservation/tickets/[ticketId]',
       },
     },
   },

@@ -2,14 +2,13 @@ import { expect, test } from '../fixtures/test';
 import { expectOwnerNav, gotoAuthed } from '../helpers/nav';
 
 test.describe('CF-OWNER-INVITE', () => {
-  test('보호자 초대 시트가 열리고 링크/QR 영역이 노출된다', async ({ page }) => {
+  test('QR코드 아이콘을 누르면 보호자 초대 시트가 열리고 링크·QR 영역이 보인다', async ({ page }) => {
     await gotoAuthed(page, '/owner/members');
     await expectOwnerNav(page);
 
-    const fab = page.getByTestId('owner-members-invite-fab');
-    await fab.scrollIntoViewIfNeeded();
-    await expect(fab).toBeVisible();
-    await fab.click();
+    const qrButton = page.getByTestId('owner-members-qr-button');
+    await expect(qrButton).toBeVisible();
+    await qrButton.click();
 
     await expect(page.getByTestId('owner-members-invite-sheet')).toBeVisible();
 

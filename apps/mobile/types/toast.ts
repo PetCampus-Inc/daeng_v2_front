@@ -15,6 +15,7 @@ export type ToastOptions = {
   icon?: ToastIcon;
   iconAccent?: boolean;
   iconName?: string | undefined; // 선택: 아이콘 시스템 연동 시 사용
+  bottomOffset?: number; // 웹뷰 아래 끝에서 하단 CTA 버튼 윗면까지 거리(px). bottom 위치에서만 사용
   onOpen?: () => void;
   onClose?: () => void;
 };

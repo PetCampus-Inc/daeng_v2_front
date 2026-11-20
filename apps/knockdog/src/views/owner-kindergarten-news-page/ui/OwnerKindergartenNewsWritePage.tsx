@@ -45,6 +45,7 @@ import {
   useSchoolNewsDraftQuery,
   useSchoolNewsInfiniteQuery,
   useSchoolNewsItem,
+  type SchoolNewsDraft,
   type SchoolNewsImage,
 } from '@entities/school-news';
 import { useUserStore } from '@entities/user';
@@ -101,12 +102,12 @@ function showWriteSuccessToast() {
     type: 'success',
     nativeTitle: submitSuccessToast.nativeTitle,
     titleParts: [
-      { text: '새로운 소식', accent: true },
+      { text: '새로운 소식', bold: true },
       { text: '을 등록했어요' },
     ],
     title: (
       <>
-        <span className='text-text-accent'>새로운 소식</span>
+        <span className='body1-bold text-text-primary-inverse'>새로운 소식</span>
         <span className='text-text-primary-inverse'>을 등록했어요</span>
       </>
     ),
@@ -120,12 +121,12 @@ function showEditSuccessToast() {
     type: 'success',
     nativeTitle: submitSuccessToast.nativeTitle,
     titleParts: [
-      { text: '소식', accent: true },
+      { text: '소식', bold: true },
       { text: '을 수정했어요' },
     ],
     title: (
       <>
-        <span className='text-text-accent'>소식</span>
+        <span className='body1-bold text-text-primary-inverse'>소식</span>
         <span className='text-text-primary-inverse'>을 수정했어요</span>
       </>
     ),
@@ -139,12 +140,12 @@ function showDraftSaveToast() {
     type: 'success',
     nativeTitle: draftSaveToast.nativeTitle,
     titleParts: [
-      { text: '작성 중인 소식', accent: true },
+      { text: '작성 중인 소식', bold: true },
       { text: '을 임시저장했어요' },
     ],
     title: (
       <>
-        <span className='text-text-accent'>작성 중인 소식</span>
+        <span className='body1-bold text-text-primary-inverse'>작성 중인 소식</span>
         <span className='text-text-primary-inverse'>을 임시저장했어요</span>
       </>
     ),
@@ -157,12 +158,12 @@ function showDraftSaveFailedToast() {
   toast({
     nativeTitle: draftSaveFailedToast.nativeTitle,
     titleParts: [
-      { text: '임시저장', accent: true },
+      { text: '임시저장', bold: true },
       { text: '하지 못했어요 다시 시도해 주세요' },
     ],
     title: (
       <>
-        <span className='text-text-accent'>임시저장</span>
+        <span className='body1-bold text-text-primary-inverse'>임시저장</span>
         <span className='text-text-primary-inverse'>하지 못했어요 다시 시도해 주세요</span>
       </>
     ),
@@ -176,13 +177,13 @@ function showMaxPhotoCountToast() {
     nativeTitle: imageUpload.maxCountToast.nativeTitle,
     titleParts: [
       { text: '사진은 한 번에 최대 ' },
-      { text: `${maxPhotoCount}장`, accent: true },
+      { text: `${maxPhotoCount}장`, bold: true },
       { text: '까지 올릴 수 있어요' },
     ],
     title: (
       <>
         <span className='text-text-primary-inverse'>사진은 한 번에 최대 </span>
-        <span className='text-text-accent'>{maxPhotoCount}장</span>
+        <span className='body1-bold text-text-primary-inverse'>{maxPhotoCount}장</span>
         <span className='text-text-primary-inverse'>까지 올릴 수 있어요</span>
       </>
     ),
@@ -275,6 +276,24 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
   });
   const hydratedKeyRef = useRef<string | null>(seed.hydrateKey);
 
+  const applyDraft = useCallback((draft: SchoolNewsDraft) => {
+    const sources = sourcesFromServerDraft(draft.images);
+    const draftImageUrls = sources.map((source) => source.previewUrl);
+    setTitle(draft.title);
+    setBody(draft.body);
+    setImageUrls(draftImageUrls);
+    imageSourcesRef.current = sources;
+    setIsAnnouncement(draft.isAnnouncement);
+    setNotifyGuardiansOnUpload(draft.notifyGuardiansOnUpload);
+    initialSnapshotRef.current = {
+      title: draft.title,
+      body: draft.body,
+      imageUrls: draftImageUrls,
+      isAnnouncement: draft.isAnnouncement,
+      notifyGuardiansOnUpload: draft.notifyGuardiansOnUpload,
+    };
+  }, []);
+
   /** params/스토어 준비 후 드래프트 → 기존 소식 순 hydrate */
   useEffect(() => {
     const hydrateKey = isEditMode
@@ -290,21 +309,7 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
 
       const draft = draftQuery.data;
       if (draft) {
-        const sources = sourcesFromServerDraft(draft.images);
-        const draftImageUrls = sources.map((source) => source.previewUrl);
-        setTitle(draft.title);
-        setBody(draft.body);
-        setImageUrls(draftImageUrls);
-        imageSourcesRef.current = sources;
-        setIsAnnouncement(draft.isAnnouncement);
-        setNotifyGuardiansOnUpload(draft.notifyGuardiansOnUpload);
-        initialSnapshotRef.current = {
-          title: draft.title,
-          body: draft.body,
-          imageUrls: draftImageUrls,
-          isAnnouncement: draft.isAnnouncement,
-          notifyGuardiansOnUpload: draft.notifyGuardiansOnUpload,
-        };
+        applyDraft(draft);
       } else {
         const sources = existingNews.images.map(toKeptNewsImage);
         setTitle(existingNews.title);
@@ -328,26 +333,30 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
 
     if (isHomePending || draftQuery.isLoading) return;
 
-    const draft = draftQuery.data;
-    if (draft) {
-      const sources = sourcesFromServerDraft(draft.images);
-      const draftImageUrls = sources.map((source) => source.previewUrl);
-      setTitle(draft.title);
-      setBody(draft.body);
-      setImageUrls(draftImageUrls);
-      imageSourcesRef.current = sources;
-      setIsAnnouncement(draft.isAnnouncement);
-      setNotifyGuardiansOnUpload(draft.notifyGuardiansOnUpload);
-      initialSnapshotRef.current = {
-        title: draft.title,
-        body: draft.body,
-        imageUrls: draftImageUrls,
-        isAnnouncement: draft.isAnnouncement,
-        notifyGuardiansOnUpload: draft.notifyGuardiansOnUpload,
-      };
-    }
     hydratedKeyRef.current = hydrateKey;
+    const draft = draftQuery.data;
+    if (!draft) return;
+
+    overlay.open(({ isOpen, close }) => (
+      <AlertDialog open={isOpen} onOpenChange={(open) => !open && close()}>
+        <AlertDialogContent className='border-line-200 w-[calc(100%-32px)] border'>
+          <AlertDialogHeader>
+            <AlertDialogTitle className='[&&]:text-center'>{write.resumeDraftTitle}</AlertDialogTitle>
+            <AlertDialogDescription className='[&&]:text-center'>
+              {write.resumeDraftDescription}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{write.resumeDraftNewLabel}</AlertDialogCancel>
+            <AlertDialogAction onClick={() => applyDraft(draft)}>
+              {write.resumeDraftContinueLabel}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    ));
   }, [
+    applyDraft,
     draftQuery.data,
     draftQuery.isLoading,
     existingNews,
@@ -355,6 +364,7 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
     isHomePending,
     kindergartenKey,
     newsId,
+    write,
   ]);
 
   const canSubmit =
@@ -453,6 +463,9 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
   useNativeBackHandler(handleBack);
 
   const openSettingsSheet = useCallback(() => {
+    const focusedElement = document.activeElement;
+    if (focusedElement instanceof HTMLTextAreaElement) focusedElement.blur();
+
     if (showBanner) {
       dismissOwnerKindergartenNewsSettingsBanner(kindergartenKey);
       setShowBanner(false);
@@ -772,7 +785,7 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
         <Header.LeftSection>
           <Header.BackButton onClick={handleBack} />
         </Header.LeftSection>
-        <Header.RightSection className='gap-x-3'>
+        <Header.RightSection className='ml-auto flex items-center gap-x-3'>
           <button
             type='button'
             className='label-semibold text-text-primary radius-r1 px-2 py-1'

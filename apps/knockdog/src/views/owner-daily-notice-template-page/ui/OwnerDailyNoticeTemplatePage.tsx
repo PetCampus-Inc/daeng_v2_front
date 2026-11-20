@@ -24,6 +24,7 @@ import { Header } from '@widgets/Header';
 import { route } from '@shared/constants/route';
 import { useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 /**
  * 원장 일과 탭 — 알림장 템플릿 목록
@@ -57,10 +58,9 @@ function OwnerDailyNoticeTemplatePage() {
       toast({
         nativeTitle: '템플릿은 최대 10개까지 저장할 수 있어요',
         icon: 'info',
-        iconAccent: true,
         title: (
           <div className='flex items-center gap-1'>
-            <Icon icon='InfoLine' className='text-text-accent size-6 shrink-0' />
+            <Icon icon='InfoLine' className='text-text-primary-inverse size-6 shrink-0' />
             <span className='body1-medium text-text-primary-inverse'>템플릿은 최대 10개까지 저장할 수 있어요</span>
           </div>
         ),
@@ -151,7 +151,7 @@ function OwnerDailyNoticeTemplatePage() {
         </div>
       )}
 
-      <div className='bg-bg-50 shrink-0'>
+      <BottomCta className='bg-bg-50 shrink-0'>
         <div className='flex gap-2 px-4 py-5'>
           <ActionButton
             type='button'
@@ -179,7 +179,7 @@ function OwnerDailyNoticeTemplatePage() {
             {ownerDailyNoticeTemplateContent.loadTemplateLabel}
           </ActionButton>
         </div>
-      </div>
+      </BottomCta>
     </div>
   );
 }

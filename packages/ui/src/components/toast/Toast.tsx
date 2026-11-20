@@ -32,7 +32,7 @@ const toastVariants = cva(
     variants: {
       variant: {
         rounded: [
-          'radius-r1',
+          'radius-r3',
           'mx-3',
           'block',
           // viewport(max-w-120) 기준 — 100vw면 데스크톱 웹에서 브라우저 전체 너비로 늘어남

@@ -114,7 +114,7 @@ export function KindergartenImageViewer({ isOpen, images, initialIndex, onClose 
                 }}
               />
             </Header.LeftSection>
-            <Header.Title>
+            <Header.Title center>
               <span className='text-text-accent'>{activeIndex + 1}</span> / {images.length}
             </Header.Title>
           </Header>

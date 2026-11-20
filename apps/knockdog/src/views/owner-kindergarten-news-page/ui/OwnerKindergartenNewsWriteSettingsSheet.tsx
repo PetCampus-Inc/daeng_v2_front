@@ -92,6 +92,7 @@ function OwnerKindergartenNewsWriteSettingsSheet({
   return (
     <BottomSheet.Root
       open={isOpen}
+      repositionInputs={false}
       onOpenChange={(open) => {
         if (!open) close();
       }}
