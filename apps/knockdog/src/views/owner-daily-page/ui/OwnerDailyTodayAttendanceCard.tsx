@@ -46,13 +46,18 @@ const BUTTON_VARIANT: Record<CardButtonVariant, NonNullable<ActionButtonProps['v
   grayOutline: 'secondaryLine',
 };
 
-/** 시각 문구(`등원 오전 9:00`)를 만든다. 시각이 없거나 잘못되면 빈 문자열이다. */
-const toTimeText = (label: '등원' | '하원', isoTime: string | null): string => {
+const toTimeLabel = (isoTime: string | null): string => {
   if (!isoTime) return '';
   const date = new Date(isoTime);
   if (Number.isNaN(date.getTime())) return '';
 
-  return `${label} ${formatKstTimeLabel(date)}`;
+  return formatKstTimeLabel(date);
+};
+
+/** 시각 문구(`등원 오전 9:00`)를 만든다. 시각이 없거나 잘못되면 빈 문자열이다. */
+const toTimeText = (label: '등원' | '하원', isoTime: string | null): string => {
+  const time = toTimeLabel(isoTime);
+  return time ? `${label} ${time}` : '';
 };
 
 /** `등원목록` 탭(오늘)의 원생 카드. 상태 태그 하나와 상태에 맞는 하단 버튼 두 개를 보여 준다. */
@@ -72,8 +77,10 @@ const OwnerDailyTodayAttendanceCard = ({
   });
   const tagView = TAG_VIEW[tag];
   const genderIcon = item.gender === 'MALE' ? 'Male' : item.gender === 'FEMALE' ? 'Female' : null;
-  const checkInText = toTimeText('등원', item.checkInAt);
-  const checkOutText = item.status === 'CHECKED_OUT' ? toTimeText('하원', item.checkOutAt) : '';
+  const attendanceTimes = [
+    { label: '등원', time: toTimeLabel(item.checkInAt) },
+    { label: '하원', time: item.status === 'CHECKED_OUT' ? toTimeLabel(item.checkOutAt) : '' },
+  ].filter(({ time }) => time);
 
   const handleButtonClick = (kind: TodayListButtonKind) => {
     const handlers: Record<TodayListButtonKind, (item: AttendanceCheckinoutTodayItem) => void> = {
@@ -132,11 +139,17 @@ const OwnerDailyTodayAttendanceCard = ({
             />
           </div>
         </div>
-        {checkInText || checkOutText ? (
-          <div className='bg-bg-50 radius-r3 py-x3 gap-x2 pl-x4 flex items-center'>
-            <Icon icon='RsvClock' className='text-text-caption size-x4 shrink-0' />
-            {checkInText ? <p className='body2-semibold text-text-secondary'>{checkInText}</p> : null}
-            {checkOutText ? <p className='body2-semibold text-text-secondary'>{checkOutText}</p> : null}
+        {attendanceTimes.length > 0 ? (
+          <div className='bg-bg-50 radius-r3 py-x3 gap-x2 pl-x4 flex flex-wrap items-center justify-between pr-[18px]'>
+            {attendanceTimes.map(({ label, time }) => (
+              <p key={label} className='body2-semibold text-text-secondary gap-x2 flex items-center whitespace-nowrap'>
+                <span className='gap-x1 flex items-center'>
+                  <Icon icon='RsvClock' className='text-text-caption size-x4 shrink-0' />
+                  {label}
+                </span>
+                <time>{time}</time>
+              </p>
+            ))}
           </div>
         ) : null}
       </div>
