@@ -3,6 +3,7 @@
 import { Edit, Trash } from '@knockdog/icons';
 import {
   ActionButton,
+  AiWrittenBadge,
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -81,9 +82,14 @@ function GuardianDiaryDetailForm({
         {isEditing ? (
           <DiaryEditText body={body} isEditing onBodyChange={onBodyChange} />
         ) : (
-          <p className='body1-regular text-text-primary whitespace-pre-line px-x2 py-x4'>{body}</p>
+          <p className='body1-regular text-text-primary px-x2 py-x4 whitespace-pre-line'>{body}</p>
         )}
       </div>
+      {!isEditing && body && (
+        <div className='px-x6 pt-x3 pb-x2 flex shrink-0 justify-end'>
+          <AiWrittenBadge />
+        </div>
+      )}
       {isEditing ? (
         <div className='bg-bg-0 p-x4 shrink-0'>
           <ActionButton type='button' variant='primaryFill' size='large' onClick={onSave}>
