@@ -1,17 +1,19 @@
 import { FloatingActionButton } from '@knockdog/ui';
 import { useSearchMachine } from '../model/useSearchMachine';
-import { getLocationPermission, requestLocationPermission, useGeolocationQuery, openSystemSetting, isEqualCoord } from '@shared/lib';
+import { getLocationPermission, isEqualCoord, requestLocationPermission, useGeolocationQuery } from '@shared/lib';
 import { useBasePointType } from '@shared/store';
 
-export function CurrentLocationFAB() {
+interface CurrentLocationFABProps {
+  onPermissionDenied: () => void;
+}
+
+export function CurrentLocationFAB({ onPermissionDenied }: CurrentLocationFABProps) {
   const { dispatch, liveState } = useSearchMachine();
   const { data: currentLocation, refetch } = useGeolocationQuery({ enabled: false });
   const { setBaseType } = useBasePointType();
   const isAtCurrentLocation = !!currentLocation && isEqualCoord(liveState.center, currentLocation);
 
   const handleClick = async () => {
-    setBaseType('CURRENT');
-
     try {
       const status = await getLocationPermission();
 
@@ -19,10 +21,10 @@ export function CurrentLocationFAB() {
       if (status !== 'allowed') {
         const permissionResult = await requestLocationPermission();
 
-        // 권한 거부시 처리
-        if (permissionResult.status === 'denied' && !permissionResult.canAskAgain) {
-          // 더 이상 물어볼 수 없으면 설정 앱으로 유도
-          openSystemSetting();
+        if (permissionResult.status === 'denied') {
+          setBaseType('CURRENT');
+          onPermissionDenied();
+          void refetch();
           return;
         }
 
@@ -32,6 +34,7 @@ export function CurrentLocationFAB() {
         }
       }
 
+      setBaseType('CURRENT');
       // 권한이 있을 때만 위치 정보 가져오기
       const result = await refetch();
       if (result.data) {
