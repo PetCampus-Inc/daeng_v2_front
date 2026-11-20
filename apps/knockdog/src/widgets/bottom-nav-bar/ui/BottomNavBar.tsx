@@ -9,7 +9,7 @@ import { cn } from '@knockdog/ui/lib';
 import { GUARDIAN_NAV_ITEMS, OWNER_NAV_ITEMS } from '@widgets/bottom-nav-bar/config/navitem';
 import { useShowOwnerBottomNav } from '@features/role-conversion';
 import { useRequiredTermsConsentOverlayStore } from '@features/required-terms-consent';
-import { BOTTOM_BAR_HEIGHT, BOTTOM_NAV_ATTRIBUTE } from '@shared/constants';
+import { BOTTOM_NAV_ATTRIBUTE } from '@shared/constants';
 import { isNativeWebView } from '@shared/lib';
 import { useWebBottomNavStore } from '@shared/store';
 
@@ -39,13 +39,12 @@ function BottomNavBarLinks() {
   }
 
   return (
-    <div className='fixed inset-x-0 bottom-0 z-99'>
+    <div className='bg-bg-0 fixed inset-x-0 bottom-0 z-99 mx-auto w-full max-w-120 pb-(--bottom-nav-inset)'>
       <nav
         {...bottomNavMarkerProps}
         data-testid='bottom-nav'
         data-nav-mode={showOwnerBottomNav ? 'owner' : 'guardian'}
-        style={{ height: `${BOTTOM_BAR_HEIGHT}px` }}
-        className='border-t-line-100 bg-bg-0 mx-auto flex w-full max-w-120 border-t px-3 text-center shadow-[0px_-2px_12px_0px_rgba(0,0,0,0.05)]'
+        className='border-t-line-100 bg-bg-0 relative flex h-(--bottom-nav-content-height) w-full border-t px-3 text-center shadow-[0px_-2px_12px_0px_rgba(0,0,0,0.05)]'
       >
         {navItems.map((item) => {
           const isActive = isActiveNavItem(pathname, item.href);
