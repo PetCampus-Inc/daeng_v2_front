@@ -36,6 +36,7 @@ import { resolvePublicImageSrc } from '@shared/lib/utils';
 import { Skeleton } from '@shared/ui/skeleton';
 import { ActionLoadingOverlay } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 const FALLBACK_COORD = { lng: 126.883439, lat: 37.511281 };
 const MAX_REVIEW_LENGTH = 2000;
@@ -593,7 +594,7 @@ export function WriteReviewPage() {
         </div>
       </div>
 
-      <div className='bg-bg-0 shrink-0 p-4'>
+      <BottomCta className='bg-bg-0 shrink-0 p-4'>
         <ActionButton
           type='button'
           size='large'
@@ -608,7 +609,7 @@ export function WriteReviewPage() {
         >
           {isEdit ? '수정하기' : '등록하기'}
         </ActionButton>
-      </div>
+      </BottomCta>
 
       {isEdit ? (
         <>

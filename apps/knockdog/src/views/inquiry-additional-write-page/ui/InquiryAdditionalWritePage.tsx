@@ -23,6 +23,7 @@ import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGuard';
 import { ActionLoadingOverlay, ACTION_SPINNER_DELAY_MS } from '@shared/ui/loading-spinner';
 import { COMMON_ERROR_TOAST_MESSAGE, toast } from '@shared/ui/toast';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 /** 추가 문의 작성. 기존 문의 스레드에 이어서 등록하고, 성공하면 문의 상세로 돌아간다 (PRD 7.4) */
 function InquiryAdditionalWritePage() {
@@ -148,11 +149,11 @@ function InquiryAdditionalWritePage() {
         />
       </div>
 
-      <div className='bg-bg-0 p-x4 shrink-0'>
+      <BottomCta className='bg-bg-0 p-x4 shrink-0'>
         <ActionButton type='button' size='large' disabled={!canSubmit} onClick={handleSubmit}>
           등록하기
         </ActionButton>
-      </div>
+      </BottomCta>
 
       <ActionLoadingOverlay isPending={addInquiry.isPending || isLeaving} delayMs={ACTION_SPINNER_DELAY_MS} />
     </div>

@@ -29,6 +29,7 @@ import { Header } from '@widgets/Header';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 interface FieldLabelProps {
   label: string;
@@ -176,7 +177,7 @@ function OwnerDailyNoticeTemplateDetailPage() {
           </div>
         </section>
 
-        <div className='bg-bg-50 shrink-0'>
+        <BottomCta className='bg-bg-50 shrink-0'>
           <div className='flex gap-2 py-5'>
             <ActionButton
               type='button'
@@ -198,7 +199,7 @@ function OwnerDailyNoticeTemplateDetailPage() {
               {ownerDailyNoticeTemplateDetailContent.editButtonLabel}
             </ActionButton>
           </div>
-        </div>
+        </BottomCta>
       </div>
     </div>
   );

@@ -22,6 +22,7 @@ import { safeLocalStorage } from '@shared/lib/storage';
 import { useBasePoint, useUserStore } from '@entities/user';
 import { PageError } from '@shared/ui/page-error';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
+import { BottomCta } from '@shared/ui/bottom-cta';
 import { KindergartenBookmarkOnboardingSheet } from './KindergartenBookmarkOnboardingSheet';
 
 /** 기준점(현위치/집/회사) 미준비 시 거리 계산용 폴백 — 비교 상세와 동일 */
@@ -265,7 +266,7 @@ function KindergartenDetailPage() {
         </main>
         {/* 하단 고정 버튼 영역 */}
         {isClosed ? (
-          <aside className='flex h-24 w-full shrink-0 bg-white px-4 py-5'>
+          <BottomCta as='aside' className='flex h-24 w-full shrink-0 bg-white px-4 py-5'>
             <button
               type='button'
               disabled
@@ -273,9 +274,9 @@ function KindergartenDetailPage() {
             >
               운영이 종료된 곳입니다
             </button>
-          </aside>
+          </BottomCta>
         ) : (
-          <aside className='gap-x2 p-x4 flex w-full shrink-0 items-center border-t border-t-gray-100 bg-white'>
+          <BottomCta as='aside' className='gap-x2 p-x4 flex w-full shrink-0 items-center border-t border-t-gray-100 bg-white'>
             <ActionButton disabled={!kindergartenMain.phoneNumber} variant='primaryLine' onClick={openPhoneCallSheet}>
               전화하기
             </ActionButton>
@@ -294,7 +295,7 @@ function KindergartenDetailPage() {
                 className='size-x6 text-fill-primary-500'
               />
             </button>
-          </aside>
+          </BottomCta>
         )}
       </div>
     </>

@@ -27,6 +27,8 @@ import {
 } from '../lib/diaryGenerate';
 import loadingDots from '../config/loadingDots.json';
 
+import { BottomCta } from '@shared/ui/bottom-cta';
+
 interface GuardianDiaryGenerateFormProps {
   dogName: string;
   dateLabel: string;
@@ -104,7 +106,7 @@ function GuardianDiaryGenerateForm({
         ) : null}
       </div>
       {isSaved ? null : (
-        <div className='bg-bg-0 p-x4 shrink-0'>
+        <BottomCta className='bg-bg-0 p-x4 shrink-0'>
           {status === 'error' ? (
             <ActionButton type='button' variant='primaryFill' size='large' className='gap-x1_5' onClick={onRetry}>
               <Reset className='size-x5' />
@@ -121,7 +123,7 @@ function GuardianDiaryGenerateForm({
               {getGenerateButtonLabel(dogName, hasTriedLeave)}
             </ActionButton>
           ) : null}
-        </div>
+        </BottomCta>
       )}
       <AlertDialog open={dialog !== null} onOpenChange={(open) => { if (!open) onKeepWriting(); }}>
         <AlertDialogContent>

@@ -22,6 +22,7 @@ import { cn } from '@knockdog/ui/lib';
 import { RELATIONSHIP, type Pet, usePetListQuery } from '@entities/pet';
 import { ApiError } from '@shared/api';
 import type { PetProfileEntryPoint } from '@shared/lib/analytics';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 interface PetProfileFormProps {
   mode: 'add' | 'edit';
@@ -424,11 +425,11 @@ function PetProfileForm({
             </div>
           </div>
 
-          <div className='shrink-0 bg-bg-0 py-x5'>
+          <BottomCta className='shrink-0 bg-bg-0 py-x5'>
             <ActionButton type='submit' size='large' disabled={isSaveDisabled}>
               {submitButtonText}
             </ActionButton>
-          </div>
+          </BottomCta>
         </form>
       </div>
       <PetNameDuplicateSheet

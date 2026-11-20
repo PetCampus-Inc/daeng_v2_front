@@ -18,6 +18,8 @@ import {
 
 import { DIARY_DELETE_CANCEL, DIARY_DELETE_LINES, DIARY_DELETE_TITLE } from '../lib/diaryDetail';
 
+import { BottomCta } from '@shared/ui/bottom-cta';
+
 interface GuardianDiaryDetailFormProps {
   dateLabel: string;
   photos: string[];
@@ -85,11 +87,11 @@ function GuardianDiaryDetailForm({
         )}
       </div>
       {isEditing ? (
-        <div className='bg-bg-0 p-x4 shrink-0'>
+        <BottomCta className='bg-bg-0 p-x4 shrink-0'>
           <ActionButton type='button' variant='primaryFill' size='large' onClick={onSave}>
             저장하기
           </ActionButton>
-        </div>
+        </BottomCta>
       ) : null}
       <AlertDialog open={isDeleteOpen} onOpenChange={(open) => { if (!open) onCancelDelete(); }}>
         <AlertDialogContent>

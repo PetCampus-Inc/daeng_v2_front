@@ -9,7 +9,7 @@ import { cn } from '@knockdog/ui/lib';
 import { GUARDIAN_NAV_ITEMS, OWNER_NAV_ITEMS } from '@widgets/bottom-nav-bar/config/navitem';
 import { useShowOwnerBottomNav } from '@features/role-conversion';
 import { useRequiredTermsConsentOverlayStore } from '@features/required-terms-consent';
-import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
+import { BOTTOM_BAR_HEIGHT, BOTTOM_NAV_ATTRIBUTE } from '@shared/constants';
 import { isNativeWebView } from '@shared/lib';
 import { useWebBottomNavStore } from '@shared/store';
 
@@ -32,6 +32,7 @@ function BottomNavBarLinks() {
   const isTermsOverlayOpen = useRequiredTermsConsentOverlayStore((state) => state.isBlockingOverlayOpen);
   const isFilterBottomSheetOpen = useWebBottomNavStore((state) => state.isFilterBottomSheetOpen);
   const navItems = showOwnerBottomNav ? OWNER_NAV_ITEMS : GUARDIAN_NAV_ITEMS;
+  const bottomNavMarkerProps = { [BOTTOM_NAV_ATTRIBUTE]: '' };
 
   if (isTermsOverlayOpen || isFilterBottomSheetOpen) {
     return null;
@@ -40,6 +41,7 @@ function BottomNavBarLinks() {
   return (
     <div className='fixed inset-x-0 bottom-0 z-99'>
       <nav
+        {...bottomNavMarkerProps}
         data-testid='bottom-nav'
         data-nav-mode={showOwnerBottomNav ? 'owner' : 'guardian'}
         style={{ height: `${BOTTOM_BAR_HEIGHT}px` }}
