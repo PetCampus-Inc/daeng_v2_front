@@ -5,6 +5,7 @@ import { Header } from '@widgets/Header';
 import { Divider, Checkbox, ActionButton } from '@knockdog/ui';
 import { useStackNavigation } from '@shared/lib/bridge';
 import Image from 'next/image';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 function WithdrawConfirmPage() {
   const [checkedItems, setCheckedItems] = useState<boolean[]>([false, false]);
@@ -62,18 +63,20 @@ function WithdrawConfirmPage() {
           </div>
         </div>
 
-        <ActionButton
-          size='large'
-          className='my-5 w-full'
-          disabled={!isAllChecked}
-          onClick={async () =>
-            await push({
-              pathname: '/withdraw/survey',
-            })
-          }
-        >
-          확인했어요
-        </ActionButton>
+        <BottomCta className='pt-5'>
+          <ActionButton
+            size='large'
+            className='w-full'
+            disabled={!isAllChecked}
+            onClick={async () =>
+              await push({
+                pathname: '/withdraw/survey',
+              })
+            }
+          >
+            확인했어요
+          </ActionButton>
+        </BottomCta>
       </div>
     </>
   );

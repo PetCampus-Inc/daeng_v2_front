@@ -12,6 +12,7 @@ import { kindergartenConfirmContent } from '@views/role-conversion/kindergarten-
 import { useKindergartenConfirmPage } from '@views/role-conversion/kindergarten-confirm/model/useKindergartenConfirmPage';
 import { ActionLoadingOverlay, DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 function KindergartenConfirmPage() {
   const { back } = useStackNavigation();
@@ -52,7 +53,7 @@ function KindergartenConfirmPage() {
         />
       </div>
 
-      <div className='flex min-h-0 flex-1 flex-col px-4 pt-3 pb-5'>
+      <div className='flex min-h-0 flex-1 flex-col px-4 pt-3'>
         <div className='flex flex-col gap-5'>
           <h1 className='h1-extrabold'>
             {kindergartenConfirmContent.titleLine1}
@@ -63,7 +64,7 @@ function KindergartenConfirmPage() {
           <KindergartenInfoSummary items={displayItems} />
         </div>
 
-        <div className='mt-auto flex gap-2 py-5'>
+        <BottomCta className='mt-auto flex gap-2 pt-5'>
           <ActionButton
             type='button'
             variant='secondaryLine'
@@ -84,7 +85,7 @@ function KindergartenConfirmPage() {
           >
             {kindergartenConfirmContent.yesButtonLabel}
           </ActionButton>
-        </div>
+        </BottomCta>
       </div>
     </div>
   );

@@ -7,6 +7,7 @@ import { useSocialUserStore } from '@entities/social-user';
 import { route } from '@shared/constants/route';
 import { getInternalRedirect } from '@shared/lib/auth/postSignUpRedirect';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 const emptySubscribe = () => () => {};
 
@@ -34,7 +35,7 @@ function ReconnectSocialPage() {
         <Header.Title>계정 연동</Header.Title>
       </Header>
 
-      <div className='h1-extrabold mt-10 flex h-full flex-col px-4 py-5'>
+      <div className='h1-extrabold mt-10 flex h-full flex-col px-4 pt-5'>
         <div className='flex-1'>
           <p className='h1-extrabold'>
             이메일 인증을 통해
@@ -48,14 +49,14 @@ function ReconnectSocialPage() {
           </div>
         </div>
 
-        <div className='flex gap-2 py-5'>
+        <BottomCta className='flex gap-2 pt-5'>
           <ActionButton size='large' variant='secondaryLine' onClick={handleBackClick}>
             돌아가기
           </ActionButton>
           <ActionButton size='large' variant='secondaryFill' onClick={handleReconnectClick}>
             연동하기
           </ActionButton>
-        </div>
+        </BottomCta>
       </div>
     </>
   );
