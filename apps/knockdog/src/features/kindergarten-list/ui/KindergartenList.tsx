@@ -124,6 +124,12 @@ export function KindergartenList({ onOpenFilter, onClearFilters, selectedFilters
   const { error: locationError } = useGeolocationQuery({ enabled: selectedBaseType === 'CURRENT' });
   const isPermissionDenied = selectedBaseType === 'CURRENT' && locationError instanceof LocationPermissionError;
 
+  useEffect(() => {
+    if (isPermissionDenied && isFullExtended && containerRef.current) {
+      containerRef.current.scrollTop = 0;
+    }
+  }, [isPermissionDenied, isFullExtended]);
+
   const otherAlias =
     user?.addresses?.find((addr) => addr.type === USER_ADDRESS_TYPE.OTHER)?.alias ||
     USER_ADDRESS_TYPE_KR[USER_ADDRESS_TYPE.OTHER];

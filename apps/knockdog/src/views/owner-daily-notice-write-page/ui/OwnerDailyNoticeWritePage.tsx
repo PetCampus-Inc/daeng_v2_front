@@ -1002,6 +1002,11 @@ function OwnerDailyNoticeWritePage() {
               onChange={setNotice}
               readOnly={isReadOnly}
             />
+            {!isReadOnly && (
+              <p className='caption1-regular text-text-caption'>
+                {ownerDailyNoticeWriteContent.noticeAiDisclosure}
+              </p>
+            )}
           </section>
         </div>
 

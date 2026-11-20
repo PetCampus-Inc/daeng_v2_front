@@ -23,6 +23,7 @@ export const ownerDailyNoticeWriteContent = Object.freeze({
   noticeSectionLabel: '알림장',
   noticePlaceholder: '700자 이내로 작성해 주세요',
   noticeMaxLength: 700,
+  noticeAiDisclosure: '작성하신 내용은 AI 강아지 일기 생성에 활용될 수 있어요. 연락처, 주소와 같은 개인정보는 적지 말아 주세요.',
   loadTemplateLabel: '템플릿 불러오기',
   sendButtonLabel: '알림장 보내기',
   guardianLabel: '보호자',
