@@ -40,6 +40,7 @@ import { useChargePetTicketMutation } from '@entities/owner-pet-ticket';
 import { getCurrentTxId, useNativeBackHandler, useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
 import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGuard';
 import { toast } from '@shared/ui/toast';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 type DurationChoice = 'none' | 'custom' | ChargeMonth | null;
 
@@ -362,7 +363,7 @@ function MemberTicketChargePage() {
         </div>
       </div>
 
-      <div className='shrink-0 bg-white px-4 py-4'>
+      <BottomCta className='shrink-0 bg-white px-4 py-4'>
         <ActionButton
           type='button'
           variant='primaryFill'
@@ -373,7 +374,7 @@ function MemberTicketChargePage() {
         >
           {content.submit}
         </ActionButton>
-      </div>
+      </BottomCta>
 
       <TicketChargeDateSheet
         isOpen={isDateOpen}

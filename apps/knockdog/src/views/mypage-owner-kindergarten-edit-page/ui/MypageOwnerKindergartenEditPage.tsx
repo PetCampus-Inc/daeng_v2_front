@@ -32,6 +32,7 @@ import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGua
 import { OptionSelectSheet } from '@shared/ui/option-select-sheet';
 import { PhotoUploader } from '@shared/ui/photo-uploader';
 import { toast } from '@shared/ui/toast';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 /** 섹션 탭·복수선택 칩 공통 톤. size만 다름 (탭=38, 옵션=48) */
 function selectionChipClassName(isSelected: boolean, size: 'tab' | 'option') {
@@ -557,7 +558,7 @@ function MypageOwnerKindergartenEditPage() {
         </section>
       </div>
 
-      <div className='shrink-0 bg-white px-4 py-4'>
+      <BottomCta className='shrink-0 bg-white px-4 py-4'>
         <ActionButton
           type='button'
           size='large'
@@ -569,7 +570,7 @@ function MypageOwnerKindergartenEditPage() {
         >
           {ownerMypageContent.profileSaveButtonLabel}
         </ActionButton>
-      </div>
+      </BottomCta>
 
       <OptionSelectSheet
         isOpen={formData.activeTimeField !== null}

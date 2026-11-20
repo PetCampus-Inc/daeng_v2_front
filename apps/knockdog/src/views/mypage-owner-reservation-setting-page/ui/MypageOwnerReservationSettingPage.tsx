@@ -21,6 +21,7 @@ import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { OptionSelectSheet } from '@shared/ui/option-select-sheet';
 import { PageError } from '@shared/ui/page-error';
 import { toast } from '@shared/ui/toast';
+import { BottomCta } from '@shared/ui/bottom-cta';
 import { Header } from '@widgets/Header';
 import {
   TIME_OPTIONS,
@@ -29,7 +30,6 @@ import {
 } from '@views/mypage-owner-reservation-setting-page/config/timeOptions';
 import { useReservationSettingForm } from '@views/mypage-owner-reservation-setting-page/model/useReservationSettingForm';
 
-const SAVE_TOAST_VIEWPORT = 'bottom-[104px] left-1/2 w-full max-w-120 webview:max-w-full -translate-x-1/2';
 /** 행 높이(py-4 32px + body1 24px + 구분선 1px) × 3 */
 const TIME_SHEET_LIST_CLASS = 'h-[calc(3*(2rem+1.5rem+1px))] max-h-[calc(3*(2rem+1.5rem+1px))]';
 const FIELD_LABEL_CLASS = 'label-medium text-text-secondary px-x1 leading-[18px] font-medium';
@@ -195,7 +195,6 @@ function ReservationSettingEditor({ setting }: { setting: ReservationSetting }) 
           {result}
         </span>
       ),
-      viewportClassName: SAVE_TOAST_VIEWPORT,
     });
   };
 
@@ -263,7 +262,7 @@ function ReservationSettingEditor({ setting }: { setting: ReservationSetting }) 
         </section>
       </div>
 
-      <div className='shrink-0 bg-white px-4 py-4'>
+      <BottomCta className='shrink-0 bg-white px-4 py-4'>
         <ActionButton
           type='button'
           size='large'
@@ -273,7 +272,7 @@ function ReservationSettingEditor({ setting }: { setting: ReservationSetting }) 
         >
           <span className='body1-bold'>저장하기</span>
         </ActionButton>
-      </div>
+      </BottomCta>
 
       <OptionSelectSheet
         isOpen={form.activeTimeField !== null}

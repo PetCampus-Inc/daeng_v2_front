@@ -47,6 +47,7 @@ import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGua
 import { ACTION_SPINNER_DELAY_MS, ActionLoadingOverlay, DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { PageError } from '@shared/ui/page-error';
 import { toast } from '@shared/ui/toast';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 type OwnerPassTemplateFormMode = 'create' | 'edit';
 type DurationOption = PassTemplateDurationOption;
@@ -439,7 +440,7 @@ function OwnerPassTemplateFormPage({ mode }: OwnerPassTemplateFormPageProps) {
         </div>
       </div>
 
-      <div className='bg-bg-0 shrink-0 px-4 pt-4 pb-[calc(1rem+max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px)))]'>
+      <BottomCta className='bg-bg-0 shrink-0 px-4 pt-4 pb-[calc(1rem+max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px)))]'>
         <ActionButton
           type='button'
           size='large'
@@ -451,7 +452,7 @@ function OwnerPassTemplateFormPage({ mode }: OwnerPassTemplateFormPageProps) {
         >
           {ownerPassTemplateContent.submitButtonLabel}
         </ActionButton>
-      </div>
+      </BottomCta>
 
       <ActionLoadingOverlay isPending={isPending} delayMs={ACTION_SPINNER_DELAY_MS} />
     </div>

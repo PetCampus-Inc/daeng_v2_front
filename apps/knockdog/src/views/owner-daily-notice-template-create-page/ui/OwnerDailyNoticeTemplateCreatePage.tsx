@@ -33,6 +33,7 @@ import { Header } from '@widgets/Header';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { useFocusScrollLock, useKeyboardAwareScrollHeight } from '@shared/lib/device';
 import { toast } from '@shared/ui/toast';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 interface FieldLabelProps {
   label: string;
@@ -237,7 +238,7 @@ function OwnerDailyNoticeTemplateCreatePage() {
           />
         </section>
 
-        <div className='bg-bg-50 shrink-0'>
+        <BottomCta className='bg-bg-50 shrink-0'>
           <div className='py-5'>
             <ActionButton
               type='button'
@@ -250,7 +251,7 @@ function OwnerDailyNoticeTemplateCreatePage() {
               {ownerDailyNoticeTemplateCreateContent.createButtonLabel}
             </ActionButton>
           </div>
-        </div>
+        </BottomCta>
       </div>
     </div>
   );
