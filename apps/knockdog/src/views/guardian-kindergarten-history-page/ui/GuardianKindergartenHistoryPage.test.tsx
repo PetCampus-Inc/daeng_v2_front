@@ -34,6 +34,8 @@ const connectionState = { byPetId: {} as Record<string, TestConnection[]>, isErr
 
 vi.mock('@shared/lib/bridge', () => ({
   useStackNavigation: () => ({ push, back: vi.fn() }),
+  // 앱이 아닌 웹 환경: 앱 확인창을 쓸 수 없으므로 웹 확인창이 뜬다
+  openConfirmDialog: async () => ({ status: 'unavailable' }),
 }));
 
 // vaul이 테스트 환경에서 다른 React를 불러와 그려지지 않아, 열림 여부와 제목만 따르는 단순 dialog로 바꾼다

@@ -36,8 +36,7 @@ export function registerSystemHandlers(router: NativeBridgeRouter) {
     showCancelButton?: boolean;
     confirmVariant?: 'accent' | 'neutral';
     contentPaddingHorizontal?: number;
-    showAvatar?: boolean;
-    avatarUrl?: string;
+    buttonLayout?: 'horizontal' | 'vertical';
   }>(METHODS.showConfirmDialog, async (params) => {
     if (params.requestId < lastConfirmDialogRequestId) return { action: 'cancel' as const };
 
@@ -52,8 +51,7 @@ export function registerSystemHandlers(router: NativeBridgeRouter) {
       showCancelButton: params.showCancelButton,
       confirmVariant: params.confirmVariant,
       contentPaddingHorizontal: params.contentPaddingHorizontal,
-      showAvatar: params.showAvatar,
-      avatarUrl: params.avatarUrl,
+      buttonLayout: params.buttonLayout,
     });
     return { action };
   });

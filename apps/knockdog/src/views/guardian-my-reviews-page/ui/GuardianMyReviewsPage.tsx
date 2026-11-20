@@ -11,7 +11,6 @@ import {
 import { Header } from '@widgets/Header';
 import {
   MyWrittenReviewList,
-  ReviewActionDialog,
   useDeleteSchoolReview,
   useMySchoolReviewQuery,
   type MyWrittenReview,
@@ -19,10 +18,21 @@ import {
 } from '@features/review';
 import { parseSchoolId } from '@entities/review';
 import { useInfiniteScroll, useStackNavigation } from '@shared/lib';
+import { openConfirmDialog } from '@shared/lib/bridge';
+import { ConfirmDialog } from '@shared/ui/confirm-dialog';
 import { DelayedLoadingSpinner, LoadingSpinner } from '@shared/ui/loading-spinner';
 import { PageError } from '@shared/ui/page-error';
 import { KindergartenSelectSheet } from '@shared/ui/kindergarten-select-sheet';
 import { toast } from '@shared/ui/toast';
+
+/** 삭제 확인창과 실패 안내창의 문구. 앱 확인창과 웹 확인창이 같이 쓴다. */
+const DELETE_CONFIRM_COPY = { title: '해당 리뷰를 삭제할까요?', cancelLabel: '닫기', confirmLabel: '삭제' };
+const DELETE_FAILURE_COPY = {
+  title: '리뷰를 삭제하지 못했어요',
+  description: '잠시 후 다시 시도해 주세요.',
+  cancelLabel: '닫기',
+  confirmLabel: '다시 시도',
+};
 
 function GuardianMyReviewsPage() {
   const { back, push } = useStackNavigation();
@@ -43,7 +53,6 @@ function GuardianMyReviewsPage() {
   const { mutateAsync: removeSchoolReview } = useDeleteSchoolReview();
   const [deleteDialog, setDeleteDialog] = useState<'confirm' | 'failure' | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
   const isDeletingRef = useRef(false);
   const reviews = useMemo(
     () => myReviewData?.pages.flatMap((page) => page.items) ?? [],
@@ -85,42 +94,62 @@ function GuardianMyReviewsPage() {
     push({ pathname: `/kindergarten/${placeId}/edit-review/${review.id}` });
   };
 
-  const handleDeleteReview = (review: MyWrittenReview) => {
+  /** 삭제 요청을 보낸다. 성공하면 토스트를 보여주고, 실패하면 실패 안내창을 연다. */
+  const deleteReview = async (review: MyWrittenReview) => {
+    if (isDeletingRef.current) return;
+    isDeletingRef.current = true;
+
+    try {
+      const schoolId = review.schoolId ?? null;
+      const reviewId = parseSchoolId(review.id);
+      if (schoolId == null || reviewId == null) throw new Error('review required');
+      await removeSchoolReview({ schoolId, reviewId });
+    } catch {
+      isDeletingRef.current = false;
+      await openDeleteDialog(review, 'failure');
+      return;
+    }
+
+    isDeletingRef.current = false;
+    toast({
+      title: '유치원 이용 리뷰를 삭제했어요',
+      nativeTitle: '유치원 이용 리뷰를 삭제했어요',
+      position: 'bottom',
+    });
+  };
+
+  /**
+   * 삭제 확인창(또는 실패 안내창)을 연다. 앱에서는 앱 확인창을 먼저 시도하고, 쓸 수 없으면 웹 확인창을 띄운다.
+   * 앱·웹 모두 확인을 누르면 창이 바로 닫히고 삭제 요청이 시작된다.
+   */
+  const openDeleteDialog = async (review: MyWrittenReview, stage: 'confirm' | 'failure') => {
+    const copy = stage === 'confirm' ? DELETE_CONFIRM_COPY : DELETE_FAILURE_COPY;
+    const result = await openConfirmDialog(copy);
+    if (result.status === 'pending') return;
+
+    if (result.status === 'resolved') {
+      if (result.action === 'confirm') void deleteReview(review);
+      return;
+    }
+
     setDeleteTargetId(review.id);
-    setDeleteDialog('confirm');
+    setDeleteDialog(stage);
+  };
+
+  const handleDeleteReview = (review: MyWrittenReview) => {
+    openDeleteDialog(review, 'confirm');
   };
 
   const handleCloseDeleteDialog = () => {
-    if (isDeletingRef.current) return;
     setDeleteDialog(null);
     setDeleteTargetId(null);
   };
 
-  const handleConfirmDelete = async () => {
-    if (!deleteTargetId || isDeletingRef.current) return;
-
-    isDeletingRef.current = true;
-    setIsDeleting(true);
-
-    try {
-      const target = reviews.find((review) => review.id === deleteTargetId);
-      const schoolId = target?.schoolId ?? null;
-      const reviewId = parseSchoolId(deleteTargetId);
-      if (schoolId == null || reviewId == null) throw new Error('review required');
-      await removeSchoolReview({ schoolId, reviewId });
-      setDeleteDialog(null);
-      setDeleteTargetId(null);
-      toast({
-        title: '유치원 이용 리뷰를 삭제했어요',
-        nativeTitle: '유치원 이용 리뷰를 삭제했어요',
-        position: 'bottom',
-      });
-    } catch {
-      setDeleteDialog('failure');
-    } finally {
-      isDeletingRef.current = false;
-      setIsDeleting(false);
-    }
+  /** 웹 확인창에서 확인을 누르면 창을 바로 닫고 삭제 요청을 시작한다 */
+  const handleConfirmDelete = () => {
+    const target = reviews.find((review) => review.id === deleteTargetId);
+    handleCloseDeleteDialog();
+    if (target) void deleteReview(target);
   };
 
   return (
@@ -179,31 +208,18 @@ function GuardianMyReviewsPage() {
         </div>
       )}
 
-      <ReviewActionDialog
+      <ConfirmDialog
         isOpen={deleteDialog === 'confirm'}
-        isSubmitting={isDeleting}
-        title='해당 리뷰를 삭제할까요?'
-        description='삭제한 리뷰는 복구할 수 없습니다.'
-        hideDescription
-        cancelLabel='닫기'
-        confirmLabel='삭제'
+        {...DELETE_CONFIRM_COPY}
         closeOnOutside
         onClose={handleCloseDeleteDialog}
-        onConfirm={() => {
-          handleConfirmDelete();
-        }}
+        onConfirm={handleConfirmDelete}
       />
-      <ReviewActionDialog
+      <ConfirmDialog
         isOpen={deleteDialog === 'failure'}
-        isSubmitting={isDeleting}
-        title='리뷰를 삭제하지 못했어요'
-        description='잠시 후 다시 시도해 주세요.'
-        cancelLabel='닫기'
-        confirmLabel='다시 시도'
+        {...DELETE_FAILURE_COPY}
         onClose={handleCloseDeleteDialog}
-        onConfirm={() => {
-          handleConfirmDelete();
-        }}
+        onConfirm={handleConfirmDelete}
       />
     </div>
   );

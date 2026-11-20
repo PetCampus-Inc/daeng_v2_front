@@ -1,19 +1,9 @@
 'use client';
 
-import { useState } from 'react';
 import { overlay } from 'overlay-kit';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@knockdog/ui';
-
 import { ownerKindergartenNewsContent } from '@views/owner-kindergarten-news-page/config/ownerKindergartenNewsContent';
+import { openConfirmDialog } from '@shared/lib/bridge';
+import { ConfirmDialog } from '@shared/ui/confirm-dialog';
 import { toast } from '@shared/ui/toast';
 
 interface OwnerKindergartenNewsDeleteDialogProps {
@@ -28,47 +18,22 @@ function OwnerKindergartenNewsDeleteDialog({
   onConfirm,
 }: OwnerKindergartenNewsDeleteDialogProps) {
   const { deleteDialog } = ownerKindergartenNewsContent;
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleOpenChange = (open: boolean) => {
-    if (!open) close();
-  };
-
-  const handleConfirm = async () => {
-    if (isSubmitting) return;
-    setIsSubmitting(true);
-    try {
-      await onConfirm();
-      close();
-    } catch {
-      showNewsDeleteFailedToast();
-    } finally {
-      setIsSubmitting(false);
-    }
+  /** 확인창을 바로 닫고 삭제 요청을 시작한다 */
+  const handleConfirm = () => {
+    close();
+    void runDelete(onConfirm);
   };
 
   return (
-    <AlertDialog open={isOpen} onOpenChange={handleOpenChange} closeOnNativeBack={false}>
-      <AlertDialogContent className='max-w-[358px]'>
-        <AlertDialogHeader className='px-x4'>
-          <AlertDialogTitle>{deleteDialog.title}</AlertDialogTitle>
-        </AlertDialogHeader>
-        <AlertDialogFooter className='px-x4'>
-          <AlertDialogCancel disabled={isSubmitting} className='body1-bold text-text-secondary'>
-            {deleteDialog.cancelLabel}
-          </AlertDialogCancel>
-          <AlertDialogAction
-            disabled={isSubmitting}
-            className='body1-bold'
-            onClick={() => {
-              void handleConfirm();
-            }}
-          >
-            {deleteDialog.confirmLabel}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <ConfirmDialog
+      isOpen={isOpen}
+      title={deleteDialog.title}
+      cancelLabel={deleteDialog.cancelLabel}
+      confirmLabel={deleteDialog.confirmLabel}
+      onClose={close}
+      onConfirm={handleConfirm}
+    />
   );
 }
 
@@ -113,7 +78,29 @@ function showNewsDeleteFailedToast() {
   });
 }
 
-function openOwnerKindergartenNewsDeleteDialog(onConfirm: () => void | Promise<void>) {
+/** 삭제 요청을 보내고, 실패하면 실패 토스트로 알린다 */
+async function runDelete(onConfirm: () => void | Promise<void>) {
+  try {
+    await onConfirm();
+  } catch {
+    showNewsDeleteFailedToast();
+  }
+}
+
+/** 소식 삭제 확인창을 연다. 앱에서는 앱 확인창을 먼저 시도하고, 쓸 수 없으면 웹 확인창을 띄운다. */
+async function openOwnerKindergartenNewsDeleteDialog(onConfirm: () => void | Promise<void>) {
+  const { deleteDialog } = ownerKindergartenNewsContent;
+  const result = await openConfirmDialog({
+    title: deleteDialog.title,
+    cancelLabel: deleteDialog.cancelLabel,
+    confirmLabel: deleteDialog.confirmLabel,
+  });
+  if (result.status === 'resolved') {
+    if (result.action === 'confirm') void runDelete(onConfirm);
+    return;
+  }
+  if (result.status === 'pending') return;
+
   overlay.open(({ isOpen, close }) => (
     <OwnerKindergartenNewsDeleteDialog isOpen={isOpen} close={close} onConfirm={onConfirm} />
   ));

@@ -16,13 +16,19 @@ import {
   type DiaryMonthDay,
 } from '@entities/guardian-diary';
 import { formatDateKey } from '@shared/lib/calendar-date';
-import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { openConfirmDialog, useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { isNativeWebView } from '@shared/lib/device';
 import { markDiaryRemoved, readDiaryRecord, removeDiaryRecord, saveDiaryRecord } from '@shared/lib/diary-write/diaryRecord';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 import { toast } from '@shared/ui/toast';
 
-import { formatDiaryDeleteToast, formatDiaryDetailDate } from '../lib/diaryDetail';
+import {
+  DIARY_DELETE_CANCEL,
+  DIARY_DELETE_LINES,
+  DIARY_DELETE_TITLE,
+  formatDiaryDeleteToast,
+  formatDiaryDetailDate,
+} from '../lib/diaryDetail';
 import { GuardianDiaryDetailForm } from './GuardianDiaryDetailForm';
 
 function parseDetailDate(value: string | null) {
@@ -69,6 +75,24 @@ function GuardianDiaryDetailPage() {
     void queryClient.invalidateQueries({ queryKey: guardianDiaryDetailQueryKey(nextDiaryId) });
     void queryClient.invalidateQueries({ queryKey: guardianDiaryDateQueryKey(nextPetId, dateKey) });
     void queryClient.invalidateQueries({ queryKey: guardianDiaryMonthQueryKey(nextPetId) });
+  }
+
+  /** 삭제 확인창을 연다. 앱에서는 앱 확인창을 먼저 시도하고, 쓸 수 없으면 웹 확인창을 띄운다. */
+  function openDeleteDialog() {
+    openConfirmDialog({
+      title: DIARY_DELETE_TITLE,
+      description: DIARY_DELETE_LINES.join('\n'),
+      cancelLabel: DIARY_DELETE_CANCEL,
+      confirmLabel: '삭제하기',
+    }).then((result) => {
+      if (result.status === 'resolved') {
+        if (result.action === 'confirm') handleDelete();
+        return;
+      }
+      if (result.status === 'pending') return;
+
+      setIsDeleteOpen(true);
+    });
   }
 
   async function handleDelete() {
@@ -192,10 +216,10 @@ function GuardianDiaryDetailPage() {
       onSave={handleSaveEdit}
       onAskDelete={() => {
         setIsMenuOpen(false);
-        setIsDeleteOpen(true);
+        openDeleteDialog();
       }}
       onCancelDelete={() => setIsDeleteOpen(false)}
-      onDelete={handleDelete}
+      onDelete={() => handleDelete()}
     />
   );
 }

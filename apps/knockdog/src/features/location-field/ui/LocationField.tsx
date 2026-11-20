@@ -2,14 +2,6 @@
 
 import { overlay } from 'overlay-kit';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
   Divider,
   Field,
   FieldContent,
@@ -17,6 +9,8 @@ import {
   FieldLabelIndicator,
   Icon,
 } from '@knockdog/ui';
+import { openConfirmDialog } from '@shared/lib/bridge';
+import { ConfirmDialog } from '@shared/ui/confirm-dialog';
 
 import { USER_ADDRESS_TYPE, UserAddress, UserAddressType } from '@entities/user';
 
@@ -47,20 +41,34 @@ export function LocationField({ type, value, addressId, required, optional, onCh
   });
 
   const handleDeleteClick = () => {
-    overlay.open(({ isOpen, close }) => (
-      <AlertDialog open={isOpen} onOpenChange={close}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{withEulReul(alias)} 삭제할까요?</AlertDialogTitle>
-            <AlertDialogDescription>삭제한 장소는 복구할 수 없어요.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>닫기</AlertDialogCancel>
-            <AlertDialogAction onClick={remove}>삭제하기</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    ));
+    const confirmCopy = {
+      title: `${withEulReul(alias)} 삭제할까요?`,
+      description: '삭제한 장소는 복구할 수 없어요.',
+      cancelLabel: '닫기',
+      confirmLabel: '삭제하기',
+    };
+    openConfirmDialog(confirmCopy).then((result) => {
+      if (result.status === 'pending') return;
+
+      if (result.status === 'resolved') {
+        if (result.action === 'confirm') {
+          remove();
+        }
+        return;
+      }
+
+      overlay.open(({ isOpen, close }) => (
+        <ConfirmDialog
+          {...confirmCopy}
+          isOpen={isOpen}
+          onClose={close}
+          onConfirm={() => {
+            close();
+            remove();
+          }}
+        />
+      ));
+    });
   };
 
   return (

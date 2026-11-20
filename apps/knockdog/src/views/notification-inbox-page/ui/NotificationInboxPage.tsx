@@ -7,6 +7,8 @@ import { overlay } from 'overlay-kit';
 import { Tabs, TabsList, TabsTrigger } from '@knockdog/ui';
 import type { NotificationAudience } from '@entities/notification';
 import { useMypageRoleView, useOwnerRole } from '@features/role-conversion';
+import { openConfirmDialog } from '@shared/lib/bridge';
+import { ConfirmDialog } from '@shared/ui/confirm-dialog';
 import { PageError } from '@shared/ui/page-error';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
@@ -18,7 +20,6 @@ import { useNotificationInboxDeepLink } from '@views/notification-inbox-page/mod
 import { useNotificationInboxPage } from '@views/notification-inbox-page/model/useNotificationInboxPage';
 import { NotificationInboxEmpty } from '@views/notification-inbox-page/ui/NotificationInboxEmpty';
 import { NotificationInboxList } from '@views/notification-inbox-page/ui/NotificationInboxList';
-import { NotificationInboxMarkAllReadDialog } from '@views/notification-inbox-page/ui/NotificationInboxMarkAllReadDialog';
 import { Header } from '@widgets/Header';
 
 function NotificationInboxPage() {
@@ -49,19 +50,31 @@ function NotificationInboxPage() {
     void refetch();
   };
 
-  const handleMarkAllReadClick = () => {
+  const confirmMarkAllRead = async () => {
+    try {
+      if (await markAllAsRead()) toast(content.markAllReadSuccessToast);
+    } catch {
+      toast(content.markAllReadFailToast);
+    }
+  };
+
+  /** 모두 읽음 확인창을 연다. 앱에서는 앱 확인창을 먼저 시도하고, 쓸 수 없으면 웹 확인창을 띄운다. */
+  const handleMarkAllReadClick = async () => {
+    const result = await openConfirmDialog(content.markAllReadDialog);
+    if (result.status === 'resolved') {
+      if (result.action === 'confirm') void confirmMarkAllRead();
+      return;
+    }
+    if (result.status === 'pending') return;
+
     overlay.open(({ isOpen, close }) => (
-      <NotificationInboxMarkAllReadDialog
+      <ConfirmDialog
+        {...content.markAllReadDialog}
         isOpen={isOpen}
-        close={close}
-        onConfirm={async () => {
-          try {
-            await markAllAsRead();
-            toast(content.markAllReadSuccessToast);
-          } catch {
-            toast(content.markAllReadFailToast);
-            throw new Error('MARK_ALL_READ_FAIL');
-          }
+        onClose={close}
+        onConfirm={() => {
+          close();
+          void confirmMarkAllRead();
         }}
       />
     ));

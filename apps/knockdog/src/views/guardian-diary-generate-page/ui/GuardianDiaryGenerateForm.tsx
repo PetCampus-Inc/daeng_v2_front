@@ -4,18 +4,11 @@ import Lottie from 'lottie-react';
 import { InfoLine, Reset } from '@knockdog/icons';
 import {
   ActionButton,
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
   DiaryEditText,
   DiaryImageCarousel,
   DiaryTopBar,
 } from '@knockdog/ui';
+import { ConfirmDialog } from '@shared/ui/confirm-dialog';
 
 import {
   DIARY_ERROR_TEXT,
@@ -125,22 +118,19 @@ function GuardianDiaryGenerateForm({
           ) : null}
         </BottomCta>
       )}
-      <AlertDialog open={dialog !== null} onOpenChange={(open) => { if (!open) onKeepWriting(); }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{dialogCopy?.title}</AlertDialogTitle>
-            <AlertDialogDescription className='body2-regular'>
-              {dialogCopy?.lines[0]}
-              <br />
-              {dialogCopy?.lines[1]}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>계속 작성하기</AlertDialogCancel>
-            <AlertDialogAction onClick={dialog === 'save' ? onConfirmSave : onLeave}>{dialogCopy?.confirmLabel}</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        isOpen={dialog !== null}
+        title={dialogCopy?.title ?? ''}
+        description={dialogCopy?.lines.join('\n')}
+        cancelLabel='계속 작성하기'
+        confirmLabel={dialogCopy?.confirmLabel ?? ''}
+        onClose={onKeepWriting}
+        onConfirm={() => {
+          if (dialog === 'save') onConfirmSave();
+          else onLeave();
+          onKeepWriting();
+        }}
+      />
     </div>
   );
 }

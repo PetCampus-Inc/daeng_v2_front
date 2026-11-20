@@ -5,14 +5,6 @@ import { useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { overlay } from 'overlay-kit';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
   Icon,
 } from '@knockdog/ui';
 
@@ -51,7 +43,8 @@ import {
 import { useUserStore } from '@entities/user';
 
 import { route } from '@shared/constants/route';
-import { useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
+import { openConfirmDialog, useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
+import { ConfirmDialog } from '@shared/ui/confirm-dialog';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { MiniPhotoBox } from '@shared/ui/photo-uploader';
 import { useImagePicker } from '@shared/lib/media';
@@ -337,24 +330,34 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
     const draft = draftQuery.data;
     if (!draft) return;
 
-    overlay.open(({ isOpen, close }) => (
-      <AlertDialog open={isOpen} onOpenChange={(open) => !open && close()}>
-        <AlertDialogContent className='border-line-200 w-[calc(100%-32px)] border'>
-          <AlertDialogHeader>
-            <AlertDialogTitle className='[&&]:text-center'>{write.resumeDraftTitle}</AlertDialogTitle>
-            <AlertDialogDescription className='[&&]:text-center'>
-              {write.resumeDraftDescription}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{write.resumeDraftNewLabel}</AlertDialogCancel>
-            <AlertDialogAction onClick={() => applyDraft(draft)}>
-              {write.resumeDraftContinueLabel}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    ));
+    const confirmCopy = {
+      title: write.resumeDraftTitle,
+      description: write.resumeDraftDescription,
+      cancelLabel: write.resumeDraftNewLabel,
+      confirmLabel: write.resumeDraftContinueLabel,
+    };
+    openConfirmDialog(confirmCopy).then((result) => {
+      if (result.status === 'pending') return;
+
+      if (result.status === 'resolved') {
+        if (result.action === 'confirm') {
+          applyDraft(draft);
+        }
+        return;
+      }
+
+      overlay.open(({ isOpen, close }) => (
+        <ConfirmDialog
+          {...confirmCopy}
+          isOpen={isOpen}
+          onClose={close}
+          onConfirm={() => {
+            close();
+            applyDraft(draft);
+          }}
+        />
+      ));
+    });
   }, [
     applyDraft,
     draftQuery.data,
@@ -436,28 +439,37 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
     if (isExitDialogOpenRef.current) return;
     isExitDialogOpenRef.current = true;
 
-    overlay.open(({ isOpen, close }) => (
-      <AlertDialog
-        open={isOpen}
-        onOpenChange={(open) => {
-          if (!open) {
+    const confirmCopy = {
+      title: write.unsavedExitTitle,
+      description: write.unsavedExitDescription,
+      cancelLabel: write.unsavedExitCancelLabel,
+      confirmLabel: write.unsavedExitConfirmLabel,
+    };
+    openConfirmDialog(confirmCopy).then((result) => {
+      if (result.status !== 'unavailable') {
+        isExitDialogOpenRef.current = false;
+        if (result.status === 'resolved' && result.action === 'confirm') {
+          leaveToList();
+        }
+        return;
+      }
+
+      overlay.open(({ isOpen, close }) => (
+        <ConfirmDialog
+          {...confirmCopy}
+          isOpen={isOpen}
+          onClose={() => {
             isExitDialogOpenRef.current = false;
             close();
-          }
-        }}
-      >
-        <AlertDialogContent className='max-w-[min(358px,calc(100%-32px))]'>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{write.unsavedExitTitle}</AlertDialogTitle>
-            <AlertDialogDescription>{write.unsavedExitDescription}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{write.unsavedExitCancelLabel}</AlertDialogCancel>
-            <AlertDialogAction onClick={leaveToList}>{write.unsavedExitConfirmLabel}</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    ));
+          }}
+          onConfirm={() => {
+            isExitDialogOpenRef.current = false;
+            close();
+            leaveToList();
+          }}
+        />
+      ));
+    });
   }, [isDirty, isDraftSaving, isSubmitting, leaveToList, write]);
 
   useNativeBackHandler(handleBack);
@@ -683,32 +695,31 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
         );
         return;
       }
-      overlay.open(({ isOpen, close }) => (
-        <AlertDialog
-          open={isOpen}
-          onOpenChange={(open) => {
-            if (!open) close();
-          }}
-        >
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>{failedTitle}</AlertDialogTitle>
-              <AlertDialogDescription>{failedDescription}</AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>{failedCloseLabel}</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => {
-                  close();
-                  void submitNews();
-                }}
-              >
-                {failedRetryLabel}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      ));
+      const confirmCopy = {
+        title: failedTitle,
+        description: failedDescription,
+        cancelLabel: failedCloseLabel,
+        confirmLabel: failedRetryLabel,
+      };
+      openConfirmDialog(confirmCopy).then((result) => {
+        if (result.status === 'resolved') {
+          if (result.action === 'confirm') void submitNews();
+          return;
+        }
+        if (result.status === 'pending') return;
+
+        overlay.open(({ isOpen, close }) => (
+          <ConfirmDialog
+            {...confirmCopy}
+            isOpen={isOpen}
+            onClose={close}
+            onConfirm={() => {
+              close();
+              submitNews();
+            }}
+          />
+        ));
+      });
     } finally {
       setIsSubmitting(false);
     }

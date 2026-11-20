@@ -4,19 +4,12 @@ import { Edit, Trash } from '@knockdog/icons';
 import {
   ActionButton,
   AiWrittenBadge,
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
   DiaryEditText,
   DiaryImageCarousel,
   DiaryTopBar,
 } from '@knockdog/ui';
 
+import { ConfirmDialog } from '@shared/ui/confirm-dialog';
 import { DIARY_DELETE_CANCEL, DIARY_DELETE_LINES, DIARY_DELETE_TITLE } from '../lib/diaryDetail';
 
 import { BottomCta } from '@shared/ui/bottom-cta';
@@ -99,22 +92,18 @@ function GuardianDiaryDetailForm({
           </ActionButton>
         </BottomCta>
       ) : null}
-      <AlertDialog open={isDeleteOpen} onOpenChange={(open) => { if (!open) onCancelDelete(); }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{DIARY_DELETE_TITLE}</AlertDialogTitle>
-            <AlertDialogDescription className='body2-regular'>
-              {DIARY_DELETE_LINES[0]}
-              <br />
-              {DIARY_DELETE_LINES[1]}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{DIARY_DELETE_CANCEL}</AlertDialogCancel>
-            <AlertDialogAction onClick={onDelete}>삭제하기</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        isOpen={isDeleteOpen}
+        title={DIARY_DELETE_TITLE}
+        description={DIARY_DELETE_LINES.join('\n')}
+        cancelLabel={DIARY_DELETE_CANCEL}
+        confirmLabel='삭제하기'
+        onClose={onCancelDelete}
+        onConfirm={() => {
+          onCancelDelete();
+          onDelete();
+        }}
+      />
     </div>
   );
 }

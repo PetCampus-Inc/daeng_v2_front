@@ -44,9 +44,9 @@ test.describe('CF-OWNER-MEMBERS-APPROVAL', () => {
     await expect(page.getByTestId('owner-members-pending-actions')).toHaveCount(2);
 
     await page.getByTestId('owner-members-approve-button').first().click();
-    await expect(page.getByTestId('owner-members-approved-dialog')).toBeVisible();
+    await expect(page.getByRole('alertdialog')).toBeVisible();
 
-    await page.getByTestId('owner-members-approved-charge').click();
+    await page.getByRole('button', { name: '이용권 충전하기' }).click();
     await expect(page).toHaveURL(/\/owner\/members\/11\/ticket-charge/);
 
     await page.goBack();

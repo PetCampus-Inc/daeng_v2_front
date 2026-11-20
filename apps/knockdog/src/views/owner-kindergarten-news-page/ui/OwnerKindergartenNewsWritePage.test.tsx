@@ -30,6 +30,7 @@ vi.mock('@entities/school-news', () => ({
 vi.mock('@shared/lib/bridge', () => ({
   useStackNavigation: () => ({ back: vi.fn(), replace: vi.fn() }),
   useNativeBackHandler: vi.fn(),
+  openConfirmDialog: async () => ({ status: 'unavailable' }),
 }));
 vi.mock('./OwnerKindergartenNewsWriteSettingsSheet', () => ({
   OwnerKindergartenNewsWriteSettingsSheet: ({ isOpen }: { isOpen: boolean }) =>

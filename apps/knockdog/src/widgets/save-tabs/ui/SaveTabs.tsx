@@ -1,19 +1,6 @@
 'use client';
 
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
-} from '@knockdog/ui';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@knockdog/ui';
 import { useState } from 'react';
 import { overlay } from 'overlay-kit';
 
@@ -27,6 +14,15 @@ import { useUserStore, useAddUserAddressMutation, USER_ADDRESS_TYPE, type UserAd
 import { openConfirmDialog, useStackNavigation } from '@shared/lib/bridge';
 import { route } from '@shared/constants/route';
 import { toast } from '@shared/ui/toast';
+import { ConfirmDialog } from '@shared/ui/confirm-dialog';
+
+/** 비교 모드에 들어가려는데 등록된 집이 없을 때 띄우는 확인창 문구. 앱 확인창과 웹 확인창이 같이 쓴다. */
+const NO_HOME_ADDRESS_DIALOG = {
+  title: '등록된 장소가 없어요',
+  description: '장소를 등록하면\n유치원과의 거리를 비교할 수 있어요.',
+  cancelLabel: '나중에 하기',
+  confirmLabel: '등록하기',
+};
 
 interface SaveTabsProps {
   bookmarks: BookmarkItem[];
@@ -82,36 +78,19 @@ function SaveTabs({ bookmarks, isLoading, searchQuery = '', filterState, onBookm
 
   const openWebNoHomeAddressDialog = () =>
     overlay.open(({ isOpen, close }) => (
-      <AlertDialog open={isOpen} onOpenChange={close}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>등록된 장소가 없어요</AlertDialogTitle>
-            <AlertDialogDescription>
-              장소를 등록하면 <br /> 유치원과의 거리를 비교할 수 있어요.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={close}>나중에 하기</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={async () => {
-                close();
-                await registerHomeAddressAndCompare();
-              }}
-            >
-              등록하기
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        {...NO_HOME_ADDRESS_DIALOG}
+        isOpen={isOpen}
+        onClose={close}
+        onConfirm={async () => {
+          close();
+          await registerHomeAddressAndCompare();
+        }}
+      />
     ));
 
   const handleOpenNoHomeAddressDialog = async () => {
-    const result = await openConfirmDialog({
-      title: '등록된 장소가 없어요',
-      description: '장소를 등록하면\n유치원과의 거리를 비교할 수 있어요.',
-      cancelLabel: '나중에 하기',
-      confirmLabel: '등록하기',
-    });
+    const result = await openConfirmDialog(NO_HOME_ADDRESS_DIALOG);
 
     if (result.status === 'pending') return;
 

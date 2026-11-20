@@ -4,14 +4,6 @@ import { useSearchParams } from 'next/navigation';
 import {
   ActionButton,
   Icon,
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
 } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 import { useQueryClient } from '@tanstack/react-query';
@@ -23,7 +15,8 @@ import {
 } from '@entities/guardian-invite';
 import { usePetByIdQuery, usePetRemoveMutation } from '@entities/pet';
 import { useUserStore } from '@entities/user';
-import { getCurrentTxId, useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
+import { openConfirmDialog, getCurrentTxId, useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
+import { ConfirmDialog } from '@shared/ui/confirm-dialog';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 import { toast } from '@shared/ui/toast';
 
@@ -34,7 +27,7 @@ export function MypagePetDetailPage() {
   const searchParams = useSearchParams();
   const petId = searchParams.get('petId') as string;
   const userId = useUserStore((state) => state.user?.userId);
-  const { mutate: removePetMutate } = usePetRemoveMutation();
+  const { mutateAsync: removePetAsync } = usePetRemoveMutation();
   const { data: petResponse } = usePetByIdQuery(petId);
   const petConnectionStatusesQuery = useGuardianPetConnectionStatusesQuery({ userId });
   const petConnection = petConnectionStatusesQuery.data?.data?.pets?.find((pet) => pet.petId === Number(petId));
@@ -53,45 +46,53 @@ export function MypagePetDetailPage() {
   };
 
   const handleDeleteClick = () => {
-    overlay.open(({ isOpen, close }) => (
-      <AlertDialog open={isOpen} onOpenChange={close}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>강아지 프로필을 삭제할까요?</AlertDialogTitle>
-            <AlertDialogDescription>삭제한 강아지 데이터는 복구할 수 없어요.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>닫기</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                removePetMutate(petId, {
-                  onSuccess: async () => {
-                    // 초대 신청의 강아지 선택 화면은 pet/list가 아닌 별도 연결 상태 query를 사용한다.
-                    // stack 화면이 유지된 채 돌아와도 최신 목록을 보여주도록 먼저 갱신한다.
-                    await queryClient.invalidateQueries({
-                      queryKey: [GUARDIAN_PET_CONNECTION_STATUSES_QUERY_KEY],
-                      refetchType: 'all',
-                    });
-                    syncWebViewQuery.refetch(['petList']);
-                    syncWebViewQuery.refetch([GUARDIAN_PET_CONNECTION_STATUSES_QUERY_KEY]);
-                    handleBack();
-                  },
-                  onError: (error) => {
-                    console.error('펫 삭제 실패:', error);
-                    toast({
-                      title: '일시적 오류로 요청을 완료하지 못했어요',
-                      nativeTitle: '일시적 오류로 요청을 완료하지 못했어요',
-                    });
-                  },
-                });
-              }}
-            >
-              삭제하기
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    ));
+    const confirmCopy = {
+      title: '강아지 프로필을 삭제할까요?',
+      description: '삭제한 강아지 데이터는 복구할 수 없어요.',
+      cancelLabel: '닫기',
+      confirmLabel: '삭제하기',
+    };
+    const deletePet = async () => {
+      try {
+        await removePetAsync(petId);
+      } catch (error) {
+        console.error('펫 삭제 실패:', error);
+        toast({
+          title: '일시적 오류로 요청을 완료하지 못했어요',
+          nativeTitle: '일시적 오류로 요청을 완료하지 못했어요',
+        });
+        return;
+      }
+
+      // 초대 신청의 강아지 선택 화면은 pet/list가 아닌 별도 연결 상태 query를 사용한다.
+      // stack 화면이 유지된 채 돌아와도 최신 목록을 보여주도록 먼저 갱신한다.
+      await queryClient.invalidateQueries({
+        queryKey: [GUARDIAN_PET_CONNECTION_STATUSES_QUERY_KEY],
+        refetchType: 'all',
+      });
+      syncWebViewQuery.refetch(['petList']);
+      syncWebViewQuery.refetch([GUARDIAN_PET_CONNECTION_STATUSES_QUERY_KEY]);
+      handleBack();
+    };
+    openConfirmDialog(confirmCopy).then((result) => {
+      if (result.status === 'resolved') {
+        if (result.action === 'confirm') void deletePet();
+        return;
+      }
+      if (result.status === 'pending') return;
+
+      overlay.open(({ isOpen, close }) => (
+        <ConfirmDialog
+          {...confirmCopy}
+          isOpen={isOpen}
+          onClose={close}
+          onConfirm={() => {
+            close();
+            deletePet();
+          }}
+        />
+      ));
+    });
   };
 
   return (

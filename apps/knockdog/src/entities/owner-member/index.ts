@@ -9,6 +9,7 @@ export {
   useOwnerMemberApprovalMutation,
   useDisconnectCheckMutation,
   useOwnerMemberDisconnectMutation,
+  ownerDisconnectMutationKey,
   isAlreadyCancelledError,
   isAlreadyDisconnectedError,
   isDisconnectBlockedError,

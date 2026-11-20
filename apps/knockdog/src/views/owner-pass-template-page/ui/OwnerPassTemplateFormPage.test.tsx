@@ -33,6 +33,8 @@ vi.mock('@entities/owner-pass-template/api/ownerPassTemplate', () => ({
 vi.mock('@shared/lib/bridge', async () => ({
   useStackNavigation: () => navigation,
   useNativeBackHandler: (await import('@shared/lib/bridge/useNativeBackHandler')).useNativeBackHandler,
+  // 앱이 아닌 웹 환경: 앱 확인창을 쓸 수 없으므로 웹 확인창이 뜬다
+  openConfirmDialog: async () => ({ status: 'unavailable' }),
 }));
 vi.mock('@shared/ui/toast', () => ({ toast: vi.fn() }));
 vi.mock('@widgets/Header', () => {
