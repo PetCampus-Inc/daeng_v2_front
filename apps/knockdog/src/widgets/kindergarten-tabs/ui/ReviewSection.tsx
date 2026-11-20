@@ -11,7 +11,6 @@ import {
   hasKnockdogReviewReport,
   KnockdogReviewList,
   KnockdogReviewSortButton,
-  ReviewActionDialog,
   ReviewCard,
   ReviewRatingSummary,
   sortKnockdogReviews,
@@ -30,7 +29,8 @@ import { useManagedKindergarten } from '@features/role-conversion';
 import { parseSchoolId, type ReviewListResponse, type SchoolReviewSummary } from '@entities/review';
 import { useUserStore } from '@entities/user';
 import { useInfiniteScroll } from '@shared/lib';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { openConfirmDialog, useStackNavigation } from '@shared/lib/bridge';
+import { ConfirmDialog } from '@shared/ui/confirm-dialog';
 import { DelayedLoadingSpinner, LoadingSpinner } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
 
@@ -49,6 +49,15 @@ function getBlogReviewCount(pages: ReviewListResponse[] | undefined) {
   if (!paging.hasNext) return pages?.reduce((count, page) => count + page.reviews.length, 0) ?? 0;
   return null;
 }
+
+/** 삭제 확인창과 실패 안내창의 문구. 앱 확인창과 웹 확인창이 같이 쓴다. */
+const DELETE_CONFIRM_COPY = { title: '해당 리뷰를 삭제할까요?', cancelLabel: '닫기', confirmLabel: '삭제' };
+const DELETE_FAILURE_COPY = {
+  title: '리뷰를 삭제하지 못했어요',
+  description: '잠시 후 다시 시도해 주세요.',
+  cancelLabel: '닫기',
+  confirmLabel: '다시 시도',
+};
 
 function ReviewSourceLabel({ label, count }: { label: string; count: number | null }) {
   return (
@@ -202,7 +211,6 @@ export const ReviewSection = function ReviewSection({ kindergartenId, schoolId, 
   const [knockdogReviewSort, setKnockdogReviewSort] = useState<KnockdogReviewSort>('latest');
   const [deleteDialog, setDeleteDialog] = useState<'confirm' | 'failure' | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
   const isDeletingRef = useRef(false);
   const reporterId = useUserStore((state) => state.user?.userId) ?? '';
   const knockdogReviews = useKnockdogReviews();
@@ -322,45 +330,66 @@ export const ReviewSection = function ReviewSection({ kindergartenId, schoolId, 
     );
   };
 
+  /** 삭제 요청을 보낸다. 성공하면 토스트를 보여주고, 실패하면 실패 안내창을 연다. */
+  const deleteReview = async (targetId: string) => {
+    if (isDeletingRef.current) return;
+    isDeletingRef.current = true;
+
+    try {
+      if (showKnockdogReviewMock) {
+        await deleteKnockdogReview(targetId);
+      } else {
+        const parsedSchoolId = parseSchoolId(schoolId);
+        const parsedReviewId = parseSchoolId(targetId);
+        if (parsedSchoolId == null || parsedReviewId == null) throw new Error('review required');
+        await removeSchoolReview({ schoolId: parsedSchoolId, reviewId: parsedReviewId });
+      }
+    } catch {
+      isDeletingRef.current = false;
+      await openDeleteDialog(targetId, 'failure');
+      return;
+    }
+
+    isDeletingRef.current = false;
+    toast({
+      title: '유치원 이용 리뷰를 삭제했어요',
+      nativeTitle: '유치원 이용 리뷰를 삭제했어요',
+      position: 'bottom',
+    });
+  };
+
+  /**
+   * 삭제 확인창(또는 실패 안내창)을 연다. 앱에서는 앱 확인창을 먼저 시도하고, 쓸 수 없으면 웹 확인창을 띄운다.
+   * 앱·웹 모두 확인을 누르면 창이 바로 닫히고 삭제 요청이 시작된다.
+   */
+  const openDeleteDialog = async (reviewId: string, stage: 'confirm' | 'failure') => {
+    const copy = stage === 'confirm' ? DELETE_CONFIRM_COPY : DELETE_FAILURE_COPY;
+    const result = await openConfirmDialog(copy);
+    if (result.status === 'pending') return;
+
+    if (result.status === 'unavailable') {
+      setDeleteTargetId(reviewId);
+      setDeleteDialog(stage);
+      return;
+    }
+
+    if (result.action === 'confirm') void deleteReview(reviewId);
+  };
+
   const handleDeleteReview = (reviewId: string) => {
-    setDeleteTargetId(reviewId);
-    setDeleteDialog('confirm');
+    openDeleteDialog(reviewId, 'confirm');
   };
 
   const handleCloseDeleteDialog = () => {
-    if (isDeletingRef.current) return;
     setDeleteDialog(null);
     setDeleteTargetId(null);
   };
 
-  const handleConfirmDelete = async () => {
-    if (!deleteTargetId || isDeletingRef.current) return;
-
-    isDeletingRef.current = true;
-    setIsDeleting(true);
-
-    try {
-      if (showKnockdogReviewMock) {
-        await deleteKnockdogReview(deleteTargetId);
-      } else {
-        const parsedSchoolId = parseSchoolId(schoolId);
-        const parsedReviewId = parseSchoolId(deleteTargetId);
-        if (parsedSchoolId == null || parsedReviewId == null) throw new Error('review required');
-        await removeSchoolReview({ schoolId: parsedSchoolId, reviewId: parsedReviewId });
-      }
-      setDeleteDialog(null);
-      setDeleteTargetId(null);
-      toast({
-        title: '유치원 이용 리뷰를 삭제했어요',
-        nativeTitle: '유치원 이용 리뷰를 삭제했어요',
-        position: 'bottom',
-      });
-    } catch {
-      setDeleteDialog('failure');
-    } finally {
-      isDeletingRef.current = false;
-      setIsDeleting(false);
-    }
+  /** 웹 확인창에서 확인을 누르면 창을 바로 닫고 삭제 요청을 시작한다 */
+  const handleConfirmDelete = () => {
+    const targetId = deleteTargetId;
+    handleCloseDeleteDialog();
+    if (targetId) void deleteReview(targetId);
   };
 
   const renderKnockdogContent = () => {
@@ -409,31 +438,18 @@ export const ReviewSection = function ReviewSection({ kindergartenId, schoolId, 
             <LoadingSpinner layout='inline' />
           </div>
         ) : null}
-        <ReviewActionDialog
+        <ConfirmDialog
           isOpen={deleteDialog === 'confirm'}
-          isSubmitting={isDeleting}
-          title='해당 리뷰를 삭제할까요?'
-          description='삭제한 리뷰는 복구할 수 없습니다.'
-          hideDescription
-          cancelLabel='닫기'
-          confirmLabel='삭제'
+          {...DELETE_CONFIRM_COPY}
           closeOnOutside
           onClose={handleCloseDeleteDialog}
-          onConfirm={() => {
-            handleConfirmDelete();
-          }}
+          onConfirm={handleConfirmDelete}
         />
-        <ReviewActionDialog
+        <ConfirmDialog
           isOpen={deleteDialog === 'failure'}
-          isSubmitting={isDeleting}
-          title='리뷰를 삭제하지 못했어요'
-          description='잠시 후 다시 시도해 주세요.'
-          cancelLabel='닫기'
-          confirmLabel='다시 시도'
+          {...DELETE_FAILURE_COPY}
           onClose={handleCloseDeleteDialog}
-          onConfirm={() => {
-            handleConfirmDelete();
-          }}
+          onConfirm={handleConfirmDelete}
         />
       </>
     );

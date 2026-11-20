@@ -18,7 +18,6 @@ import { Header } from '@widgets/Header';
 import { useKindergartenMainQuery } from '@features/kindergarten-main';
 import { useManagedKindergarten } from '@features/role-conversion';
 import {
-  ReviewActionDialog,
   saveKnockdogReviewEdit,
   markWrittenKindergartenReview,
   useSchoolReviewDetailQuery,
@@ -29,10 +28,11 @@ import {
 import { kindergartenQueries, type Kindergarten } from '@entities/kindergarten';
 import { parseSchoolId, postReviewSchool } from '@entities/review';
 import { useBasePoint } from '@entities/user';
-import { useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
+import { openConfirmDialog, useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
 import { useImagePicker } from '@shared/lib/media';
 import { openUnsavedExitDialog } from '@shared/lib/openUnsavedExitDialog';
 import { resolvePublicImageSrc } from '@shared/lib/utils';
+import { ConfirmDialog } from '@shared/ui/confirm-dialog';
 import { Skeleton } from '@shared/ui/skeleton';
 import { ActionLoadingOverlay } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
@@ -55,6 +55,23 @@ const PHOTO_NETWORK_MESSAGE = '사진을 올리지 못했어요. 네트워크 �
 const showPhotoToast = (message: string) => toast({ nativeTitle: message, title: message });
 
 type EditDialog = 'confirm' | 'failure' | null;
+/** 제출 결과. skipped: 조건이 안 맞아 요청을 보내지 않음 */
+type SubmitOutcome = 'skipped' | 'done' | 'failed';
+
+/** 수정 확인창·실패 안내창 문구. 앱 확인창과 웹 확인창이 같이 쓴다. */
+const EDIT_CONFIRM_COPY = { title: '리뷰를 수정할까요?', cancelLabel: '아니요', confirmLabel: '네' };
+const EDIT_FAILURE_COPY = {
+  title: '리뷰를 수정하지 못했어요',
+  description: '잠시 후 다시 시도해 주세요.',
+  cancelLabel: '닫기',
+  confirmLabel: '다시 시도',
+};
+const CREATE_FAILURE_COPY = {
+  title: '리뷰를 등록하지 못했어요',
+  description: '잠시 후 다시 시도해 주세요.',
+  cancelLabel: '닫기',
+  confirmLabel: '다시 시도',
+};
 
 function formatScore(rating: number) {
   return rating > 0 ? rating.toFixed(1) : '0';
@@ -439,9 +456,10 @@ export function WriteReviewPage() {
     updatePhotos(current.filter((photo) => photo.id !== photoId));
   };
 
-  const handleCreate = async () => {
-    if (isEdit || isSubmittingRef.current || isPickingPhotoRef.current || !canSubmit) return;
-    if (isKindergartenPending) return;
+  /** 리뷰 등록 요청을 보낸다. 실패 안내는 호출한 쪽이 맡는다. */
+  const createReview = async (): Promise<SubmitOutcome> => {
+    if (isEdit || isSubmittingRef.current || isPickingPhotoRef.current || !canSubmit) return 'skipped';
+    if (isKindergartenPending) return 'skipped';
 
     isSubmittingRef.current = true;
     setIsSubmitting(true);
@@ -460,21 +478,44 @@ export function WriteReviewPage() {
       markWrittenKindergartenReview(id);
       setIsCreateFailed(false);
       setIsComplete(true);
+      return 'done';
     } catch {
-      setIsCreateFailed(true);
+      return 'failed';
     } finally {
       isSubmittingRef.current = false;
       setIsSubmitting(false);
     }
   };
 
-  const handleSave = async () => {
-    if (isSubmittingRef.current || isPickingPhotoRef.current || !canSubmit || !baseline) return;
+  /**
+   * 등록 실패 안내창을 연다. 앱에서는 앱 확인창을 먼저 시도하고, 쓸 수 없으면 웹 확인창을 띄운다.
+   * `다시 시도`를 누르면 안내창이 바로 닫히고 등록 요청이 다시 시작된다. 또 실패하면 다시 안내한다.
+   */
+  const showCreateFailure = async () => {
+    const result = await openConfirmDialog(CREATE_FAILURE_COPY);
+    if (result.status === 'pending') return;
+
+    if (result.status === 'unavailable') {
+      setIsCreateFailed(true);
+      return;
+    }
+
+    if (result.action === 'confirm') await handleCreate();
+  };
+
+  const handleCreate = async () => {
+    const outcome = await createReview();
+    if (outcome === 'failed') await showCreateFailure();
+  };
+
+  /** 리뷰 수정 요청을 보낸다. 실패 안내는 호출한 쪽이 맡는다. */
+  const saveReview = async (): Promise<SubmitOutcome> => {
+    if (isSubmittingRef.current || isPickingPhotoRef.current || !canSubmit || !baseline) return 'skipped';
     const photosToSave = photosRef.current;
     if (photosToSave.length > MAX_PHOTO_COUNT) {
       setDialog(null);
       showPhotoToast('사진은 최대 10장까지 올릴 수 있어요');
-      return;
+      return 'skipped';
     }
 
     isSubmittingRef.current = true;
@@ -505,12 +546,50 @@ export function WriteReviewPage() {
       didSaveRef.current = true;
       setDialog(null);
       openKnockdogReviewTab();
+      return 'done';
     } catch {
-      setDialog('failure');
+      return 'failed';
     } finally {
       isSubmittingRef.current = false;
       setIsSubmitting(false);
     }
+  };
+
+  /**
+   * 수정 실패 안내창을 연다. 앱에서는 앱 확인창을 먼저 시도하고, 쓸 수 없으면 웹 확인창을 띄운다.
+   * `다시 시도`를 누르면 안내창이 바로 닫히고 수정 요청이 다시 시작된다. 또 실패하면 다시 안내한다.
+   */
+  const showSaveFailure = async () => {
+    const result = await openConfirmDialog(EDIT_FAILURE_COPY);
+    if (result.status === 'pending') return;
+
+    if (result.status === 'unavailable') {
+      setDialog('failure');
+      return;
+    }
+
+    if (result.action === 'confirm') await handleSave();
+  };
+
+  const handleSave = async () => {
+    const outcome = await saveReview();
+    if (outcome === 'failed') await showSaveFailure();
+  };
+
+  /**
+   * 수정 확인창을 연다. 앱에서는 앱 확인창을 먼저 시도하고, 쓸 수 없으면 웹 확인창을 띄운다.
+   * 확인을 누르면 확인창이 바로 닫히고 수정 요청이 시작된다.
+   */
+  const openSaveConfirmDialog = async () => {
+    const result = await openConfirmDialog(EDIT_CONFIRM_COPY);
+    if (result.status === 'pending') return;
+
+    if (result.status === 'unavailable') {
+      setDialog('confirm');
+      return;
+    }
+
+    if (result.action === 'confirm') await handleSave();
   };
 
   const handleCompleteConfirm = () => {
@@ -601,7 +680,7 @@ export function WriteReviewPage() {
           disabled={!canSubmit || isUploadingPhotos || (!editingReview && isKindergartenPending)}
           onClick={() => {
             if (isEdit) {
-              setDialog('confirm');
+              openSaveConfirmDialog();
               return;
             }
             void handleCreate();
@@ -613,47 +692,32 @@ export function WriteReviewPage() {
 
       {isEdit ? (
         <>
-          <ReviewActionDialog
+          <ConfirmDialog
             isOpen={dialog === 'confirm'}
-            isSubmitting={isSubmitting}
-            fullScreenLoading
-            title='리뷰를 수정할까요?'
-            description='수정한 리뷰를 저장합니다.'
-            hideDescription
-            cancelLabel='아니요'
-            confirmLabel='네'
+            {...EDIT_CONFIRM_COPY}
             onClose={() => setDialog(null)}
             onConfirm={() => {
+              setDialog(null);
               handleSave();
             }}
           />
-          <ReviewActionDialog
+          <ConfirmDialog
             isOpen={dialog === 'failure'}
-            isSubmitting={isSubmitting}
-            fullScreenLoading
-            title='리뷰를 수정하지 못했어요'
-            description='잠시 후 다시 시도해 주세요.'
-            cancelLabel='닫기'
-            confirmLabel='다시 시도'
+            {...EDIT_FAILURE_COPY}
             onClose={() => setDialog(null)}
             onConfirm={() => {
+              setDialog(null);
               handleSave();
             }}
           />
         </>
       ) : (
-        <ReviewActionDialog
+        <ConfirmDialog
           isOpen={isCreateFailed}
-          isSubmitting={isSubmitting}
-          title='리뷰를 등록하지 못했어요'
-          description='잠시 후 다시 시도해 주세요.'
-          cancelLabel='닫기'
-          confirmLabel='다시 시도'
-          onClose={() => {
-            if (isSubmittingRef.current) return;
-            setIsCreateFailed(false);
-          }}
+          {...CREATE_FAILURE_COPY}
+          onClose={() => setIsCreateFailed(false)}
           onConfirm={() => {
+            setIsCreateFailed(false);
             void handleCreate();
           }}
         />
