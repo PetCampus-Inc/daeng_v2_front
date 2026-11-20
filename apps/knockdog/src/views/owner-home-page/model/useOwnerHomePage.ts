@@ -29,14 +29,13 @@ const useOwnerHomePage = () => {
   const { refetch: refetchMembers } = membersQuery;
 
   const navigateToOwnerDaily = (query: Query) => {
-    const nextQuery = { ...query, from: 'home' };
     if (isNativeWebView()) {
-      navigateToTab('/owner/daily', nextQuery).catch(() => {
-        push({ pathname: route.owner.daily.root, query: nextQuery });
+      navigateToTab('/owner/daily', query).catch(() => {
+        push({ pathname: route.owner.daily.root, query });
       });
       return;
     }
-    push({ pathname: route.owner.daily.root, query: nextQuery });
+    push({ pathname: route.owner.daily.root, query });
   };
   const handleLatePetsClick = () => navigateToOwnerDaily({ tab: 'attendance-check', lateOnly: true });
   /**

@@ -18,8 +18,6 @@ vi.mock('@shared/ui/bottom-sheet', async () => ({
 vi.mock('next/navigation', () => import('@views/owner-daily-page/lib/fakeNextNavigation'));
 vi.mock('@shared/lib/bridge', () => ({
   useStackNavigation: () => ({ push: vi.fn(), back: vi.fn() }),
-  useTabNavigation: () => ({ navigateToTab: vi.fn().mockResolvedValue(undefined) }),
-  useNativeBackHandler: vi.fn(),
   useNativeBackToClose: vi.fn(),
   openConfirmDialog: vi.fn().mockResolvedValue({ status: 'unavailable' }),
 }));
@@ -140,15 +138,6 @@ describe('일과 화면 상태를 주소로 유지', () => {
 
     expect(getUrlParams().has('q')).toBe(false);
   });
-
-  test('홈에서 들어온 표시(`from=home`)는 화면 상태를 바꿔도 주소에 남는다', async () => {
-    renderOwnerDaily(<OwnerDailyPage />, { url: '/owner/daily?from=home' });
-
-    await user.click(await screen.findByRole('tab', { name: '등원목록' }));
-
-    expect(getUrlParams().get('from')).toBe('home');
-    expect(getUrlParams().get('tab')).toBe('attendance-list');
-  });
 });
 
 describe('홈·알림이 새 주소로 열 때', () => {
@@ -158,7 +147,7 @@ describe('홈·알림이 새 주소로 열 때', () => {
     });
     expect(await screen.findByRole('tab', { name: '등원목록', selected: true })).toBeTruthy();
 
-    act(() => setFakeUrl('/owner/daily?tab=attendance-check&lateOnly=true&from=home'));
+    act(() => setFakeUrl('/owner/daily?tab=attendance-check&lateOnly=true'));
 
     expect(await screen.findByRole('tab', { name: '등원처리', selected: true })).toBeTruthy();
     expect(getLateToggle().getAttribute('aria-pressed')).toBe('true');

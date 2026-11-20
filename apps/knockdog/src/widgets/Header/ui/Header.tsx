@@ -32,13 +32,21 @@ export function Header({
     <>
       <header
         className={cn(
-          'border-line-100 sticky top-0 z-15 flex h-16 w-full items-center px-4',
+          'border-line-100 sticky top-0 z-15 flex h-[66px] w-full items-center px-x4',
+          '[&:has([data-header-title]):not(:has([data-header-back]))]:pl-x5 [&:not(:has([data-header-back]))_[data-header-title]]:px-x1',
           variantClass[variant],
           className
         )}
         {...props}
       >
-        <div className={cn('flex h-16 w-full items-center gap-x-4', innerClassName)}>{children}</div>
+        <div
+          className={cn(
+            'flex h-full w-full items-center gap-x-4 [&:has([data-header-back]):has([data-header-title])]:gap-x-1',
+            innerClassName
+          )}
+        >
+          {children}
+        </div>
       </header>
     </>
   );
