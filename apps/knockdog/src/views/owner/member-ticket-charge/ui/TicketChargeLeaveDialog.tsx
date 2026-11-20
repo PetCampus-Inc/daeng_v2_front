@@ -1,17 +1,8 @@
 'use client';
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@knockdog/ui';
-
 import { memberTicketChargeContent } from '@views/owner/member-ticket-charge/config/memberTicketChargeContent';
+
+import { ConfirmDialog } from '@shared/ui/confirm-dialog';
 
 interface TicketChargeLeaveDialogProps {
   isOpen: boolean;
@@ -19,35 +10,20 @@ interface TicketChargeLeaveDialogProps {
   onLeave: () => void;
 }
 
+/** 이용권 충전을 마치지 않고 나갈 때 묻는 웹 확인창 */
 function TicketChargeLeaveDialog({ isOpen, onStay, onLeave }: TicketChargeLeaveDialogProps) {
   const { leave } = memberTicketChargeContent;
 
   return (
-    <AlertDialog
-      open={isOpen}
-      onOpenChange={(open) => {
-        if (!open) onStay();
-      }}
-    >
-      <AlertDialogContent className='max-w-[358px]'>
-        <AlertDialogHeader className='px-x4'>
-          <AlertDialogTitle>{leave.title}</AlertDialogTitle>
-          <AlertDialogDescription>{leave.description}</AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter className='px-x4'>
-          <AlertDialogCancel className='body1-bold text-text-secondary'>{leave.stay}</AlertDialogCancel>
-          <AlertDialogAction
-            className='body1-bold text-text-primary-inverse'
-            onClick={(event) => {
-              event.preventDefault();
-              onLeave();
-            }}
-          >
-            {leave.exit}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <ConfirmDialog
+      isOpen={isOpen}
+      title={leave.title}
+      description={leave.description}
+      cancelLabel={leave.stay}
+      confirmLabel={leave.exit}
+      onClose={onStay}
+      onConfirm={onLeave}
+    />
   );
 }
 

@@ -5,14 +5,6 @@ import Image from 'next/image';
 import { cn } from '@knockdog/ui/lib';
 
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
   ApprovalActionButton,
   ListHeader,
   StudentTicketListItem,
@@ -32,11 +24,29 @@ import {
 } from '@entities/owner-member';
 import { useUserStore } from '@entities/user';
 import { route } from '@shared/constants/route';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { openConfirmDialog, useStackNavigation } from '@shared/lib/bridge';
 import { trackConnectionStatus } from '@shared/lib/analytics';
+import { ConfirmDialog } from '@shared/ui/confirm-dialog';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { PageError } from '@shared/ui/page-error';
 import { toast } from '@shared/ui/toast';
+
+/** 승인 완료 확인창 문구. 앱 확인창과 웹 확인창이 같이 쓴다. */
+const toApprovedDialog = (dogName: string) => ({
+  title: '원생 승인을 완료했어요',
+  description: `${dogName}의 유치원 연결이 완료됐어요.`,
+  cancelLabel: '닫기',
+  confirmLabel: '이용권 충전하기',
+  buttonLayout: 'vertical' as const,
+});
+
+/** 승인 거절 확인창 문구. 앱 확인창과 웹 확인창이 같이 쓴다. */
+const REJECT_DIALOG = {
+  title: '원생 승인을 거절할까요?',
+  description: '거절한 원생은 되돌릴 수 없어요.',
+  cancelLabel: '닫기',
+  confirmLabel: '거절하기',
+};
 
 const SORT_BY_OPTION: Record<SortOption, OwnerPendingSort> = {
   newest: 'LATEST',
@@ -133,10 +143,35 @@ function OwnerMembersPendingTab({ keyword }: OwnerMembersPendingTabProps) {
           initiated_by: 'owner',
           school_pet_membership_id: member.id,
         });
-        setApprovedMember(member);
+        void openApprovedDialog(member);
       },
       onError: (error) => showActionError(error, '연결 신청 승인에 실패했어요'),
     });
+  };
+
+  /** 승인 완료 확인창을 연다. 앱에서는 앱 확인창을 먼저 시도하고, 쓸 수 없으면 웹 확인창을 띄운다. */
+  const openApprovedDialog = async (member: OwnerMember) => {
+    const result = await openConfirmDialog(toApprovedDialog(member.dogName));
+    if (result.status === 'pending') return;
+
+    if (result.status === 'resolved') {
+      if (result.action === 'confirm') handleOpenTicketCharge(member);
+      return;
+    }
+
+    setApprovedMember(member);
+  };
+
+  /** 거절 확인창을 연다. 앱에서는 앱 확인창을 먼저 시도하고, 쓸 수 없으면 웹 확인창을 띄운다. */
+  const handleRejectClick = async (member: OwnerMember) => {
+    const result = await openConfirmDialog(REJECT_DIALOG);
+    if (result.status === 'resolved') {
+      if (result.action === 'confirm') rejectMember(member);
+      return;
+    }
+    if (result.status === 'pending') return;
+
+    setRejectTarget(member);
   };
 
   const handleConfirmReject = () => {
@@ -144,6 +179,10 @@ function OwnerMembersPendingTab({ keyword }: OwnerMembersPendingTabProps) {
     const target = rejectTarget;
 
     setRejectTarget(null);
+    rejectMember(target);
+  };
+
+  const rejectMember = (target: OwnerMember) => {
     rejectMutation.mutate(target.id, {
       onSuccess: () => {
         trackConnectionStatus({
@@ -161,11 +200,11 @@ function OwnerMembersPendingTab({ keyword }: OwnerMembersPendingTabProps) {
     });
   };
 
-  const handleOpenTicketCharge = () => {
-    if (!approvedMember?.petId) return;
+  const handleOpenTicketCharge = (member: OwnerMember) => {
+    if (!member.petId) return;
 
     void push({
-      pathname: route.owner.members.detail.ticketCharge.root.replace('[id]', approvedMember.petId),
+      pathname: route.owner.members.detail.ticketCharge.root.replace('[id]', member.petId),
     });
   };
 
@@ -205,7 +244,7 @@ function OwnerMembersPendingTab({ keyword }: OwnerMembersPendingTabProps) {
                   member={member}
                   disabled={isActionPending}
                   onApprove={handleApprove}
-                  onReject={setRejectTarget}
+                  onReject={handleRejectClick}
                 />
               }
             />
@@ -213,39 +252,23 @@ function OwnerMembersPendingTab({ keyword }: OwnerMembersPendingTabProps) {
         )}
       </div>
 
-      <AlertDialog open={approvedMember !== null} onOpenChange={(open) => !open && setApprovedMember(null)}>
-        <AlertDialogContent data-testid='owner-members-approved-dialog'>
-          <AlertDialogHeader>
-            <AlertDialogTitle>원생 승인을 완료했어요</AlertDialogTitle>
-            <AlertDialogDescription>
-              {`${approvedMember?.dogName ?? ''}의 유치원 연결이 완료됐어요.`}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className='flex-col'>
-            <AlertDialogCancel className='w-full'>닫기</AlertDialogCancel>
-            <AlertDialogAction
-              className='w-full'
-              data-testid='owner-members-approved-charge'
-              onClick={handleOpenTicketCharge}
-            >
-              이용권 충전하기
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        {...toApprovedDialog(approvedMember?.dogName ?? '')}
+        isOpen={approvedMember !== null}
+        onClose={() => setApprovedMember(null)}
+        onConfirm={() => {
+          const member = approvedMember;
+          setApprovedMember(null);
+          if (member) handleOpenTicketCharge(member);
+        }}
+      />
 
-      <AlertDialog open={rejectTarget !== null} onOpenChange={(open) => !open && setRejectTarget(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>원생 승인을 거절할까요?</AlertDialogTitle>
-            <AlertDialogDescription>거절한 원생은 되돌릴 수 없어요.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>닫기</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmReject}>거절하기</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        {...REJECT_DIALOG}
+        isOpen={rejectTarget !== null}
+        onClose={() => setRejectTarget(null)}
+        onConfirm={handleConfirmReject}
+      />
     </div>
   );
 }
