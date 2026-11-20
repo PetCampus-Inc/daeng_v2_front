@@ -5,14 +5,6 @@ import { overlay } from 'overlay-kit';
 
 import {
   ActionButton,
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
 } from '@knockdog/ui';
 
 import {
@@ -27,7 +19,8 @@ import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { Header } from '@widgets/Header';
 
 import { route } from '@shared/constants/route';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { openConfirmDialog, useStackNavigation } from '@shared/lib/bridge';
+import { ConfirmDialog } from '@shared/ui/confirm-dialog';
 import { toast } from '@shared/ui/toast';
 import { BottomCta } from '@shared/ui/bottom-cta';
 
@@ -68,50 +61,51 @@ function OwnerDailyNoticeTemplateDetailPage() {
     if (isExpired) return;
     if (!templateId) return;
 
-    overlay.open(({ isOpen, close }) => (
-      <AlertDialog open={isOpen} onOpenChange={close}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{ownerDailyNoticeTemplateDetailContent.deleteDialogTitle}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {ownerDailyNoticeTemplateDetailContent.deleteDialogDescription}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>
-              {ownerDailyNoticeTemplateDetailContent.deleteDialogCloseLabel}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={async () => {
-                try {
-                  await deleteMutation.mutateAsync(templateId);
-                  close();
-                  back();
-                } catch {
-                  toast({
-                    nativeTitle: '템플릿을 삭제하지 못했어요',
-                    titleParts: [
-                      { text: '템플릿', bold: true },
-                      { text: '을 삭제하지 못했어요. 다시 시도해 주세요' },
-                    ],
-                    title: (
-                      <>
-                        <span className='body1-bold text-text-primary-inverse'>템플릿</span>
-                        <span className='text-text-primary-inverse'>
-                          을 삭제하지 못했어요. 다시 시도해 주세요
-                        </span>
-                      </>
-                    ),
-                  });
-                }
-              }}
-            >
-              {ownerDailyNoticeTemplateDetailContent.deleteDialogConfirmLabel}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    ));
+    const confirmCopy = {
+      title: ownerDailyNoticeTemplateDetailContent.deleteDialogTitle,
+      description: ownerDailyNoticeTemplateDetailContent.deleteDialogDescription,
+      cancelLabel: ownerDailyNoticeTemplateDetailContent.deleteDialogCloseLabel,
+      confirmLabel: ownerDailyNoticeTemplateDetailContent.deleteDialogConfirmLabel,
+    };
+    const deleteTemplate = async () => {
+      try {
+        await deleteMutation.mutateAsync(templateId);
+        back();
+      } catch {
+        toast({
+          nativeTitle: '템플릿을 삭제하지 못했어요',
+          titleParts: [
+            { text: '템플릿', bold: true },
+            { text: '을 삭제하지 못했어요. 다시 시도해 주세요' },
+          ],
+          title: (
+            <>
+              <span className='body1-bold text-text-primary-inverse'>템플릿</span>
+              <span className='text-text-primary-inverse'>을 삭제하지 못했어요. 다시 시도해 주세요</span>
+            </>
+          ),
+        });
+      }
+    };
+    openConfirmDialog(confirmCopy).then((result) => {
+      if (result.status === 'resolved') {
+        if (result.action === 'confirm') void deleteTemplate();
+        return;
+      }
+      if (result.status === 'pending') return;
+
+      overlay.open(({ isOpen, close }) => (
+        <ConfirmDialog
+          {...confirmCopy}
+          isOpen={isOpen}
+          onClose={close}
+          onConfirm={() => {
+            close();
+            deleteTemplate();
+          }}
+        />
+      ));
+    });
   };
 
   const handleEditClick = () => {
