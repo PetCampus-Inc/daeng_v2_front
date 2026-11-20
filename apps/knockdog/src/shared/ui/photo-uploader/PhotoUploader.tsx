@@ -1,23 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
-import {
-  ActionButton,
-  Icon,
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
-} from '@knockdog/ui';
+import { ActionButton, Icon } from '@knockdog/ui';
 import { MiniPhotoBox } from './MiniPhotoBox';
 import { FullImageSheet } from './FullImageSheet';
+import { openPhotoPermissionDialog } from './openPhotoPermissionDialog';
+import { openRemovePhotoDialog } from './openRemovePhotoDialog';
 import { overlay } from 'overlay-kit';
 import { PICKED_UPLOAD_FAIL, uploadPickedAssets, useImagePicker, type WebImageAsset } from '@shared/lib/media';
 import { toast } from '@shared/ui/toast';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
-import { openSystemSetting } from '@shared/lib/bridge/openSystemSetting';
 import { Skeleton } from '@shared/ui/skeleton';
 
 interface PhotoUploaderProps {
@@ -101,23 +91,8 @@ function PhotoUploader({
       }
     } catch (error: unknown) {
       if ((error as string) === 'NO_PERMISSION_LIBRARY' || (error as string) === 'NO_PERMISSION_CAMERA') {
-        overlay.open(({ isOpen, close }) => (
-          <AlertDialog open={isOpen} onOpenChange={close}>
-            <AlertDialogContent overlayClassName='z-102' className='z-103'>
-              <AlertDialogHeader>
-                <AlertDialogTitle>사진 접근 권한이 필요해요</AlertDialogTitle>
-                <AlertDialogDescription>
-                  사용 중인 기기에서 사진 접근 권한을 <br />
-                  '허용'으로 설정해 주세요.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>나중에 하기</AlertDialogCancel>
-                <AlertDialogAction onClick={openSystemSetting}>설정하기</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        ));
+        // 안내창이 닫힐 때까지 업로드 표시를 붙잡지 않도록 기다리지 않는다
+        openPhotoPermissionDialog().catch(() => undefined);
       } else {
         toast({
           title: error instanceof Error ? error.message : String(error),
@@ -225,7 +200,7 @@ function PhotoUploader({
           <MiniPhotoBox
             imageUrl={asset.uri}
             className='h-[80px] w-[80px]'
-            onRemove={isUploading ? undefined : () => removeImage(index)}
+            onRemove={isUploading ? undefined : () => void openRemovePhotoDialog(() => removeImage(index))}
             badgeLabel={
               showRepresentativeBadge && assets.length >= 2 && index === 0 ? representativeBadgeLabel : undefined
             }

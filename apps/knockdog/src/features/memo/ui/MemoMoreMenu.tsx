@@ -17,19 +17,13 @@ import {
   useRole,
 } from '@floating-ui/react';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
   Icon,
 } from '@knockdog/ui';
 import { RemoveScroll } from 'react-remove-scroll';
 
 import { memoQueryKeys, type MemoResponse } from '@entities/memo';
-import { useNativeBackToClose } from '@shared/lib/bridge';
+import { openConfirmDialog, useNativeBackToClose } from '@shared/lib/bridge';
+import { ConfirmDialog } from '@shared/ui/confirm-dialog';
 import { toast } from '@shared/ui/toast';
 
 import { useDeleteMemoMutation } from '../api/useMemoMutation';
@@ -53,7 +47,7 @@ function MemoMoreMenu({ targetId, onEdit }: MemoMoreMenuProps) {
   });
   const queryClient = useQueryClient();
   const queryKey = memoQueryKeys.byTargetId(targetId);
-  const { mutate: deleteMemo, isPending } = useDeleteMemoMutation({
+  const { mutateAsync: deleteMemoAsync, isPending } = useDeleteMemoMutation({
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey });
       const previous = queryClient.getQueryData<MemoResponse>(queryKey);
@@ -99,6 +93,9 @@ function MemoMoreMenu({ targetId, onEdit }: MemoMoreMenuProps) {
     },
   });
 
+  /** 실패 안내와 되돌리기는 mutation의 onError가 하므로, 반환된 오류는 무시한다 */
+  const deleteMemo = (variables: Parameters<typeof deleteMemoAsync>[0]) => deleteMemoAsync(variables).catch(() => undefined);
+
   const { refs, floatingStyles, context } = useFloating({
     placement: 'bottom-end',
     open: isOpen,
@@ -128,26 +125,30 @@ function MemoMoreMenu({ targetId, onEdit }: MemoMoreMenuProps) {
     event.stopPropagation();
     setIsOpen(false);
 
-    overlay.open(({ isOpen: isDialogOpen, close }) => (
-      <AlertDialog open={isDialogOpen} onOpenChange={(open) => !open && close()}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>자유메모를 삭제할까요?</AlertDialogTitle>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>닫기</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                close();
-                deleteMemo({ targetId });
-              }}
-            >
-              삭제
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    ));
+    const confirmCopy = {
+      title: '자유메모를 삭제할까요?',
+      cancelLabel: '닫기',
+      confirmLabel: '삭제',
+    };
+    openConfirmDialog(confirmCopy).then((result) => {
+      if (result.status === 'resolved') {
+        if (result.action === 'confirm') deleteMemo({ targetId });
+        return;
+      }
+      if (result.status === 'pending') return;
+
+      overlay.open(({ isOpen: isDialogOpen, close }) => (
+        <ConfirmDialog
+          {...confirmCopy}
+          isOpen={isDialogOpen}
+          onClose={close}
+          onConfirm={() => {
+            close();
+            deleteMemo({ targetId });
+          }}
+        />
+      ));
+    });
   };
 
   return (

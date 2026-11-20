@@ -3,19 +3,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { overlay } from 'overlay-kit';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
   Chip,
   Divider,
   Icon,
   TextField,
   TextFieldInput,
 } from '@knockdog/ui';
+import { openConfirmDialog } from '@shared/lib/bridge';
+import { ConfirmDialog } from '@shared/ui/confirm-dialog';
 import { useChecklistQuestionsQuery } from '../api/useChecklistQuery';
 import { Answer, AnswerGroup } from '@entities/checklist';
 
@@ -220,26 +215,33 @@ function ChecklistEditor({ isEditing, answers, onAnswersChange }: ChecklistEdito
       return;
     }
 
-    overlay.open(({ isOpen, close }) => (
-      <AlertDialog open={isOpen} onOpenChange={(open) => !open && close()}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>해당 메모를 삭제할까요?</AlertDialogTitle>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>닫기</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                closeMemo(questionId);
-                close();
-              }}
-            >
-              삭제하기
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    ));
+    const confirmCopy = {
+      title: '해당 메모를 삭제할까요?',
+      cancelLabel: '닫기',
+      confirmLabel: '삭제하기',
+    };
+    openConfirmDialog(confirmCopy).then((result) => {
+      if (result.status === 'pending') return;
+
+      if (result.status === 'resolved') {
+        if (result.action === 'confirm') {
+          closeMemo(questionId);
+        }
+        return;
+      }
+
+      overlay.open(({ isOpen, close }) => (
+        <ConfirmDialog
+          {...confirmCopy}
+          isOpen={isOpen}
+          onClose={close}
+          onConfirm={() => {
+            close();
+            closeMemo(questionId);
+          }}
+        />
+      ));
+    });
   };
 
   const handleOpenMemo = (questionId: string) => {
