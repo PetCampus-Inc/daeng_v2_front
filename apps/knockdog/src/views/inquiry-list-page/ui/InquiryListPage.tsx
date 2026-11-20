@@ -123,7 +123,7 @@ function InquiryListPage() {
           )}
 
           {/* 오류·로딩 중에는 콘텐츠 영역 전체를 교체하므로 목록·빈 상태에서만 노출 */}
-          <BottomCta className='bg-bg-0 p-x4 shrink-0'>
+          <BottomCta className='bg-bg-0 px-x4 pt-x4 shrink-0'>
             <ActionButton type='button' size='large' onClick={handleWriteInquiry}>
               문의하기
             </ActionButton>

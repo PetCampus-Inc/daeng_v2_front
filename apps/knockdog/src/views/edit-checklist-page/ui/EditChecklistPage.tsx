@@ -216,7 +216,7 @@ function EditChecklistPage() {
         <Header.Title>체크리스트 작성</Header.Title>
       </Header>
       <ChecklistEditor key={editorKey} isEditing answers={currentAnswers} onAnswersChange={setDraftAnswers} />
-      <BottomCta className='flex shrink-0 flex-nowrap gap-2 bg-white px-5 py-5 pb-[max(1.25rem,var(--safe-area-inset-bottom,0px))]'>
+      <BottomCta className='flex shrink-0 flex-nowrap gap-2 bg-white px-5 pt-5'>
         <ActionButton
           type='button'
           variant='secondaryLine'

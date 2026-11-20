@@ -28,6 +28,7 @@ import { useTrackConnectionResults } from '@shared/lib/analytics';
 import { useTabNavigation, useNativeBackHandler } from '@shared/lib/bridge';
 import { openUnsavedExitDialog } from '@shared/lib/openUnsavedExitDialog';
 import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGuard';
+import { BottomCta } from '@shared/ui/bottom-cta';
 import { showGuardianProfileSaveFailureToast, showGuardianProfileSaveSuccessToast } from '../model/guardianProfileToast';
 
 const EMPTY_FORM_VALUES: GuardianProfileFormValues = {
@@ -238,11 +239,11 @@ function MypageGuardianProfilePage() {
         </div>
       </main>
 
-      <div className='bg-bg-0 px-x4 py-x5'>
+      <BottomCta className='bg-bg-0 px-x4 pt-x5'>
         <ActionButton type='button' size='large' disabled={!isSaveEnabled || isSaving} onClick={() => void handleSave()}>
           저장하기
         </ActionButton>
-      </div>
+      </BottomCta>
     </div>
   );
 }

@@ -266,7 +266,7 @@ function KindergartenDetailPage() {
         </main>
         {/* 하단 고정 버튼 영역 */}
         {isClosed ? (
-          <BottomCta as='aside' className='flex h-24 w-full shrink-0 bg-white px-4 py-5'>
+          <BottomCta as='aside' className='flex w-full shrink-0 bg-white px-4 pt-5'>
             <button
               type='button'
               disabled
@@ -276,18 +276,18 @@ function KindergartenDetailPage() {
             </button>
           </BottomCta>
         ) : (
-          <BottomCta as='aside' className='gap-x2 p-x4 flex w-full shrink-0 items-center border-t border-t-gray-100 bg-white'>
-            <ActionButton disabled={!kindergartenMain.phoneNumber} variant='primaryLine' onClick={openPhoneCallSheet}>
+          <BottomCta as='aside' className='gap-x2 px-x4 pt-x4 flex w-full shrink-0 items-center border-t border-t-gray-100 bg-white'>
+            <ActionButton className='h-x14' disabled={!kindergartenMain.phoneNumber} variant='primaryLine' onClick={openPhoneCallSheet}>
               전화하기
             </ActionButton>
-            <ActionButton variant='primaryFill' onClick={handleReviewClick}>
+            <ActionButton className='h-x14' variant='primaryFill' onClick={handleReviewClick}>
               후기보기
             </ActionButton>
             <button
               aria-label='보관하기'
               disabled={isBookmarkPending}
               aria-busy={isBookmarkPending}
-              className='radius-r3 bg-fill-primary-50 flex size-11 shrink-0 items-center justify-center'
+              className='radius-r3 bg-fill-primary-50 flex h-14 w-11 shrink-0 items-center justify-center'
               onClick={() => handleBookmarkClick(kindergartenMain.id, kindergartenMain.bookmarked ?? false)}
             >
               <Icon

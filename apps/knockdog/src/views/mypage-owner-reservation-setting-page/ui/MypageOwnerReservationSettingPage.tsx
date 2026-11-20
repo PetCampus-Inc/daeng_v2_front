@@ -262,7 +262,7 @@ function ReservationSettingEditor({ setting }: { setting: ReservationSetting }) 
         </section>
       </div>
 
-      <BottomCta className='shrink-0 bg-white px-4 py-4'>
+      <BottomCta className='shrink-0 bg-white px-4 pt-4'>
         <ActionButton
           type='button'
           size='large'

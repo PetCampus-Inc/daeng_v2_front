@@ -152,7 +152,7 @@ function OwnerDailyNoticeTemplatePage() {
       )}
 
       <BottomCta className='bg-bg-50 shrink-0'>
-        <div className='flex gap-2 px-4 py-5'>
+        <div className='flex gap-2 px-4 pt-5'>
           <ActionButton
             type='button'
             variant='secondaryLine'

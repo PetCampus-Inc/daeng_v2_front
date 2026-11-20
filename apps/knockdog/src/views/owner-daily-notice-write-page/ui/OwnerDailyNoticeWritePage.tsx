@@ -1033,7 +1033,7 @@ function OwnerDailyNoticeWritePage() {
 
         {!isReadOnly ? (
           <SafeArea edges={['bottom']} className='bg-bg-0 shrink-0'>
-            <BottomCta className='px-4 py-5'>
+            <BottomCta className='px-4 pt-5'>
               <ActionButton
                 type='button'
                 variant='primaryFill'

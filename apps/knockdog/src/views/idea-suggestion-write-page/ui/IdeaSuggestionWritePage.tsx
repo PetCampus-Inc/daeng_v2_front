@@ -129,7 +129,7 @@ function IdeaSuggestionWritePage() {
         </div>
       </div>
 
-      <BottomCta className='bg-bg-0 p-x4 shrink-0'>
+      <BottomCta className='bg-bg-0 px-x4 pt-x4 shrink-0'>
         <ActionButton type='button' size='large' disabled={!canSubmit} onClick={handleSubmit}>
           제안하기
         </ActionButton>

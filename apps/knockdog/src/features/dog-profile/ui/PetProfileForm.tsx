@@ -425,7 +425,7 @@ function PetProfileForm({
             </div>
           </div>
 
-          <BottomCta className='shrink-0 bg-bg-0 py-x5'>
+          <BottomCta className='shrink-0 bg-bg-0 pt-x5'>
             <ActionButton type='submit' size='large' disabled={isSaveDisabled}>
               {submitButtonText}
             </ActionButton>

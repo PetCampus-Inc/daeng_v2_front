@@ -99,7 +99,7 @@ function GuardianDiaryGenerateForm({
         ) : null}
       </div>
       {isSaved ? null : (
-        <BottomCta className='bg-bg-0 p-x4 shrink-0'>
+        <BottomCta className='bg-bg-0 px-x4 pt-x4 shrink-0'>
           {status === 'error' ? (
             <ActionButton type='button' variant='primaryFill' size='large' className='gap-x1_5' onClick={onRetry}>
               <Reset className='size-x5' />

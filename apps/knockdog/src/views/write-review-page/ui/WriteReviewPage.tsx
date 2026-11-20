@@ -673,7 +673,7 @@ export function WriteReviewPage() {
         </div>
       </div>
 
-      <BottomCta className='bg-bg-0 shrink-0 p-4'>
+      <BottomCta className='bg-bg-0 shrink-0 px-4 pt-4'>
         <ActionButton
           type='button'
           size='large'
