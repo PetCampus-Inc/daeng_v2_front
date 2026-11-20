@@ -4,6 +4,15 @@ import type { ToastOptions } from '../model/types';
 import { ensureChannel, dismissFromAllChannels, clearAllChannels } from '../model/manager';
 import { generateId } from './utils';
 import { getDefaults, setDefaults } from '../config/defaults';
+import { measureBottomCtaOffset, measureBottomNavOffset } from './measureBottomCtaOffset';
+import {
+  TOAST_BOTTOM_GAP_VAR,
+  TOAST_BOTTOM_OFFSET_VAR,
+  TOAST_GAP_ABOVE_BOTTOM_NAV,
+  TOAST_GAP_ABOVE_CTA,
+  TOAST_GAP_ABOVE_SAFE_AREA,
+  TOAST_SAFE_AREA_BOTTOM,
+} from './position-styles';
 import { isNativeWebView } from '@shared/lib/device/isNativeWebView';
 import { getBridgeInstance } from '@shared/lib/bridge';
 import { METHODS, type ToastShowParams } from '@knockdog/bridge-core';
@@ -37,6 +46,28 @@ function isToastOptions(value: unknown): value is ToastOptions {
 const PRIORITY_TOAST_HOLD_MS = 1000;
 let priorityUntil = 0;
 
+/**
+ * 웹 토스트의 아래 위치를 CSS 변수로 반영한다.
+ * - CTA가 있으면: CTA 버튼 윗면 위 16px
+ * - CTA가 없고 하단 탭바가 있으면: 탭바 윗면 위 16px
+ * - 둘 다 없으면: Safe Area 위 20px
+ */
+function applyWebBottomOffset(ctaOffset?: number): void {
+  const { style } = document.documentElement;
+  const navOffset = ctaOffset === undefined ? measureBottomNavOffset() : undefined;
+
+  if (ctaOffset !== undefined) {
+    style.setProperty(TOAST_BOTTOM_OFFSET_VAR, `${ctaOffset}px`);
+    style.setProperty(TOAST_BOTTOM_GAP_VAR, `${TOAST_GAP_ABOVE_CTA}px`);
+  } else if (navOffset !== undefined) {
+    style.setProperty(TOAST_BOTTOM_OFFSET_VAR, `${navOffset}px`);
+    style.setProperty(TOAST_BOTTOM_GAP_VAR, `${TOAST_GAP_ABOVE_BOTTOM_NAV}px`);
+  } else {
+    style.setProperty(TOAST_BOTTOM_OFFSET_VAR, TOAST_SAFE_AREA_BOTTOM);
+    style.setProperty(TOAST_BOTTOM_GAP_VAR, `${TOAST_GAP_ABOVE_SAFE_AREA}px`);
+  }
+}
+
 function showToast(titleOrOptions: string | ToastOptions, options?: ToastOptions): string {
   const defaults = getDefaults();
 
@@ -49,6 +80,10 @@ function showToast(titleOrOptions: string | ToastOptions, options?: ToastOptions
 
   // 우선 토스트가 떠 있는 동안에는 다른 토스트를 띄우지 않는다
   if (Date.now() < priorityUntil) return id;
+
+  // 하단 토스트는 화면 하단 CTA 위에 뜬다. top, bottom-above-nav는 대상이 아니다.
+  const isBottomPosition = resolvedOptions.position === undefined || resolvedOptions.position === 'bottom';
+  const bottomOffset = isBottomPosition ? measureBottomCtaOffset() : undefined;
 
   // 네이티브 환경인 경우 bridge를 통해 앱 toast 호출
   if (isNativeWebView()) {
@@ -69,6 +104,7 @@ function showToast(titleOrOptions: string | ToastOptions, options?: ToastOptions
         type: resolvedOptions.type,
         icon: resolvedOptions.icon,
         iconAccent: resolvedOptions.iconAccent,
+        bottomOffset,
       };
       bridge.request(METHODS.toastShow, params).catch((error) => {
         console.error('[toast] Bridge request failed:', error);
@@ -80,6 +116,7 @@ function showToast(titleOrOptions: string | ToastOptions, options?: ToastOptions
   // 웹 환경인 경우 로컬 toast 사용
   // position 또는 viewportClassName으로 채널 결정
   // viewportClassName이 우선순위가 높음 (완전 커스텀)
+  applyWebBottomOffset(bottomOffset);
   const { store } = ensureChannel(resolvedOptions.position, resolvedOptions.viewportClassName);
 
   // 화면에는 항상 토스트 1개만 — 채널 무관하게 새 토스트가 뜨면 기존 걸 교체
