@@ -11,6 +11,7 @@ import type { StoreApi } from 'zustand';
 import type { ToastPosition } from '@knockdog/bridge-core';
 import { getBottomTabBarHeight } from '@/components/navigation/bottomTabBarHeight';
 import { useBottomTabBarVisibilityStore } from '@/bridges/model/bottomTabBarVisibilityStore';
+import { navigationRef } from '@/bridges/lib/navigationRef';
 
 type ToastState = {
   items: ToastItem[];
@@ -24,8 +25,9 @@ const tokens = {
   gap: { rounded: 8, square: 0 },
   colors: { bg: '#41424a', fg: '#ffffff', accent: '#ff6e0c' },
   viewportOffset: {
-    bottom: 0, // 화면 하단 여백 (바텀탭 없을 때)
+    bottom: 20, // Safe Area 위 여백 (바텀탭·하단 CTA 없을 때, 디자인 스펙)
     aboveBottomTabBar: 16, // 바텀탭 위 여백
+    aboveBottomCta: 16, // 하단 CTA 위 여백
     bottomAboveNav: 55, // 네비게이션 바 위 (네비게이션 바 높이 + 여백)
   },
 };
@@ -40,6 +42,13 @@ const toastTextStyle = {
 // AOS 시스템 글자 크기 설정이 고정 lineHeight 레이아웃을 깨뜨리는 것을 방지 (QA3-198과 동일 정책, iOS 미적용)
 const ALLOW_FONT_SCALING = Platform.OS !== 'android';
 
+/** 탭바를 덮는 스택 화면이 맨 위에 있는지 확인한다. 이때 웹뷰는 화면 맨 아래까지 차지하고 그 아래에 탭바가 없다. */
+const isStackScreenOnTop = () => {
+  if (!navigationRef.isReady()) return false;
+  const rootState = navigationRef.getRootState();
+  return rootState?.routes?.[rootState.index ?? 0]?.name === 'Stack';
+};
+
 export function ToastViewport({ store, position }: { store: StoreApi<ToastState>; position: ToastPosition }) {
   const items = useStore(store, (s) => s.items);
   const dismiss = useStore(store, (s) => s.dismiss);
@@ -53,16 +62,31 @@ export function ToastViewport({ store, position }: { store: StoreApi<ToastState>
     [dismiss]
   );
 
-  const bottomOffset = isBottomTabBarVisible
-    ? getBottomTabBarHeight(insets.bottom) + tokens.viewportOffset.aboveBottomTabBar
+  // 탭바는 탭 화면에서만 웹뷰 아래에 보인다. 탭바를 덮는 스택 화면이 맨 위에 있으면 웹뷰는 화면 맨 아래까지 차지한다.
+  const isTabBarShown = isBottomTabBarVisible && !isStackScreenOnTop();
+  const tabBarHeight = getBottomTabBarHeight(insets.bottom);
+
+  // CTA가 없으면: 탭바가 보일 때는 탭바 위 16px, 아니면 Safe Area 위 20px
+  const bottomOffset = isTabBarShown
+    ? tabBarHeight + tokens.viewportOffset.aboveBottomTabBar
     : insets.bottom + tokens.viewportOffset.bottom;
+
+  // 웹이 알려 준 하단 CTA 버튼 윗면 거리가 있으면 그 위 16px에 둔다.
+  // 웹뷰 아래 끝은 탭바가 보이면 탭바 윗면, 아니면 화면 맨 아래다.
+  // CTA 거리에는 웹이 그린 Safe Area 여백이 이미 포함돼 있다.
+  const ctaBottomOffset = items[items.length - 1]?.bottomOffset;
+  const webViewBottom = isTabBarShown ? tabBarHeight : 0;
+  const bottomStyleOffset =
+    ctaBottomOffset === undefined
+      ? bottomOffset
+      : webViewBottom + ctaBottomOffset + tokens.viewportOffset.aboveBottomCta;
 
   const topStyle =
     position === 'top'
       ? { top: insets.top + 12 }
       : position === 'bottom-above-nav'
         ? { bottom: insets.bottom + tokens.viewportOffset.bottomAboveNav }
-        : { bottom: bottomOffset };
+        : { bottom: bottomStyleOffset };
   const isAllSquare = items.every((item) => item.shape === 'square');
   const horizontalMargin = isAllSquare ? 0 : 12;
   const gapValue = isAllSquare ? tokens.gap.square : tokens.gap.rounded;
