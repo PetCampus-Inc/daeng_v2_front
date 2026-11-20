@@ -1,5 +1,10 @@
 import path from 'node:path';
+import { createRequire } from 'node:module';
 import { defineConfig } from 'vitest/config';
+
+const requireFromTestingLibrary = createRequire(require.resolve('@testing-library/react'));
+const requireFromRenderer = createRequire(requireFromTestingLibrary.resolve('react-dom'));
+const testReact = path.dirname(requireFromRenderer.resolve('react/package.json'));
 
 /** headless-ui 패키지는 dist로 빌드돼야 불러올 수 있어서, 테스트에서는 소스를 직접 가리킨다 */
 const headlessUiAliases = Object.fromEntries(
@@ -19,6 +24,17 @@ const headlessUiAliases = Object.fromEntries(
 );
 
 export default [
+  defineConfig({
+    esbuild: { jsx: 'automatic' },
+    test: {
+      name: 'mobile-sentry',
+      include: ['./apps/mobile/lib/sentry/*.test.(ts|tsx)', './apps/mobile/bridges/{handlers,ui}/**/*.test.(ts|tsx)'],
+      environment: 'node',
+    },
+    resolve: {
+      alias: { '@': path.resolve(__dirname, 'apps/mobile'), react: testReact },
+    },
+  }),
   defineConfig({
     test: {
       name: 'mobile-push',
@@ -61,6 +77,7 @@ export default [
         '@constants': path.resolve(__dirname, 'apps/knockdog/src/shared/constants'),
         '@type': path.resolve(__dirname, 'apps/knockdog/src/shared/types'),
         ...headlessUiAliases,
+        react: testReact,
       },
     },
   }),

@@ -1,6 +1,6 @@
 import type { NativeBridgeRouter } from '@knockdog/bridge-native';
 import { METHODS } from '@knockdog/bridge-core';
-import { kakaoLogin, googleLogin, appleLogin } from '../../lib/auth';
+import { kakaoLogin, googleLogin, appleLogin, isNativeLoginCancelled } from '../../lib/auth';
 
 function registerAuthHandlers(router: NativeBridgeRouter) {
   // Kakao 로그인
@@ -14,6 +14,9 @@ function registerAuthHandlers(router: NativeBridgeRouter) {
 
       return result;
     } catch (error) {
+      if (isNativeLoginCancelled(error)) {
+        throw { code: 'SOCIAL_LOGIN_CANCELLED', message: 'Kakao login cancelled' };
+      }
       console.error('[Bridge] Kakao login error:', error);
       throw { code: 'AUTH_FAILED', message: 'Kakao login failed', error };
     }
@@ -30,6 +33,9 @@ function registerAuthHandlers(router: NativeBridgeRouter) {
 
       return result;
     } catch (error) {
+      if (isNativeLoginCancelled(error)) {
+        throw { code: 'SOCIAL_LOGIN_CANCELLED', message: 'Google login cancelled' };
+      }
       console.error('[Bridge] Google login error:', error);
       throw { code: 'AUTH_FAILED', message: 'Google login failed', error };
     }
@@ -46,6 +52,9 @@ function registerAuthHandlers(router: NativeBridgeRouter) {
 
       return result;
     } catch (error) {
+      if (isNativeLoginCancelled(error)) {
+        throw { code: 'SOCIAL_LOGIN_CANCELLED', message: 'Apple login cancelled' };
+      }
       console.error('[Bridge] Apple login error:', error);
       throw { code: 'AUTH_FAILED', message: 'Apple login failed', error };
     }

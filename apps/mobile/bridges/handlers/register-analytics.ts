@@ -1,5 +1,6 @@
 import { getAnalytics, logEvent, setAnalyticsCollectionEnabled, setUserId } from '@react-native-firebase/analytics';
 import { getApp } from '@react-native-firebase/app';
+import * as Sentry from '@sentry/react-native';
 import {
   isExcludedAnalyticsUserId,
   METHODS,
@@ -83,6 +84,7 @@ function registerAnalyticsHandlers(router: NativeBridgeRouter) {
           : userId
             ? isExcludedAnalyticsUserId(userId)
             : collectionBlocked;
+      Sentry.setUser(userId && !blocked ? { id: userId } : null);
       const analytics = getAnalytics(getApp());
 
       if (blocked) {
