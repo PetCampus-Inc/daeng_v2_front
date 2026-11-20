@@ -29,40 +29,25 @@ import { StyleSheet, View, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAndroidTabBack } from './useAndroidTabBack';
-import {
-  ANDROID_TAB_BAR_CONTENT_HEIGHT,
-  getAndroidTabBarBottomInset,
-  getBottomTabBarHeight,
-} from './bottomTabBarHeight';
+import { TAB_BAR_CONTENT_HEIGHT, getBottomTabBarHeight, getTabBarBottomInset } from './bottomTabBarHeight';
 
 const Tab = createBottomTabNavigator();
 
 const OWNER_TAB_NAMES = new Set(['OwnerHome', 'OwnerDaily', 'OwnerAlbum', 'OwnerMembers']);
 const GUARDIAN_TAB_NAMES = new Set(['Explore', 'Save', 'Reserve', 'Kindergarten']);
 
-function getTabBarStyle(isTabBarVisible: boolean, bottom: number) {
+const getTabBarStyle = (isTabBarVisible: boolean, bottom: number) => {
   if (!isTabBarVisible) {
     return { display: 'none' as const };
   }
 
-  if (Platform.OS === 'android') {
-    const tabBarBottomInset = getAndroidTabBarBottomInset(bottom);
-
-    return {
-      height: ANDROID_TAB_BAR_CONTENT_HEIGHT + tabBarBottomInset,
-      paddingBottom: tabBarBottomInset,
-      paddingTop: 6,
-      paddingLeft: 12,
-      paddingRight: 12,
-    };
-  }
-
   return {
-    paddingBottom: bottom,
+    height: getBottomTabBarHeight(bottom),
+    paddingBottom: getTabBarBottomInset(bottom),
     paddingLeft: 12,
     paddingRight: 12,
   };
-}
+};
 
 /** v7: tabBarButton null만으론 flex 공간이 남아 탭이 한쪽으로 쏠림 */
 const HIDDEN_TAB_OPTIONS = {
@@ -170,11 +155,14 @@ export default function TabNavigator() {
             tabBarInactiveTintColor: '#70727C',
             ...(Platform.OS === 'android' ? { tabBarAllowFontScaling: false } : {}),
             tabBarStyle: getTabBarStyle(isTabBarVisible, bottom),
+            tabBarLabelPosition: 'below-icon',
+            tabBarIconStyle: styles.tabIcon,
             tabBarLabelStyle: {
               fontSize: 12,
               fontFamily: 'SUIT-SemiBold',
               lineHeight: 18,
               marginTop: 4,
+              includeFontPadding: false,
               ...(isOwnerMode
                 ? {
                     letterSpacing: -0.24,
@@ -202,8 +190,8 @@ export default function TabNavigator() {
           style={[
             styles.dimOverlay,
             {
-              bottom,
-              height: getBottomTabBarHeight(bottom) - bottom,
+              bottom: getTabBarBottomInset(bottom),
+              height: TAB_BAR_CONTENT_HEIGHT,
             },
           ]}
         />
@@ -213,6 +201,12 @@ export default function TabNavigator() {
 }
 
 const styles = StyleSheet.create({
+  tabIcon: {
+    // 기본 탭 버튼의 위쪽 패딩(5)에 더해 아이콘·라벨 묶음을 68 영역의 중앙에 맞춘다.
+    marginTop: 6,
+    width: 24,
+    height: 24,
+  },
   guardianIcon: {
     width: 24,
     height: 24,
