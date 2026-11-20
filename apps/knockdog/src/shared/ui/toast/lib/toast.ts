@@ -13,6 +13,7 @@ import {
   TOAST_GAP_ABOVE_SAFE_AREA,
   TOAST_SAFE_AREA_BOTTOM,
 } from './position-styles';
+import { shouldWaitForViewport, waitForViewportSettled } from './waitForViewportSettled';
 import { isNativeWebView } from '@shared/lib/device/isNativeWebView';
 import { getBridgeInstance } from '@shared/lib/bridge';
 import { METHODS, type ToastShowParams } from '@knockdog/bridge-core';
@@ -68,18 +69,12 @@ function applyWebBottomOffset(ctaOffset?: number): void {
   }
 }
 
-function showToast(titleOrOptions: string | ToastOptions, options?: ToastOptions): string {
+/** 화면이 안정되길 기다리는 중이라 아직 띄우지 않은 토스트 id. 기다리는 중 `dismiss`·`clear`가 불리면 띄우지 않는다. */
+const pendingToastIds = new Set<string>();
+
+/** 토스트를 실제로 띄운다. 하단 토스트는 이 시점의 CTA 위치를 잰다. */
+function presentToast(id: string, resolvedOptions: ToastOptions): void {
   const defaults = getDefaults();
-
-  // 오버로드 처리
-  const resolvedOptions = isToastOptions(titleOrOptions)
-    ? titleOrOptions
-    : ({ title: titleOrOptions, ...options } as ToastOptions);
-
-  const id = resolvedOptions.id ?? generateId();
-
-  // 우선 토스트가 떠 있는 동안에는 다른 토스트를 띄우지 않는다
-  if (Date.now() < priorityUntil) return id;
 
   // 하단 토스트는 화면 하단 CTA 위에 뜬다. top, bottom-above-nav는 대상이 아니다.
   const isBottomPosition = resolvedOptions.position === undefined || resolvedOptions.position === 'bottom';
@@ -109,7 +104,7 @@ function showToast(titleOrOptions: string | ToastOptions, options?: ToastOptions
       bridge.request(METHODS.toastShow, params).catch((error) => {
         console.error('[toast] Bridge request failed:', error);
       });
-      return id;
+      return;
     }
   }
 
@@ -134,7 +129,32 @@ function showToast(titleOrOptions: string | ToastOptions, options?: ToastOptions
     onOpen: resolvedOptions.onOpen,
     onClose: resolvedOptions.onClose,
   });
+}
 
+function showToast(titleOrOptions: string | ToastOptions, options?: ToastOptions): string {
+  // 오버로드 처리
+  const resolvedOptions = isToastOptions(titleOrOptions)
+    ? titleOrOptions
+    : ({ title: titleOrOptions, ...options } as ToastOptions);
+
+  const id = resolvedOptions.id ?? generateId();
+
+  // 우선 토스트가 떠 있는 동안에는 다른 토스트를 띄우지 않는다
+  if (Date.now() < priorityUntil) return id;
+
+  // 하단 토스트는 키보드가 열리거나 닫히는 중이면 화면이 안정된 뒤에 띄운다.
+  // 키보드가 아직 올라와 있을 때 CTA 위치를 재면, 키보드가 내려간 뒤에 토스트가 너무 높게 남는다.
+  const isBottomPosition = resolvedOptions.position === undefined || resolvedOptions.position === 'bottom';
+  if (isBottomPosition && shouldWaitForViewport()) {
+    pendingToastIds.add(id);
+    waitForViewportSettled().then(() => {
+      if (!pendingToastIds.delete(id)) return;
+      presentToast(id, resolvedOptions);
+    });
+    return id;
+  }
+
+  presentToast(id, resolvedOptions);
   return id;
 }
 
@@ -150,6 +170,9 @@ function showPriorityToast(titleOrOptions: string | ToastOptions, options?: Toas
 }
 
 function dismissToast(id?: string): void {
+  // 아직 띄우지 않고 기다리는 토스트면 띄우지 않는다
+  if (id) pendingToastIds.delete(id);
+
   // 네이티브 환경인 경우 bridge를 통해 앱 toast dismiss
   if (isNativeWebView()) {
     const bridge = getBridgeInstance();
@@ -168,6 +191,9 @@ function dismissToast(id?: string): void {
 }
 
 function clearToast(): void {
+  // 아직 띄우지 않고 기다리는 토스트도 모두 취소한다
+  pendingToastIds.clear();
+
   // 네이티브 환경인 경우 bridge를 통해 앱 toast clear
   if (isNativeWebView()) {
     const bridge = getBridgeInstance();
