@@ -305,16 +305,18 @@ describe('검색', () => {
     expect(mocks.toast).toHaveBeenCalledWith(expect.objectContaining({ title: '한글과 영문만 입력할 수 있어요' }));
   });
 
-  it('한글을 입력하는 중 자음·모음만 남은 글자가 있으면 검색을 새로 하지 않고 이전 목록이 그대로 보인다', async () => {
+  it('입력이 멈추면 마지막 검색어를 단독 자모도 포함해 한 번만 요청한다', async () => {
     renderPage('');
     await screen.findByText('보리');
     mocks.getOwnerMembers.mockClear();
 
-    typeKeyword('ㅁ');
+    typeKeyword('ㅇ');
+    typeKeyword('ㅇㅇ');
 
     expect(screen.getByText('보리')).toBeTruthy();
     expect(mocks.getOwnerMembers).not.toHaveBeenCalled();
-    expect(screen.queryByText('검색된 원생이 없어요')).toBeNull();
+    await screen.findByText('검색된 원생이 없어요');
+    expect(mocks.getOwnerMembers).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ keyword: 'ㅇㅇ' }));
   });
 
   it('검색어를 지우면 선택한 탭과 칩 조건의 목록으로 돌아간다', async () => {

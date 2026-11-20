@@ -1,7 +1,6 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
-import Image from 'next/image';
 import { ownerMembersContent } from '@views/owner-members-page/config/ownerMembersContent';
 import {
   ownerMembersEmptyContent,
@@ -9,7 +8,6 @@ import {
 } from '@views/owner-members-page/config/ownerMembersEmptyContent';
 
 import { StudentTicketListItem } from '@knockdog/ui';
-import { cn } from '@knockdog/ui/lib';
 
 import { ownerMembersQueryKey, type OwnerMember } from '@entities/owner-member';
 import { getOwnerPet, isPetNotAuthorizedError, ownerPetQueryKey } from '@entities/owner-pet';
@@ -20,6 +18,8 @@ import { useStackNavigation } from '@shared/lib/bridge';
 import { PageError } from '@shared/ui/page-error';
 import { toast } from '@shared/ui/toast';
 
+import { OwnerMembersEmptyState } from './OwnerMembersEmptyState';
+
 interface OwnerMembersListProps {
   members: OwnerMember[];
   emptyStateType: OwnerMembersEmptyStateType | null;
@@ -27,29 +27,6 @@ interface OwnerMembersListProps {
   isError: boolean;
   isRetrying: boolean;
   onRetry: () => void;
-}
-
-function OwnerMembersEmptyState({ emptyStateType }: { emptyStateType: OwnerMembersEmptyStateType }) {
-  const content = ownerMembersEmptyContent[emptyStateType];
-
-  return (
-    <div className='flex min-h-0 w-full flex-1 items-center justify-center pb-[calc(var(--bottom-bar-height)+88px)]'>
-      <div className='px-x4 flex w-full flex-col items-center justify-center gap-y-2 text-center'>
-        <div
-          className={cn(
-            'relative h-[160px] w-[200px] opacity-100',
-            (emptyStateType === 'emptyExpiring' || emptyStateType === 'emptyExpired') && 'h-[200px]'
-          )}
-        >
-          <Image src={content.imageSrc} alt={content.imageAlt} fill className='object-contain' sizes='200px' />
-        </div>
-        <div className='flex flex-col items-center gap-y-1'>
-          <p className='h2-extrabold text-text-primary'>{content.title}</p>
-          <p className='body1-regular text-text-secondary'>{content.description}</p>
-        </div>
-      </div>
-    </div>
-  );
 }
 
 function OwnerMembersList({ members, emptyStateType, isLoading, isError, isRetrying, onRetry }: OwnerMembersListProps) {
@@ -101,7 +78,13 @@ function OwnerMembersList({ members, emptyStateType, isLoading, isError, isRetry
 
   if (isError) return <PageError layout='inline' onRetry={onRetry} isRetrying={isRetrying} />;
 
-  if (emptyStateType) return <OwnerMembersEmptyState emptyStateType={emptyStateType} />;
+  if (emptyStateType) {
+    return (
+      <div className='min-h-0 flex-1 overflow-y-auto pb-(--safe-area-inset-bottom,0px)'>
+        <OwnerMembersEmptyState content={ownerMembersEmptyContent[emptyStateType]} />
+      </div>
+    );
+  }
 
   return (
     <div className='min-h-0 w-full flex-1 overflow-y-auto pb-[calc(var(--bottom-bar-height)+88px)]'>
