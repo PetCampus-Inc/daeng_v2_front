@@ -1,6 +1,21 @@
 import { login, me } from '@react-native-kakao/user';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import * as AppleAuthentication from 'expo-apple-authentication';
+
+function isNativeLoginCancelled(error: unknown) {
+  if (!error || typeof error !== 'object' || !('code' in error)) return false;
+
+  return [
+    statusCodes.SIGN_IN_CANCELLED,
+    'ERR_REQUEST_CANCELED',
+    'Cancelled',
+    'cancelled',
+    'AccessDenied',
+    'accessDenied',
+    'access_denied',
+    'SOCIAL_LOGIN_CANCELLED',
+  ].some((code) => code === error.code);
+}
 
 const resolveName = (name: string | null | undefined, email: string | null | undefined) => {
   if (name && name.trim()) return name.trim();
@@ -15,6 +30,7 @@ const kakaoLogin = async () => {
     const { email, nickname, profileImageUrl } = await me();
     return { idToken, email: email ?? '', name: resolveName(nickname, email), picture: profileImageUrl ?? '' };
   } catch (talkError) {
+    if (isNativeLoginCancelled(talkError)) throw talkError;
     console.warn('[auth] Kakao talk login failed, fallback to account login', talkError);
 
     try {
@@ -42,7 +58,11 @@ const googleLogin = async () => {
     // 이전 세션 없으면 무시
   }
 
-  const { data } = await GoogleSignin.signIn();
+  const response = await GoogleSignin.signIn();
+  if (response.type === 'cancelled') {
+    throw { code: 'SOCIAL_LOGIN_CANCELLED', message: 'Google login cancelled' };
+  }
+  const { data } = response;
 
   if (!data) throw new Error('Google 로그인 실패: signIn data is null');
 
@@ -83,4 +103,4 @@ const appleLogin = async () => {
   };
 };
 
-export { kakaoLogin, googleLogin, appleLogin };
+export { kakaoLogin, googleLogin, appleLogin, isNativeLoginCancelled };
