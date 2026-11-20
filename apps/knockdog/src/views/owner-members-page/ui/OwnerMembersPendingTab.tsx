@@ -1,8 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
-import { cn } from '@knockdog/ui/lib';
 
 import {
   ApprovalActionButton,
@@ -10,7 +8,6 @@ import {
   StudentTicketListItem,
   type SortOption,
 } from '@knockdog/ui';
-import { approvalEmptyContent } from '@views/owner-members-page/config/ownerMembersApprovalEmptyContent';
 import { ownerMembersEmptyContent } from '@views/owner-members-page/config/ownerMembersEmptyContent';
 import { hasListLoadFailed } from '@views/owner-members-page/lib/hasListLoadFailed';
 import { useOwnerRole } from '@features/role-conversion';
@@ -30,6 +27,8 @@ import { ConfirmDialog } from '@shared/ui/confirm-dialog';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { PageError } from '@shared/ui/page-error';
 import { toast } from '@shared/ui/toast';
+
+import { OwnerMembersEmptyState } from './OwnerMembersEmptyState';
 
 /** 승인 완료 확인창 문구. 앱 확인창과 웹 확인창이 같이 쓴다. */
 const toApprovedDialog = (dogName: string) => ({
@@ -72,33 +71,6 @@ function ApprovalActions({ member, disabled, onApprove, onReject }: ApprovalActi
         disabled={disabled}
         onClick={() => onApprove(member)}
       />
-    </div>
-  );
-}
-
-/** 신청 목록이 비었을 때 일러스트·제목·본문을 탭과 하단 바 사이 영역의 상하 중앙에 보여준다 */
-function ApprovalEmptyState({ isSearchResult }: { isSearchResult: boolean }) {
-  const content = isSearchResult ? ownerMembersEmptyContent.emptySearchResult : approvalEmptyContent;
-
-  return (
-    <div className='flex min-h-full w-full items-center justify-center pb-(--bottom-bar-height)'>
-      <div
-        className={cn('px-x4 flex w-full flex-col items-center text-center', isSearchResult ? 'gap-y-5' : 'gap-y-2')}
-      >
-        <div className={cn('relative', isSearchResult ? 'h-[160px] w-[180px]' : 'h-[200px] w-[237px]')}>
-          <Image
-            src={content.imageSrc}
-            alt={content.imageAlt}
-            fill
-            className='object-contain'
-            sizes={isSearchResult ? '180px' : '237px'}
-          />
-        </div>
-        <div className='flex flex-col items-center gap-y-1'>
-          <p className='h2-extrabold text-text-primary'>{content.title}</p>
-          <p className='body1-regular text-text-secondary'>{content.description}</p>
-        </div>
-      </div>
     </div>
   );
 }
@@ -228,7 +200,9 @@ function OwnerMembersPendingTab({ keyword }: OwnerMembersPendingTabProps) {
             isRetrying={pendingMembersQuery.isFetching}
           />
         ) : approvalRequests.length === 0 ? (
-          <ApprovalEmptyState isSearchResult={keyword.length > 0} />
+          <OwnerMembersEmptyState
+            content={ownerMembersEmptyContent[keyword.length > 0 ? 'emptySearchResult' : 'emptyPending']}
+          />
         ) : (
           approvalRequests.map((member) => (
             <StudentTicketListItem
