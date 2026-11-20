@@ -8,7 +8,6 @@ import { ActionButton, BottomSheet, RsvConfirmedSheet, SelectDogCard, Textarea, 
 
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 import { RESERVATION_CONFIRM_COPY } from '@views/guardian-reservation-page/config/guardianReservationConfirm';
-import { RESERVATION_CONFIRM_TOAST_VIEWPORT } from '@views/guardian-reservation-page/config/guardianReservationToast';
 import {
   clipNote,
   formatConfirmDate,
@@ -37,6 +36,7 @@ import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 import { DogProfileAvatar } from '@shared/ui/dog-profile-avatar';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 const FULL_CODE = 'RESERVATION-409-4';
 
@@ -69,7 +69,6 @@ function showFailedToast(message: string) {
     shape: 'rounded',
     position: 'bottom',
     title: message,
-    viewportClassName: RESERVATION_CONFIRM_TOAST_VIEWPORT,
   });
 }
 
@@ -88,7 +87,6 @@ function showClosedToast() {
         <span className='body1-medium text-text-primary-inverse'>{copy.closedSuffix}</span>
       </>
     ),
-    viewportClassName: RESERVATION_CONFIRM_TOAST_VIEWPORT,
   });
 }
 
@@ -276,7 +274,7 @@ function ReservationConfirmPage() {
         </div>
       </div>
 
-      <div className='bg-bg-0 px-x4 py-x4 shrink-0'>
+      <BottomCta className='bg-bg-0 px-x4 py-x4 shrink-0'>
         <ActionButton
           type='button'
           variant='primaryFill'
@@ -288,7 +286,7 @@ function ReservationConfirmPage() {
         >
           {copy.book}
         </ActionButton>
-      </div>
+      </BottomCta>
 
       <ReservationLeaveDialog
         isOpen={isLeaveOpen}

@@ -9,7 +9,6 @@ import { ActionButton, Icon } from '@knockdog/ui';
 
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 import { RESERVATION_DETAIL_COPY } from '@views/guardian-reservation-page/config/guardianReservationDetail';
-import { RESERVATION_ACTION_TOAST_VIEWPORT } from '@views/guardian-reservation-page/config/guardianReservationToast';
 import { leaveReservationTab } from '@views/guardian-reservation-page/lib/leaveReservationTab';
 import { isNoteFilled } from '@views/guardian-reservation-page/lib/guardianReservationConfirm';
 import {
@@ -32,6 +31,7 @@ import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@sha
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 function DetailInfoRow({ label, value }: { label: string; value: string }) {
   return (
@@ -110,7 +110,6 @@ function GuardianReservationDetailPage() {
           position: 'bottom',
           title: copy.phoneCopied,
           nativeTitle: copy.phoneCopied,
-          viewportClassName: RESERVATION_ACTION_TOAST_VIEWPORT,
         });
       })
       .catch(() => undefined);
@@ -142,7 +141,6 @@ function GuardianReservationDetailPage() {
             position: 'bottom',
             title: message,
             nativeTitle: message,
-            viewportClassName: RESERVATION_ACTION_TOAST_VIEWPORT,
           });
         },
       }
@@ -232,7 +230,7 @@ function GuardianReservationDetailPage() {
         </section>
       </div>
 
-      <div className='bg-bg-0 p-x4 shrink-0'>
+      <BottomCta className='bg-bg-0 p-x4 shrink-0'>
         <ActionButton
           type='button'
           variant={canCancel ? 'secondaryLine' : 'primaryFill'}
@@ -243,7 +241,7 @@ function GuardianReservationDetailPage() {
         >
           {copy.cancel}
         </ActionButton>
-      </div>
+      </BottomCta>
 
       <ReservationCancelDialog
         isOpen={isCancelOpen}
