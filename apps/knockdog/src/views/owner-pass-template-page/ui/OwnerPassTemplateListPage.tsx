@@ -82,7 +82,7 @@ function OwnerPassTemplateListPage() {
       )}
 
       {!hasLoadError ? (
-        <BottomCta className='bg-bg-0 shrink-0 px-4 pt-4 pb-[calc(1rem+max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px)))]'>
+        <BottomCta className='bg-bg-0 shrink-0 px-4 pt-4 pb-4'>
           <ActionButton
             type='button'
             size='large'
