@@ -8,7 +8,7 @@ import type { AttendanceCheckinoutCandidate } from '@entities/owner-attendance-c
 import { openConfirmDialog } from '@shared/lib/bridge';
 import { ellipsisText } from '@shared/utils';
 
-type CancelDialogMember = Pick<AttendanceCheckinoutCandidate, 'petId' | 'name' | 'profileImageUrl'>;
+type CancelDialogMember = Pick<AttendanceCheckinoutCandidate, 'petId' | 'name'>;
 
 interface UseOwnerDailyCancelDialogParams {
   onCancelCheckIn: (member: CancelDialogMember) => Promise<void>;
@@ -19,7 +19,7 @@ interface UseOwnerDailyCancelDialogParams {
 /**
  * 등원·결석·하원 취소 확인창을 연다. 취소 버튼은 항상 먼저 이 확인창을 연다.
  * 네이티브 앱에서는 네이티브 확인창을 먼저 시도하고, 쓸 수 없으면 웹 모달(`OwnerDailyCancelDialog`)을 띄운다.
- * 확인창에서 `취소하기`를 누르면 해당 취소 요청 함수를 부른다.
+ * 확인창에서 `취소하기`를 누르면 확인창이 바로 닫히고 해당 취소 요청 함수를 부른다.
  */
 const useOwnerDailyCancelDialog = ({
   onCancelCheckIn,
@@ -43,17 +43,13 @@ const useOwnerDailyCancelDialog = ({
       description,
       cancelLabel: '닫기',
       confirmLabel: '취소하기',
-      contentPaddingHorizontal: 16,
-      showAvatar: true,
-      avatarUrl: member.profileImageUrl ?? undefined,
     });
 
-    if (result.status === 'pending') return;
-
     if (result.status === 'resolved') {
-      if (result.action === 'confirm') await cancelHandlers[kind](member);
+      if (result.action === 'confirm') void cancelHandlers[kind](member);
       return;
     }
+    if (result.status === 'pending') return;
 
     overlay.open(({ isOpen, close }) => (
       <OwnerDailyCancelDialog

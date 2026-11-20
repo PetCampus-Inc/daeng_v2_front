@@ -22,9 +22,15 @@ interface ConfirmDialogOptions {
   confirmVariant?: 'accent' | 'neutral';
   /** 제목/설명/버튼 영역 좌우 패딩(px). 기본 20 */
   contentPaddingHorizontal?: number;
-  /** true면 제목 위에 52px 원형 아바타를 보여준다 (프로필 이미지 없으면 발바닥 아이콘 fallback) */
-  showAvatar?: boolean;
-  avatarUrl?: string;
+  /** 버튼 배치. 'horizontal'(좌우 한 줄, 기본) | 'vertical'(상하, 위가 취소·아래가 확인) */
+  buttonLayout?: 'horizontal' | 'vertical';
+  /**
+   * 앱 확인창을 쓰지 않고 항상 호출한 화면의 웹 다이얼로그를 띄운다 ('unavailable'을 바로 돌려준다).
+   * 제목·설명·버튼만으로 그릴 수 없는 예외 창에만 쓰고, `reason`에 왜 예외인지 반드시 적는다.
+   * 웹 모달은 앱의 하단 탭바를 덮지 못하므로 탭바가 보이는 화면에는 쓰지 않는다.
+   * 예외 목록은 `webOnly`로 검색한다.
+   */
+  webOnly?: { reason: string };
 }
 
 type ConfirmDialogResult =
@@ -40,7 +46,8 @@ let lastConfirmDialogRequestId = 0;
  * 네이티브 앱 안에서는 하단 탭바까지 덮는 네이티브 확인 다이얼로그를 띄운다.
  * 웹이거나 네이티브가 미지원이면 'unavailable'을 반환해 호출부가 기존 웹 AlertDialog로 폴백하게 한다.
  */
-async function openConfirmDialog(options: ConfirmDialogOptions): Promise<ConfirmDialogResult> {
+async function openConfirmDialog({ webOnly, ...options }: ConfirmDialogOptions): Promise<ConfirmDialogResult> {
+  if (webOnly) return { status: 'unavailable' };
   if (!isNativeWebView()) return { status: 'unavailable' };
 
   const bridge = getBridgeInstance();

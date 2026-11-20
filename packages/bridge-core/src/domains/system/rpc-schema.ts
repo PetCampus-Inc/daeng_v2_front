@@ -50,9 +50,8 @@ interface SystemRPCSchema {
       confirmVariant?: 'accent' | 'neutral';
       /** 제목/설명/버튼 영역 좌우 패딩(px). 기본 20 */
       contentPaddingHorizontal?: number;
-      /** true면 제목 위에 52px 원형 아바타를 보여준다 (프로필 이미지 없으면 발바닥 아이콘 fallback) */
-      showAvatar?: boolean;
-      avatarUrl?: string;
+      /** 버튼 배치. 'horizontal'(좌우 한 줄, 기본) | 'vertical'(상하, 위가 취소·아래가 확인) */
+      buttonLayout?: 'horizontal' | 'vertical';
     };
     result: {
       action: 'cancel' | 'confirm';
