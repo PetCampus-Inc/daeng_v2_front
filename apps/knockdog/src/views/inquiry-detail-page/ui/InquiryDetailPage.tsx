@@ -4,17 +4,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { overlay } from 'overlay-kit';
 
-import {
-  ActionButton,
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@knockdog/ui';
+import { ActionButton } from '@knockdog/ui';
 import { InquiryMessageItem } from '@views/inquiry-detail-page/ui/InquiryMessageItem';
 import { InquiryUserTypeBadge } from '@views/inquiry-detail-page/ui/InquiryUserTypeBadge';
 import { Header } from '@widgets/Header';
@@ -33,6 +23,7 @@ import { route } from '@shared/constants/route';
 import { openConfirmDialog, useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { isNativeWebView } from '@shared/lib/device';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
+import { ConfirmDialog } from '@shared/ui/confirm-dialog';
 import { ActionLoadingOverlay, ACTION_SPINNER_DELAY_MS, DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { PageError } from '@shared/ui/page-error';
 import { COMMON_ERROR_TOAST_MESSAGE, toast } from '@shared/ui/toast';
@@ -125,37 +116,25 @@ function InquiryDetailPage() {
 
   const openWebResolveDialog = () => {
     overlay.open(({ isOpen, close }) => (
-      <AlertDialog open={isOpen} onOpenChange={close}>
-        {/* Figma 1:2866: 폭 358px, 글자 좌우 여백 36px, 버튼 좌우 여백 32px (공통 기본값은 334px·20px). 좁은 화면에서는 좌우 16px를 남긴다 */}
-        <AlertDialogContent className='max-w-[min(358px,calc(100%-32px))]'>
-          <AlertDialogHeader className='px-x9'>
-            <AlertDialogTitle>{RESOLVE_DIALOG.title}</AlertDialogTitle>
-            <AlertDialogDescription>{RESOLVE_DIALOG.description}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className='px-x8'>
-            <AlertDialogCancel>{RESOLVE_DIALOG.cancelLabel}</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                close();
-                resolve();
-              }}
-            >
-              {RESOLVE_DIALOG.confirmLabel}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        {...RESOLVE_DIALOG}
+        isOpen={isOpen}
+        onClose={close}
+        onConfirm={() => {
+          close();
+          resolve();
+        }}
+      />
     ));
   };
 
   const handleResolveClick = async () => {
     const result = await openConfirmDialog(RESOLVE_DIALOG);
-    if (result.status === 'pending') return;
-
     if (result.status === 'resolved') {
-      if (result.action === 'confirm') await resolve();
+      if (result.action === 'confirm') void resolve();
       return;
     }
+    if (result.status === 'pending') return;
 
     openWebResolveDialog();
   };
