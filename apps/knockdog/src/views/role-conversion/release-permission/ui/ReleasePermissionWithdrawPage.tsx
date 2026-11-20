@@ -9,6 +9,7 @@ import { releasePermissionContent } from '@views/role-conversion/release-permiss
 import { Header } from '@widgets/Header';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { route } from '@shared/constants/route';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 function ReleasePermissionWithdrawPage() {
   const { push, reset } = useStackNavigation();
@@ -47,7 +48,7 @@ function ReleasePermissionWithdrawPage() {
         </div>
       </div>
 
-      <div className='shrink-0 flex gap-2 px-4 py-5'>
+      <BottomCta className='shrink-0 flex gap-2 px-4 py-5'>
         <ActionButton
           type='button'
           variant='secondaryLine'
@@ -66,7 +67,7 @@ function ReleasePermissionWithdrawPage() {
         >
           {releasePermissionContent.withdrawContinueButtonLabel}
         </ActionButton>
-      </div>
+      </BottomCta>
     </div>
   );
 }

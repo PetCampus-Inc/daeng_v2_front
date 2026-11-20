@@ -32,6 +32,7 @@ import { saveReleasePermissionReasonDraft } from '@views/role-conversion/release
 import { Header } from '@widgets/Header';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { route } from '@shared/constants/route';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 function ReleasePermissionReasonPage() {
   const { push, replace } = useStackNavigation();
@@ -127,7 +128,7 @@ function ReleasePermissionReasonPage() {
         </RadioGroup>
       </div>
 
-      <div className='shrink-0 px-4 py-5'>
+      <BottomCta className='shrink-0 px-4 py-5'>
         <ActionButton
           type='button'
           variant='secondaryFill'
@@ -138,7 +139,7 @@ function ReleasePermissionReasonPage() {
         >
           {releasePermissionContent.nextButtonLabel}
         </ActionButton>
-      </div>
+      </BottomCta>
     </div>
   );
 }
