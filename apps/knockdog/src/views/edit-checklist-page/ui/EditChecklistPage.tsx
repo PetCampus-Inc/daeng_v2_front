@@ -27,6 +27,7 @@ import { Header } from '@widgets/Header';
 
 import { useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 function hasAnswerValue(sections: AnswerGroup[]) {
   return sections.some((section) =>
@@ -196,7 +197,7 @@ function EditChecklistPage() {
         <Header.Title>체크리스트 작성</Header.Title>
       </Header>
       <ChecklistEditor key={editorKey} isEditing answers={currentAnswers} onAnswersChange={setDraftAnswers} />
-      <div className='flex shrink-0 flex-nowrap gap-2 bg-white px-5 py-5 pb-[max(1.25rem,var(--safe-area-inset-bottom,0px))]'>
+      <BottomCta className='flex shrink-0 flex-nowrap gap-2 bg-white px-5 py-5 pb-[max(1.25rem,var(--safe-area-inset-bottom,0px))]'>
         <ActionButton
           type='button'
           variant='secondaryLine'
@@ -217,7 +218,7 @@ function EditChecklistPage() {
         >
           저장하기
         </ActionButton>
-      </div>
+      </BottomCta>
     </div>
   );
 }
