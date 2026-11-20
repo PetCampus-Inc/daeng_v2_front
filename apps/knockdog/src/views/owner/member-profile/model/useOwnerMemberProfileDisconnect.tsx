@@ -1,11 +1,13 @@
 'use client';
 
 import { useMemo, useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { overlay } from 'overlay-kit';
 
 import { useOwnerRole } from '@features/role-conversion';
 import {
   findOwnerMemberByPetId,
+  ownerDisconnectMutationKey,
   isAlreadyDisconnectedError,
   isDisconnectBlockedError,
   useDisconnectCheckMutation,
@@ -44,6 +46,7 @@ function useOwnerMemberProfileDisconnect({ petId, dogName, enabled = true }: Use
   const { navigateToTab } = useTabNavigation();
   const { kindergarten } = useOwnerRole();
   const kindergartenName = kindergarten?.name ?? '';
+  const queryClient = useQueryClient();
   const disconnectMutation = useOwnerMemberDisconnectMutation({ userId });
   const eligibilityMutation = useDisconnectCheckMutation();
   const membersQuery = useOwnerMembersQuery({
@@ -217,6 +220,15 @@ function useOwnerMemberProfileDisconnect({ petId, dogName, enabled = true }: Use
 
   /** 확인창이 닫힌 뒤 연결 해제를 시작한다. 처리하는 동안 연결 해제 버튼을 잠근다. */
   const runDisconnect = async (resolvedMemberId: string) => {
+    if (isProcessing.current) return;
+
+    const isDisconnectPending = queryClient.isMutating({
+      mutationKey: ownerDisconnectMutationKey(userId),
+      exact: true,
+      predicate: (mutation) => mutation.state.variables === resolvedMemberId,
+    });
+    if (isDisconnectPending) return;
+
     isProcessing.current = true;
     setIsChecking(true);
     try {

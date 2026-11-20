@@ -19,7 +19,7 @@ function useNotificationInboxPage(audience: NotificationAudience, enabled = true
     size: NOTIFICATION_INBOX_PAGE_SIZE,
     enabled,
   });
-  const { markRead, markAllRead } = useNotificationReadMutation({
+  const { markRead, markAllAsRead } = useNotificationReadMutation({
     audience,
     userId,
     size: NOTIFICATION_INBOX_PAGE_SIZE,
@@ -43,10 +43,6 @@ function useNotificationInboxPage(audience: NotificationAudience, enabled = true
     },
     [markRead]
   );
-
-  const markAllAsRead = useCallback(async () => {
-    await markAllRead.mutateAsync(audience);
-  }, [audience, markAllRead]);
 
   return {
     items,

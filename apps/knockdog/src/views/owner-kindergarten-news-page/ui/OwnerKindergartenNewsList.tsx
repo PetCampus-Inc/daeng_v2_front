@@ -10,7 +10,7 @@ interface OwnerKindergartenNewsListProps {
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
   fetchNextPage: () => void;
-  onDelete: (newsId: string) => void | Promise<void>;
+  onDelete: (newsId: string) => Promise<boolean>;
 }
 
 function OwnerKindergartenNewsList({

@@ -26,7 +26,7 @@ import { route } from '@shared/constants/route';
 
 interface OwnerKindergartenNewsMoreMenuProps {
   newsId: string;
-  onDelete: (newsId: string) => void | Promise<void>;
+  onDelete: (newsId: string) => Promise<boolean>;
 }
 
 function OwnerKindergartenNewsMoreMenu({ newsId, onDelete }: OwnerKindergartenNewsMoreMenuProps) {
@@ -65,8 +65,7 @@ function OwnerKindergartenNewsMoreMenu({ newsId, onDelete }: OwnerKindergartenNe
     event.stopPropagation();
     setIsOpen(false);
     openOwnerKindergartenNewsDeleteDialog(async () => {
-      await onDelete(newsId);
-      showOwnerKindergartenNewsDeleteSuccessToast();
+      if (await onDelete(newsId)) showOwnerKindergartenNewsDeleteSuccessToast();
     });
   };
 

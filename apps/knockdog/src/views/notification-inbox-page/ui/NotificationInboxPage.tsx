@@ -52,8 +52,7 @@ function NotificationInboxPage() {
 
   const confirmMarkAllRead = async () => {
     try {
-      await markAllAsRead();
-      toast(content.markAllReadSuccessToast);
+      if (await markAllAsRead()) toast(content.markAllReadSuccessToast);
     } catch {
       toast(content.markAllReadFailToast);
     }

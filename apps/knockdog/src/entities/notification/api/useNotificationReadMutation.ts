@@ -105,7 +105,9 @@ function useNotificationReadMutation({ userId, audience, size }: UseNotification
     },
   });
 
+  const markAllReadKey = ['notificationsMarkAllRead', userId, audience] as const;
   const markAllRead = useMutation({
+    mutationKey: markAllReadKey,
     mutationFn: patchNotificationsReadAll,
     onSettled: async () => {
       await queryClient.invalidateQueries({ queryKey: [NOTIFICATIONS_QUERY_KEY, userId] });
@@ -113,7 +115,14 @@ function useNotificationReadMutation({ userId, audience, size }: UseNotification
     },
   });
 
-  return { markRead, markAllRead };
+  const markAllAsRead = async () => {
+    if (queryClient.isMutating({ mutationKey: markAllReadKey, exact: true })) return false;
+
+    await markAllRead.mutateAsync(audience);
+    return true;
+  };
+
+  return { markRead, markAllAsRead };
 }
 
 export { useNotificationReadMutation };
