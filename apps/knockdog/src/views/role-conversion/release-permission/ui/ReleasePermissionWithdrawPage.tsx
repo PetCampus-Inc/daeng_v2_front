@@ -48,7 +48,7 @@ function ReleasePermissionWithdrawPage() {
         </div>
       </div>
 
-      <BottomCta className='shrink-0 flex gap-2 px-4 py-5'>
+      <BottomCta className='shrink-0 flex gap-2 px-4 pt-5'>
         <ActionButton
           type='button'
           variant='secondaryLine'

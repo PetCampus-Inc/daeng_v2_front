@@ -137,7 +137,7 @@ function WithdrawSurveyPage() {
         </RadioGroup>
       </div>
 
-      <BottomCta className='shrink-0 flex gap-x-2 px-4 py-5'>
+      <BottomCta className='shrink-0 flex gap-x-2 px-4 pt-5'>
         <ActionButton variant='secondaryLine' size='large' className='w-full' onClick={back}>
           더 둘러보기
         </ActionButton>

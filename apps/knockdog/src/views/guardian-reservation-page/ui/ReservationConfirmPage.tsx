@@ -295,7 +295,7 @@ function ReservationConfirmPage() {
         </div>
       </div>
 
-      <BottomCta className='bg-bg-0 px-x4 py-x4 shrink-0'>
+      <BottomCta className='bg-bg-0 px-x4 pt-x4 shrink-0'>
         <ActionButton
           type='button'
           variant='primaryFill'

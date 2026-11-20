@@ -143,7 +143,7 @@ function OwnerProfileForm({
           </div>
         </div>
 
-        <BottomCta className='shrink-0 bg-white py-x5'>
+        <BottomCta className='shrink-0 bg-white pt-x5'>
           <ActionButton type='submit' disabled={!isValid || isSubmitting}>
             {submitButtonText}
           </ActionButton>

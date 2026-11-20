@@ -262,7 +262,7 @@ function GuardianReservationTimePage() {
           ) : null}
         </div>
 
-        <BottomCta className='bg-bg-0 px-x4 py-x4 gap-x3 flex shrink-0 flex-col'>
+        <BottomCta className='bg-bg-0 px-x4 pt-x4 gap-x3 flex shrink-0 flex-col'>
           <div className='gap-x3 flex items-center'>
             <RsvDateTime type='date' isFilled={activeDate != null}>
               {activeDate ? formatReserveDay(activeDate) : undefined}

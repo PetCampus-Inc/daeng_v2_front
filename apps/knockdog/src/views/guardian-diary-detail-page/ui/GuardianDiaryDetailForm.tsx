@@ -86,7 +86,7 @@ function GuardianDiaryDetailForm({
         </div>
       )}
       {isEditing ? (
-        <BottomCta className='bg-bg-0 p-x4 shrink-0'>
+        <BottomCta className='bg-bg-0 px-x4 pt-x4 shrink-0'>
           <ActionButton type='button' variant='primaryFill' size='large' onClick={onSave}>
             저장하기
           </ActionButton>

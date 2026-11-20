@@ -229,7 +229,7 @@ function GuardianInvitePetSelectPage() {
         </section>
       </main>
 
-      <BottomCta className='bg-bg-0 px-x4 py-x5'>
+      <BottomCta className='bg-bg-0 px-x4 pt-x5'>
         <ActionButton
           type='button'
           size='large'

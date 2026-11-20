@@ -56,7 +56,7 @@ function GuardianReservationHoursPage({
         {kindergarten ? <ReservationKindergartenCard kindergarten={kindergarten} /> : null}
       </div>
 
-      <BottomCta className='bg-bg-0 p-x4 shrink-0'>
+      <BottomCta className='bg-bg-0 px-x4 pt-x4 shrink-0'>
         <ActionButton type='button' variant='primaryFill' size='large' className='body1-bold' disabled>
           {copy.action}
         </ActionButton>

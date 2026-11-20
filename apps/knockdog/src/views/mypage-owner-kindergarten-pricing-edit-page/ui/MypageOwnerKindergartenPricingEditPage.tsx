@@ -173,7 +173,7 @@ function MypageOwnerKindergartenPricingEditPage() {
           </div>
         </div>
 
-        <BottomCta className='relative shrink-0 px-4 pt-5 pb-5'>
+        <BottomCta className='relative shrink-0 px-4 pt-5'>
           <div className='pointer-events-none absolute inset-x-0 -top-28 h-28 bg-gradient-to-b from-transparent to-white' />
           <ActionButton
             type='button'

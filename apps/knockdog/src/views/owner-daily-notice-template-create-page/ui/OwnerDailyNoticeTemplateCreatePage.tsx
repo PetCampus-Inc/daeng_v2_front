@@ -244,7 +244,7 @@ function OwnerDailyNoticeTemplateCreatePage() {
         </section>
 
         <BottomCta className='bg-bg-50 shrink-0'>
-          <div className='py-5'>
+          <div className='pt-5'>
             <ActionButton
               type='button'
               variant='secondaryFill'

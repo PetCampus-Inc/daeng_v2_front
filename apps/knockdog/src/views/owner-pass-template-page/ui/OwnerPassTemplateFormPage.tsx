@@ -441,7 +441,7 @@ function OwnerPassTemplateFormPage({ mode }: OwnerPassTemplateFormPageProps) {
         </div>
       </div>
 
-      <BottomCta className='bg-bg-0 shrink-0 px-4 pt-4 pb-4'>
+      <BottomCta className='bg-bg-0 shrink-0 px-4 pt-4'>
         <ActionButton
           type='button'
           size='large'

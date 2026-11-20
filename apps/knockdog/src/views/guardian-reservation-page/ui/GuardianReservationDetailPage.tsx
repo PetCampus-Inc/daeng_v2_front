@@ -244,7 +244,7 @@ function GuardianReservationDetailPage() {
         </section>
       </div>
 
-      <BottomCta className='bg-bg-0 p-x4 shrink-0'>
+      <BottomCta className='bg-bg-0 px-x4 pt-x4 shrink-0'>
         <ActionButton
           type='button'
           variant={canCancel ? 'secondaryLine' : 'primaryFill'}
