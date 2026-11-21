@@ -190,41 +190,43 @@ function OwnerMembersPendingTab({ keyword }: OwnerMembersPendingTabProps) {
         />
       )}
 
-      <div className='min-h-0 flex-1 overflow-y-auto pb-(--safe-area-inset-bottom,0px)'>
-        {isInitialPending ? (
-          <DelayedLoadingSpinner isLoading={isInitialPending} layout='content' />
-        ) : isLoadFailed ? (
-          <PageError
-            layout='inline'
-            onRetry={() => void pendingMembersQuery.refetch()}
-            isRetrying={pendingMembersQuery.isFetching}
-          />
-        ) : approvalRequests.length === 0 ? (
-          <OwnerMembersEmptyState
-            content={ownerMembersEmptyContent[keyword.length > 0 ? 'emptySearchResult' : 'emptyPending']}
-          />
-        ) : (
-          approvalRequests.map((member) => (
-            <StudentTicketListItem
-              key={member.id}
-              name={member.dogName}
-              guardian={`${member.guardianName} 보호자`}
-              sex={member.gender}
-              avatarSrc={member.profileImageUrl}
-              avatarAlt={`${member.dogName} 프로필 이미지`}
-              status={null}
-              action={
-                <ApprovalActions
-                  member={member}
-                  disabled={isActionPending}
-                  onApprove={handleApprove}
-                  onReject={handleRejectClick}
-                />
-              }
+      {isLoadFailed ? (
+        <PageError
+          layout='inline'
+          onRetry={() => void pendingMembersQuery.refetch()}
+          isRetrying={pendingMembersQuery.isFetching}
+        />
+      ) : (
+        <div className='min-h-0 flex-1 overflow-y-auto pb-(--safe-area-inset-bottom,0px)'>
+          {isInitialPending ? (
+            <DelayedLoadingSpinner isLoading={isInitialPending} layout='content' />
+          ) : approvalRequests.length === 0 ? (
+            <OwnerMembersEmptyState
+              content={ownerMembersEmptyContent[keyword.length > 0 ? 'emptySearchResult' : 'emptyPending']}
             />
-          ))
-        )}
-      </div>
+          ) : (
+            approvalRequests.map((member) => (
+              <StudentTicketListItem
+                key={member.id}
+                name={member.dogName}
+                guardian={`${member.guardianName} 보호자`}
+                sex={member.gender}
+                avatarSrc={member.profileImageUrl}
+                avatarAlt={`${member.dogName} 프로필 이미지`}
+                status={null}
+                action={
+                  <ApprovalActions
+                    member={member}
+                    disabled={isActionPending}
+                    onApprove={handleApprove}
+                    onReject={handleRejectClick}
+                  />
+                }
+              />
+            ))
+          )}
+        </div>
+      )}
 
       <ConfirmDialog
         {...toApprovedDialog(approvedMember?.dogName ?? '')}
