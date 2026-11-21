@@ -199,7 +199,6 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
       const maxSelection =
         typeof selectionLimit === 'number' && selectionLimit > 0 ? selectionLimit : DEFAULT_MAX_SELECTION;
 
-      // 최대 초과 토스트를 위해 피커에서는 제한하지 않고, 이후 잘라냄
       const pickerOptions: ImagePicker.ImagePickerOptions = {
         mediaTypes: ['images'],
         allowsEditing: allowsEditing ?? false,
@@ -207,7 +206,7 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
         aspect,
         allowsMultipleSelection: source === 'camera' ? false : (allowsMultipleSelection ?? false),
         orderedSelection: orderedSelection ?? false,
-        selectionLimit: 0,
+        selectionLimit: maxSelection,
       };
 
       const result =
