@@ -390,6 +390,9 @@ importers:
       '@babel/template':
         specifier: ^7.29.7
         version: 7.29.7
+      '@sentry/cli':
+        specifier: 2.45.0
+        version: 2.45.0
       '@types/react':
         specifier: ~19.0.14
         version: 19.0.14
