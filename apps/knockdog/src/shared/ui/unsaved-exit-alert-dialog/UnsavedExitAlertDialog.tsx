@@ -1,15 +1,6 @@
 'use client';
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@knockdog/ui';
+import { ConfirmDialog } from '@shared/ui/confirm-dialog';
 
 interface UnsavedExitAlertDialogProps {
   isOpen: boolean;
@@ -21,6 +12,10 @@ interface UnsavedExitAlertDialogProps {
   confirmLabel: string;
 }
 
+/**
+ * 저장하지 않고 나갈 때 묻는 확인창. 모양은 공통 ConfirmDialog(V4)를 쓴다.
+ * 열고 닫는 순서와 뒤로가기 가드는 openUnsavedExitDialog가 맡는다.
+ */
 function UnsavedExitAlertDialog({
   isOpen,
   close,
@@ -31,27 +26,15 @@ function UnsavedExitAlertDialog({
   confirmLabel,
 }: UnsavedExitAlertDialogProps) {
   return (
-    <AlertDialog
-      open={isOpen}
-      onOpenChange={(open) => {
-        if (!open) close();
-      }}
-    >
-      <AlertDialogContent
-        onOpenAutoFocus={(event) => {
-          event.preventDefault();
-        }}
-      >
-        <AlertDialogHeader>
-          <AlertDialogTitle>{title}</AlertDialogTitle>
-          <AlertDialogDescription>{description}</AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>{cancelLabel}</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm}>{confirmLabel}</AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <ConfirmDialog
+      isOpen={isOpen}
+      title={title}
+      description={description}
+      cancelLabel={cancelLabel}
+      confirmLabel={confirmLabel}
+      onClose={close}
+      onConfirm={onConfirm}
+    />
   );
 }
 

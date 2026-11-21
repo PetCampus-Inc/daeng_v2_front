@@ -5,14 +5,6 @@ import { useParams } from 'next/navigation';
 import { overlay } from 'overlay-kit';
 import {
   ActionButton,
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
 } from '@knockdog/ui';
 
 import {
@@ -25,8 +17,10 @@ import { toSavedChecklistAnswers, type AnswerGroup } from '@entities/checklist';
 
 import { Header } from '@widgets/Header';
 
-import { useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
+import { openConfirmDialog, useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
+import { ConfirmDialog } from '@shared/ui/confirm-dialog';
 import { toast } from '@shared/ui/toast';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 function hasAnswerValue(sections: AnswerGroup[]) {
   return sections.some((section) =>
@@ -114,53 +108,65 @@ function EditChecklistPage() {
       showSaveSuccessToast();
       back();
     } catch {
-      overlay.open(({ isOpen, close }) => (
-        <AlertDialog open={isOpen} onOpenChange={(open) => !open && close()}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>체크리스트를 저장하지 못했어요</AlertDialogTitle>
-              <AlertDialogDescription>잠시 후 다시 시도해 주세요.</AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>닫기</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => {
-                  close();
-                  handleSave();
-                }}
-              >
-                다시 시도
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      ));
+      const confirmCopy = {
+        title: '체크리스트를 저장하지 못했어요',
+        description: '잠시 후 다시 시도해 주세요.',
+        cancelLabel: '닫기',
+        confirmLabel: '다시 시도',
+      };
+      openConfirmDialog(confirmCopy).then((result) => {
+        if (result.status === 'resolved') {
+          if (result.action === 'confirm') handleSave();
+          return;
+        }
+        if (result.status === 'pending') return;
+
+        overlay.open(({ isOpen, close }) => (
+          <ConfirmDialog
+            {...confirmCopy}
+            isOpen={isOpen}
+            onClose={close}
+            onConfirm={() => {
+              close();
+              handleSave();
+            }}
+          />
+        ));
+      });
     }
   };
 
   const handleReset = () => {
-    overlay.open(({ isOpen, close }) => (
-      <AlertDialog open={isOpen} onOpenChange={(open) => !open && close()}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>작성한 내용을 초기화할까요?</AlertDialogTitle>
-            <AlertDialogDescription>작성한 체크와 메모가 모두 삭제됩니다.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>닫기</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                setDraftAnswers([]);
-                setEditorKey((key) => key + 1);
-                close();
-              }}
-            >
-              초기화하기
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    ));
+    const confirmCopy = {
+      title: '작성한 내용을 초기화할까요?',
+      description: '작성한 체크와 메모가 모두 삭제됩니다.',
+      cancelLabel: '닫기',
+      confirmLabel: '초기화하기',
+    };
+    openConfirmDialog(confirmCopy).then((result) => {
+      if (result.status === 'pending') return;
+
+      if (result.status === 'resolved') {
+        if (result.action === 'confirm') {
+          setDraftAnswers([]);
+          setEditorKey((key) => key + 1);
+        }
+        return;
+      }
+
+      overlay.open(({ isOpen, close }) => (
+        <ConfirmDialog
+          {...confirmCopy}
+          isOpen={isOpen}
+          onClose={close}
+          onConfirm={() => {
+            close();
+            setDraftAnswers([]);
+            setEditorKey((key) => key + 1);
+          }}
+        />
+      ));
+    });
   };
 
   const handleBack = () => {
@@ -169,20 +175,34 @@ function EditChecklistPage() {
       return;
     }
 
-    overlay.open(({ isOpen, close }) => (
-      <AlertDialog open={isOpen} onOpenChange={(open) => !open && close()}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>저장하지 않고 나갈까요?</AlertDialogTitle>
-            <AlertDialogDescription>변경한 내용이 저장되지 않아요.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>닫기</AlertDialogCancel>
-            <AlertDialogAction onClick={() => back()}>나가기</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    ));
+    const confirmCopy = {
+      title: '저장하지 않고 나갈까요?',
+      description: '변경한 내용이 저장되지 않아요.',
+      cancelLabel: '닫기',
+      confirmLabel: '나가기',
+    };
+    openConfirmDialog(confirmCopy).then((result) => {
+      if (result.status === 'pending') return;
+
+      if (result.status === 'resolved') {
+        if (result.action === 'confirm') {
+          back();
+        }
+        return;
+      }
+
+      overlay.open(({ isOpen, close }) => (
+        <ConfirmDialog
+          {...confirmCopy}
+          isOpen={isOpen}
+          onClose={close}
+          onConfirm={() => {
+            close();
+            back();
+          }}
+        />
+      ));
+    });
   };
 
   useNativeBackHandler(handleBack);
@@ -196,7 +216,7 @@ function EditChecklistPage() {
         <Header.Title>체크리스트 작성</Header.Title>
       </Header>
       <ChecklistEditor key={editorKey} isEditing answers={currentAnswers} onAnswersChange={setDraftAnswers} />
-      <div className='flex shrink-0 flex-nowrap gap-2 bg-white px-5 py-5 pb-[max(1.25rem,var(--safe-area-inset-bottom,0px))]'>
+      <BottomCta className='flex shrink-0 flex-nowrap gap-2 bg-white px-5 pt-5'>
         <ActionButton
           type='button'
           variant='secondaryLine'
@@ -213,11 +233,11 @@ function EditChecklistPage() {
           size='large'
           className='w-auto min-w-0 flex-1'
           disabled={!isDirty || isPending}
-          onClick={handleSave}
+          onClick={() => handleSave()}
         >
           저장하기
         </ActionButton>
-      </div>
+      </BottomCta>
     </div>
   );
 }

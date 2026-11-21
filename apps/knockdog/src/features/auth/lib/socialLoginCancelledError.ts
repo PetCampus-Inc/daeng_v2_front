@@ -9,7 +9,11 @@ class SocialLoginCancelledError extends Error {
 }
 
 function isSocialLoginCancelled(error: unknown): error is SocialLoginCancelledError {
-  return error instanceof SocialLoginCancelledError || (error instanceof Error && error.name === 'SocialLoginCancelledError');
+  return (
+    error instanceof SocialLoginCancelledError ||
+    (error instanceof Error && error.name === 'SocialLoginCancelledError') ||
+    (!!error && typeof error === 'object' && 'code' in error && error.code === 'SOCIAL_LOGIN_CANCELLED')
+  );
 }
 
 export { SocialLoginCancelledError, isSocialLoginCancelled };

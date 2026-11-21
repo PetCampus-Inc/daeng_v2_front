@@ -8,6 +8,7 @@ import { ActionButton } from '@knockdog/ui';
 import { Header } from '@widgets/Header';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { route } from '@shared/constants/route';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 import {
   RELEASE_PERMISSION_SOURCE_QUERY_KEY,
@@ -54,7 +55,7 @@ function ReleasePermissionPage() {
         </div>
       </div>
 
-      <div className='shrink-0 flex gap-2 px-4 py-5'>
+      <BottomCta className='shrink-0 flex gap-2 px-4 pt-5'>
         <ActionButton
           type='button'
           variant='secondaryLine'
@@ -73,7 +74,7 @@ function ReleasePermissionPage() {
         >
           {releasePermissionContent.confirmButtonLabel}
         </ActionButton>
-      </div>
+      </BottomCta>
     </div>
   );
 }

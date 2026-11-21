@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -16,12 +16,19 @@ import {
   type DiaryMonthDay,
 } from '@entities/guardian-diary';
 import { formatDateKey } from '@shared/lib/calendar-date';
-import { useTabNavigation } from '@shared/lib/bridge';
-import { markDiaryRemoved, readDiaryRecord, removeDiaryRecord, saveDiaryHomeReturn, saveDiaryRecord } from '@shared/lib/diary-write/diaryRecord';
+import { openConfirmDialog, useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { isNativeWebView } from '@shared/lib/device';
+import { markDiaryRemoved, readDiaryRecord, removeDiaryRecord, saveDiaryRecord } from '@shared/lib/diary-write/diaryRecord';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 import { toast } from '@shared/ui/toast';
 
-import { formatDiaryDeleteToast, formatDiaryDetailDate } from '../lib/diaryDetail';
+import {
+  DIARY_DELETE_CANCEL,
+  DIARY_DELETE_LINES,
+  DIARY_DELETE_TITLE,
+  formatDiaryDeleteToast,
+  formatDiaryDetailDate,
+} from '../lib/diaryDetail';
 import { GuardianDiaryDetailForm } from './GuardianDiaryDetailForm';
 
 function parseDetailDate(value: string | null) {
@@ -37,11 +44,13 @@ function GuardianDiaryDetailPage() {
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const isMutatingRef = useRef(false);
+  const { back } = useStackNavigation();
   const { navigateToTab } = useTabNavigation();
   const date = useMemo(() => parseDetailDate(searchParams.get('date')), [searchParams]);
   const dateKey = formatDateKey(date);
   const petId = searchParams.get('petId');
   const diaryIdFromQuery = searchParams.get('diaryId');
+  const isFromDiaryTab = searchParams.get('fromDiaryTab') === 'true';
   const { data: dateStatus } = useGuardianDiaryDateQuery({ petId, date: dateKey, enabled: !diaryIdFromQuery });
   const diaryId = diaryIdFromQuery || dateStatus?.diary?.id || null;
   const { data: detail } = useGuardianDiaryDetailQuery({ diaryId });
@@ -54,15 +63,36 @@ function GuardianDiaryDetailPage() {
   const shownBody = body ?? detail?.body ?? record?.body ?? '';
   const photos = detail?.photos ?? record?.photos ?? [];
 
-  function openDiaryHome() {
-    saveDiaryHomeReturn(dateKey);
-    void navigateToTab('/kindergarten');
-  }
+  const openDiaryHome = useCallback(async () => {
+    if (isFromDiaryTab && isNativeWebView() && (await back().catch(() => false))) return;
+
+    await navigateToTab('/kindergarten', { diaryReturnDate: dateKey }).catch(() => undefined);
+  }, [back, dateKey, isFromDiaryTab, navigateToTab]);
+
+  useNativeBackHandler(openDiaryHome);
 
   function refreshDiaryQueries(nextPetId: string | null, nextDiaryId: string) {
     void queryClient.invalidateQueries({ queryKey: guardianDiaryDetailQueryKey(nextDiaryId) });
     void queryClient.invalidateQueries({ queryKey: guardianDiaryDateQueryKey(nextPetId, dateKey) });
     void queryClient.invalidateQueries({ queryKey: guardianDiaryMonthQueryKey(nextPetId) });
+  }
+
+  /** 삭제 확인창을 연다. 앱에서는 앱 확인창을 먼저 시도하고, 쓸 수 없으면 웹 확인창을 띄운다. */
+  function openDeleteDialog() {
+    openConfirmDialog({
+      title: DIARY_DELETE_TITLE,
+      description: DIARY_DELETE_LINES.join('\n'),
+      cancelLabel: DIARY_DELETE_CANCEL,
+      confirmLabel: '삭제하기',
+    }).then((result) => {
+      if (result.status === 'resolved') {
+        if (result.action === 'confirm') handleDelete();
+        return;
+      }
+      if (result.status === 'pending') return;
+
+      setIsDeleteOpen(true);
+    });
   }
 
   async function handleDelete() {
@@ -186,10 +216,10 @@ function GuardianDiaryDetailPage() {
       onSave={handleSaveEdit}
       onAskDelete={() => {
         setIsMenuOpen(false);
-        setIsDeleteOpen(true);
+        openDeleteDialog();
       }}
       onCancelDelete={() => setIsDeleteOpen(false)}
-      onDelete={handleDelete}
+      onDelete={() => handleDelete()}
     />
   );
 }

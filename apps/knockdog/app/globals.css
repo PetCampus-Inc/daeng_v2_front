@@ -6,6 +6,11 @@
 @variant web (&:where([data-env='web'], [data-env='web'] &));
 @variant webview (&:where([data-env='webview'], [data-env='webview'] &));
 
+:root {
+  --bottom-nav-content-height: 68px;
+  --bottom-nav-inset: max(var(--safe-area-inset-bottom, 0px), env(safe-area-inset-bottom, 0px));
+}
+
 /* AOS WebView만: 시스템 글자 크기 확대를 rem 타이포에 반영하지 않음 (iOS 미적용) */
 html[data-env='webview'][data-platform='android'] {
   -webkit-text-size-adjust: 100%;
@@ -25,7 +30,7 @@ html[data-env='webview'][data-platform='android'] {
 
   /* height */
   --top-bar-height: 64px;
-  --bottom-bar-height: 68px;
+  --bottom-bar-height: var(--bottom-nav-content-height);
 
   /* animation */
   --animate-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;

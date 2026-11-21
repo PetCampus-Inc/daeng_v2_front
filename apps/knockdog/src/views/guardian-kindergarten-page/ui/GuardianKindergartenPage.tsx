@@ -208,7 +208,7 @@ export function GuardianKindergartenPage() {
           isDismissed={false}
           checkInAt={null}
           checkOutAt={null}
-          hasUnreadAlarm={false}
+          hasUnreadAlarm={hasUnreadAlarm}
           hasNoPet={hasNoPet}
         />
         <div className='bg-bg-0 relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[24px]'>
@@ -243,6 +243,7 @@ export function GuardianKindergartenPage() {
         petId={selectedPet?.id ?? null}
         schoolId={diarySchoolId}
         defaultSegment={resolveDefaultDiarySegment(showEmpty)}
+        diaryReturnDate={searchParams.get('diaryReturnDate')}
       >
         <div className='flex h-dvh flex-col' style={homePageStyle}>
           <GuardianKindergartenHeader

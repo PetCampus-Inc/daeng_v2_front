@@ -59,8 +59,10 @@ import { Header } from '@widgets/Header';
 import { route } from '@shared/constants/route';
 import { STORAGE_KEYS } from '@shared/constants/storage';
 import { createAnalyticsId, trackNotebookComposeStart, trackNotebookSent, trackNotebookUpdated } from '@shared/lib/analytics';
-import { useStackNavigation, useNativeBackHandler } from '@shared/lib/bridge';
+import { openConfirmDialog, useStackNavigation, useNativeBackHandler } from '@shared/lib/bridge';
+import { ConfirmDialog } from '@shared/ui/confirm-dialog';
 import { safeLocalStorage, safeSessionStorage } from '@shared/lib/storage';
+import { BottomCta } from '@shared/ui/bottom-cta';
 import { DogProfileAvatar } from '@shared/ui/dog-profile-avatar';
 import { ActionLoadingOverlay } from '@shared/ui/loading-spinner';
 import { SafeArea } from '@shared/ui/safe-area';
@@ -384,32 +386,37 @@ function OwnerDailyNoticeWritePage() {
     if (isExitDialogOpenRef.current) return;
     isExitDialogOpenRef.current = true;
 
-    overlay.open(({ isOpen, close }) => (
-      <AlertDialog
-        open={isOpen}
-        onOpenChange={(open) => {
-          if (!open) {
+    const confirmCopy = {
+      title: ownerDailyNoticeWriteContent.unsavedExitTitle,
+      description: ownerDailyNoticeWriteContent.unsavedExitDescription,
+      cancelLabel: ownerDailyNoticeWriteContent.unsavedExitCancelLabel,
+      confirmLabel: ownerDailyNoticeWriteContent.unsavedExitConfirmLabel,
+    };
+    openConfirmDialog(confirmCopy).then((result) => {
+      if (result.status !== 'unavailable') {
+        isExitDialogOpenRef.current = false;
+        if (result.status === 'resolved' && result.action === 'confirm') {
+          returnToOwnerDailyTodayAttendance();
+        }
+        return;
+      }
+
+      overlay.open(({ isOpen, close }) => (
+        <ConfirmDialog
+          {...confirmCopy}
+          isOpen={isOpen}
+          onClose={() => {
             isExitDialogOpenRef.current = false;
             close();
-          }
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{ownerDailyNoticeWriteContent.unsavedExitTitle}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {ownerDailyNoticeWriteContent.unsavedExitDescription}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{ownerDailyNoticeWriteContent.unsavedExitCancelLabel}</AlertDialogCancel>
-            <AlertDialogAction onClick={() => returnToOwnerDailyTodayAttendance()}>
-              {ownerDailyNoticeWriteContent.unsavedExitConfirmLabel}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    ));
+          }}
+          onConfirm={() => {
+            isExitDialogOpenRef.current = false;
+            close();
+            returnToOwnerDailyTodayAttendance();
+          }}
+        />
+      ));
+    });
   }, [isReadOnly, isSubmitting, returnToOwnerDailyTodayAttendance]);
 
   useNativeBackHandler(handleBackClick);
@@ -461,29 +468,34 @@ function OwnerDailyNoticeWritePage() {
       return;
     }
 
-    overlay.open(({ isOpen, close }) => (
-      <AlertDialog open={isOpen} onOpenChange={close}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{ownerDailyNoticeWriteContent.loadTemplateConfirmTitle}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {ownerDailyNoticeWriteContent.loadTemplateConfirmDescription}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{ownerDailyNoticeWriteContent.loadTemplateConfirmNoLabel}</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                close();
-                openTemplatePage();
-              }}
-            >
-              {ownerDailyNoticeWriteContent.loadTemplateConfirmYesLabel}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    ));
+    const confirmCopy = {
+      title: ownerDailyNoticeWriteContent.loadTemplateConfirmTitle,
+      description: ownerDailyNoticeWriteContent.loadTemplateConfirmDescription,
+      cancelLabel: ownerDailyNoticeWriteContent.loadTemplateConfirmNoLabel,
+      confirmLabel: ownerDailyNoticeWriteContent.loadTemplateConfirmYesLabel,
+    };
+    openConfirmDialog(confirmCopy).then((result) => {
+      if (result.status === 'pending') return;
+
+      if (result.status === 'resolved') {
+        if (result.action === 'confirm') {
+          openTemplatePage();
+        }
+        return;
+      }
+
+      overlay.open(({ isOpen, close }) => (
+        <ConfirmDialog
+          {...confirmCopy}
+          isOpen={isOpen}
+          onClose={close}
+          onConfirm={() => {
+            close();
+            openTemplatePage();
+          }}
+        />
+      ));
+    });
   };
 
   const handleDraftSaveClick = async () => {
@@ -494,21 +506,29 @@ function OwnerDailyNoticeWritePage() {
     }
 
     if (!hasAnyContent) {
-      overlay.open(({ isOpen, close }) => (
-        <AlertDialog open={isOpen} onOpenChange={close}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>{ownerDailyNoticeWriteContent.emptyDraftTitle}</AlertDialogTitle>
-              <AlertDialogDescription>
-                {ownerDailyNoticeWriteContent.emptyDraftDescription}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogAction>{ownerDailyNoticeWriteContent.emptyDraftConfirmLabel}</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      ));
+      const confirmCopy = {
+        title: ownerDailyNoticeWriteContent.emptyDraftTitle,
+        description: ownerDailyNoticeWriteContent.emptyDraftDescription,
+        confirmLabel: ownerDailyNoticeWriteContent.emptyDraftConfirmLabel,
+      };
+      openConfirmDialog({ ...confirmCopy, showCancelButton: false }).then((result) => {
+        if (result.status === 'pending') return;
+
+        if (result.status === 'resolved') {
+          return;
+        }
+
+        overlay.open(({ isOpen, close }) => (
+          <ConfirmDialog
+            {...confirmCopy}
+            isOpen={isOpen}
+            onClose={close}
+            onConfirm={() => {
+              close();
+            }}
+          />
+        ));
+      });
       return;
     }
 
@@ -607,32 +627,31 @@ function OwnerDailyNoticeWritePage() {
         }
       }
 
-      overlay.open(({ isOpen, close }) => (
-        <AlertDialog open={isOpen} onOpenChange={close}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>{ownerDailyNoticeWriteContent.sendFailedTitle}</AlertDialogTitle>
-              <AlertDialogDescription className='whitespace-pre-line'>
-                {isEditMode
-                  ? ownerDailyNoticeWriteContent.editSendFailedDescription
-                  : ownerDailyNoticeWriteContent.sendFailedDescription}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>{ownerDailyNoticeWriteContent.sendFailedCloseLabel}</AlertDialogCancel>
-              <AlertDialogAction
-                disabled={isSubmitting}
-                onClick={() => {
-                  close();
-                  submitNotice();
-                }}
-              >
-                {ownerDailyNoticeWriteContent.sendFailedRetryLabel}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      ));
+      const confirmCopy = {
+        title: ownerDailyNoticeWriteContent.sendFailedTitle,
+        description: isEditMode ? ownerDailyNoticeWriteContent.editSendFailedDescription : ownerDailyNoticeWriteContent.sendFailedDescription,
+        cancelLabel: ownerDailyNoticeWriteContent.sendFailedCloseLabel,
+        confirmLabel: ownerDailyNoticeWriteContent.sendFailedRetryLabel,
+      };
+      openConfirmDialog(confirmCopy).then((result) => {
+        if (result.status === 'resolved') {
+          if (result.action === 'confirm') void submitNotice();
+          return;
+        }
+        if (result.status === 'pending') return;
+
+        overlay.open(({ isOpen, close }) => (
+          <ConfirmDialog
+            {...confirmCopy}
+            isOpen={isOpen}
+            onClose={close}
+            onConfirm={() => {
+              close();
+              submitNotice();
+            }}
+          />
+        ));
+      });
       return;
     }
 
@@ -692,36 +711,31 @@ function OwnerDailyNoticeWritePage() {
       return;
     }
 
-    overlay.open(({ isOpen, close }) => (
-      <AlertDialog open={isOpen} onOpenChange={close}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {isEditMode
-                ? ownerDailyNoticeWriteContent.editSendConfirmTitle
-                : ownerDailyNoticeWriteContent.sendConfirmTitle}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {isEditMode
-                ? ownerDailyNoticeWriteContent.editSendConfirmDescription
-                : ownerDailyNoticeWriteContent.sendConfirmDescription}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{ownerDailyNoticeWriteContent.sendConfirmCloseLabel}</AlertDialogCancel>
-            <AlertDialogAction
-              disabled={isSubmitting}
-              onClick={() => {
-                close();
-                submitNotice();
-              }}
-            >
-              {ownerDailyNoticeWriteContent.sendConfirmActionLabel}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    ));
+    const confirmCopy = {
+      title: isEditMode ? ownerDailyNoticeWriteContent.editSendConfirmTitle : ownerDailyNoticeWriteContent.sendConfirmTitle,
+      description: isEditMode ? ownerDailyNoticeWriteContent.editSendConfirmDescription : ownerDailyNoticeWriteContent.sendConfirmDescription,
+      cancelLabel: ownerDailyNoticeWriteContent.sendConfirmCloseLabel,
+      confirmLabel: ownerDailyNoticeWriteContent.sendConfirmActionLabel,
+    };
+    openConfirmDialog(confirmCopy).then((result) => {
+      if (result.status === 'resolved') {
+        if (result.action === 'confirm') void submitNotice();
+        return;
+      }
+      if (result.status === 'pending') return;
+
+      overlay.open(({ isOpen, close }) => (
+        <ConfirmDialog
+          {...confirmCopy}
+          isOpen={isOpen}
+          onClose={close}
+          onConfirm={() => {
+            close();
+            submitNotice();
+          }}
+        />
+      ));
+    });
   };
 
   useEffect(() => {
@@ -765,36 +779,44 @@ function OwnerDailyNoticeWritePage() {
     // "작성하던 알림장이 있어요" 안내를 띄우지 않는다.
     if (!draft || areNoticeDraftsEqual(draft, EMPTY_NOTICE_DRAFT)) return;
 
-    overlay.open(({ isOpen, close }) => (
-      <AlertDialog open={isOpen} onOpenChange={(nextOpen) => !nextOpen && close()}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{ownerDailyNoticeWriteContent.resumeDraftTitle}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {ownerDailyNoticeWriteContent.resumeDraftDescription}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel
-              onClick={() => {
-                clearNoticeDraft(noticeId, noticeWriteDate.dateKey);
-                close();
-              }}
-            >
-              {ownerDailyNoticeWriteContent.resumeDraftNewLabel}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                applyDraft(draft, { asPersisted: true });
-                close();
-              }}
-            >
-              {ownerDailyNoticeWriteContent.resumeDraftContinueLabel}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    ));
+    openConfirmDialog({
+      title: ownerDailyNoticeWriteContent.resumeDraftTitle,
+      description: ownerDailyNoticeWriteContent.resumeDraftDescription,
+      cancelLabel: ownerDailyNoticeWriteContent.resumeDraftNewLabel,
+      confirmLabel: ownerDailyNoticeWriteContent.resumeDraftContinueLabel,
+      webOnly: { reason: '취소 버튼이 임시저장 삭제 동작을 해서, 뒤로가기·바깥 터치로 닫는 것과 구분해야 함' },
+    }).then(() => {
+      overlay.open(({ isOpen, close }) => (
+        <AlertDialog open={isOpen} onOpenChange={(nextOpen) => !nextOpen && close()}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{ownerDailyNoticeWriteContent.resumeDraftTitle}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {ownerDailyNoticeWriteContent.resumeDraftDescription}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel
+                onClick={() => {
+                  clearNoticeDraft(noticeId, noticeWriteDate.dateKey);
+                  close();
+                }}
+              >
+                {ownerDailyNoticeWriteContent.resumeDraftNewLabel}
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  applyDraft(draft, { asPersisted: true });
+                  close();
+                }}
+              >
+                {ownerDailyNoticeWriteContent.resumeDraftContinueLabel}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      ));
+    });
   }, [attendanceRecord, isExpired, noticeId, noticeWriteDate.dateKey, openExpiredDialog]);
 
   return (
@@ -1001,12 +1023,17 @@ function OwnerDailyNoticeWritePage() {
               onChange={setNotice}
               readOnly={isReadOnly}
             />
+            {!isReadOnly && (
+              <p className='caption1-regular text-text-caption'>
+                {ownerDailyNoticeWriteContent.noticeAiDisclosure}
+              </p>
+            )}
           </section>
         </div>
 
         {!isReadOnly ? (
           <SafeArea edges={['bottom']} className='bg-bg-0 shrink-0'>
-            <div className='px-4 py-5'>
+            <BottomCta className='px-4 pt-5'>
               <ActionButton
                 type='button'
                 variant='primaryFill'
@@ -1017,7 +1044,7 @@ function OwnerDailyNoticeWritePage() {
               >
                 {ownerDailyNoticeWriteContent.sendButtonLabel}
               </ActionButton>
-            </div>
+            </BottomCta>
           </SafeArea>
         ) : (
           <SafeArea edges={['bottom']} className='bg-bg-0 shrink-0' />

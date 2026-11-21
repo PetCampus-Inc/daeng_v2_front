@@ -139,7 +139,7 @@ describe('등원목록 탭 — 상태 태그와 버튼', () => {
     await openListTab();
 
     const card = await findCard('콩이');
-    expect(within(card).getByText('등원 오전 9:00')).toBeTruthy();
+    expect(within(card).getByText('오전 9:00')).toBeTruthy();
     expect(within(card).queryByText(/^하원 (오전|오후)/)).toBeNull();
   });
 });

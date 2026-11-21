@@ -6,8 +6,9 @@ import { overlay } from 'overlay-kit';
 
 import { ownerKindergartenNewsContent } from '@views/owner-kindergarten-news-page/config/ownerKindergartenNewsContent';
 import { getActiveAnnouncementNews } from '@views/owner-kindergarten-news-page/model/ownerKindergartenNewsStore';
-import { OwnerKindergartenNewsAnnouncementReplaceDialog } from '@views/owner-kindergarten-news-page/ui/OwnerKindergartenNewsAnnouncementReplaceDialog';
+import { openConfirmDialog } from '@shared/lib/bridge';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
+import { ConfirmDialog } from '@shared/ui/confirm-dialog';
 
 interface OwnerKindergartenNewsWriteSettingsSheetProps {
   isOpen: boolean;
@@ -40,7 +41,6 @@ function OwnerKindergartenNewsWriteSettingsSheet({
   const [notifyGuardiansOnUpload, setNotifyGuardiansOnUpload] = useState(
     initialNotifyGuardiansOnUpload
   );
-  const [isReplaceDialogOpen, setIsReplaceDialogOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen) setShouldRender(true);
@@ -53,7 +53,31 @@ function OwnerKindergartenNewsWriteSettingsSheet({
     onAnnouncementChange(true);
   };
 
-  const handleAnnouncementChange = (value: boolean) => {
+  /** 이미 공지가 있을 때 교체 확인창을 연다. 앱에서는 앱 확인창을 먼저 시도하고, 쓸 수 없으면 웹 확인창을 띄운다. */
+  const openAnnouncementReplaceDialog = async () => {
+    const { announcementReplaceDialog } = write;
+    const result = await openConfirmDialog(announcementReplaceDialog);
+    if (result.status === 'pending') return;
+
+    if (result.status === 'resolved') {
+      if (result.action === 'confirm') enableAnnouncement();
+      return;
+    }
+
+    overlay.open(({ isOpen: isDialogOpen, close: closeDialog }) => (
+      <ConfirmDialog
+        {...announcementReplaceDialog}
+        isOpen={isDialogOpen}
+        onClose={closeDialog}
+        onConfirm={() => {
+          enableAnnouncement();
+          closeDialog();
+        }}
+      />
+    ));
+  };
+
+  const handleAnnouncementChange = async (value: boolean) => {
     if (!value) {
       setIsAnnouncement(false);
       onAnnouncementChange(false);
@@ -71,17 +95,7 @@ function OwnerKindergartenNewsWriteSettingsSheet({
       return;
     }
 
-    setIsReplaceDialogOpen(true);
-    overlay.open(({ isOpen: isDialogOpen, close: closeDialog }) => (
-      <OwnerKindergartenNewsAnnouncementReplaceDialog
-        isOpen={isDialogOpen}
-        close={() => {
-          setIsReplaceDialogOpen(false);
-          closeDialog();
-        }}
-        onConfirm={enableAnnouncement}
-      />
-    ));
+    await openAnnouncementReplaceDialog();
   };
 
   const handleNotifyGuardiansChange = (value: boolean) => {
@@ -92,6 +106,7 @@ function OwnerKindergartenNewsWriteSettingsSheet({
   return (
     <BottomSheet.Root
       open={isOpen}
+      repositionInputs={false}
       onOpenChange={(open) => {
         if (!open) close();
       }}
@@ -128,10 +143,6 @@ function OwnerKindergartenNewsWriteSettingsSheet({
             />
           </div>
         </BottomSheet.Content>
-
-        {isReplaceDialogOpen ? (
-          <div className='pointer-events-none absolute inset-0 z-10 rounded-t-[16px] bg-black/40' aria-hidden />
-        ) : null}
       </BottomSheet.Body>
     </BottomSheet.Root>
   );

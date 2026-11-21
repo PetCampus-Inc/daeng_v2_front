@@ -4,18 +4,11 @@ import Lottie from 'lottie-react';
 import { InfoLine, Reset } from '@knockdog/icons';
 import {
   ActionButton,
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
   DiaryEditText,
   DiaryImageCarousel,
   DiaryTopBar,
 } from '@knockdog/ui';
+import { ConfirmDialog } from '@shared/ui/confirm-dialog';
 
 import {
   DIARY_ERROR_TEXT,
@@ -26,6 +19,8 @@ import {
   type DiaryGenerateStatus,
 } from '../lib/diaryGenerate';
 import loadingDots from '../config/loadingDots.json';
+
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 interface GuardianDiaryGenerateFormProps {
   dogName: string;
@@ -104,7 +99,7 @@ function GuardianDiaryGenerateForm({
         ) : null}
       </div>
       {isSaved ? null : (
-        <div className='bg-bg-0 p-x4 shrink-0'>
+        <BottomCta className='bg-bg-0 px-x4 pt-x4 shrink-0'>
           {status === 'error' ? (
             <ActionButton type='button' variant='primaryFill' size='large' className='gap-x1_5' onClick={onRetry}>
               <Reset className='size-x5' />
@@ -121,24 +116,21 @@ function GuardianDiaryGenerateForm({
               {getGenerateButtonLabel(dogName, hasTriedLeave)}
             </ActionButton>
           ) : null}
-        </div>
+        </BottomCta>
       )}
-      <AlertDialog open={dialog !== null} onOpenChange={(open) => { if (!open) onKeepWriting(); }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{dialogCopy?.title}</AlertDialogTitle>
-            <AlertDialogDescription className='body2-regular'>
-              {dialogCopy?.lines[0]}
-              <br />
-              {dialogCopy?.lines[1]}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>계속 작성하기</AlertDialogCancel>
-            <AlertDialogAction onClick={dialog === 'save' ? onConfirmSave : onLeave}>{dialogCopy?.confirmLabel}</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        isOpen={dialog !== null}
+        title={dialogCopy?.title ?? ''}
+        description={dialogCopy?.lines.join('\n')}
+        cancelLabel='계속 작성하기'
+        confirmLabel={dialogCopy?.confirmLabel ?? ''}
+        onClose={onKeepWriting}
+        onConfirm={() => {
+          if (dialog === 'save') onConfirmSave();
+          else onLeave();
+          onKeepWriting();
+        }}
+      />
     </div>
   );
 }

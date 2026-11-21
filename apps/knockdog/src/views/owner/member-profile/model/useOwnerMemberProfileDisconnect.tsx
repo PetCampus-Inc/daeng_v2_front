@@ -1,11 +1,13 @@
 'use client';
 
 import { useMemo, useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { overlay } from 'overlay-kit';
 
 import { useOwnerRole } from '@features/role-conversion';
 import {
   findOwnerMemberByPetId,
+  ownerDisconnectMutationKey,
   isAlreadyDisconnectedError,
   isDisconnectBlockedError,
   useDisconnectCheckMutation,
@@ -16,8 +18,9 @@ import {
 } from '@entities/owner-member';
 import { useUserStore } from '@entities/user';
 import { trackConnectionStatus } from '@shared/lib/analytics';
-import { useTabNavigation } from '@shared/lib/bridge';
+import { openConfirmDialog, useTabNavigation } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
+import { ellipsisText } from '@shared/utils';
 import { ownerMemberProfileContent } from '@views/owner/member-profile/config/ownerMemberProfileContent';
 import { OwnerMemberProfileDisconnectDialog } from '@views/owner/member-profile/ui/OwnerMemberProfileDisconnectDialog';
 import { DisconnectBlockedSheet } from '@views/owner/member-profile/ui/DisconnectBlockedSheet';
@@ -43,6 +46,7 @@ function useOwnerMemberProfileDisconnect({ petId, dogName, enabled = true }: Use
   const { navigateToTab } = useTabNavigation();
   const { kindergarten } = useOwnerRole();
   const kindergartenName = kindergarten?.name ?? '';
+  const queryClient = useQueryClient();
   const disconnectMutation = useOwnerMemberDisconnectMutation({ userId });
   const eligibilityMutation = useDisconnectCheckMutation();
   const membersQuery = useOwnerMembersQuery({
@@ -66,23 +70,18 @@ function useOwnerMemberProfileDisconnect({ petId, dogName, enabled = true }: Use
     toast({ title: content.disconnectFailToast });
   };
 
-  const navigateToMembers = async (closeDialog?: () => void) => {
-    if (closeDialog) {
-      // 다이얼로그의 history.back이 목록 이동을 되돌리지 않도록 기다린다.
-      if (window.history.state?.__knockdogOverlayId) {
-        await new Promise<void>((resolve) => {
-          const finish = () => {
-            window.removeEventListener('popstate', finish);
-            window.clearTimeout(timer);
-            resolve();
-          };
-          const timer = window.setTimeout(finish, 300);
-          window.addEventListener('popstate', finish);
-          closeDialog();
-        });
-      } else {
-        closeDialog();
-      }
+  const navigateToMembers = async () => {
+    // 확인창은 확인을 누를 때 이미 닫혔다. 웹 모달을 닫을 때 생긴 history.back이 목록 이동을 되돌리지 않도록 기다린다.
+    if (window.history.state?.__knockdogOverlayId) {
+      await new Promise<void>((resolve) => {
+        const finish = () => {
+          window.removeEventListener('popstate', finish);
+          window.clearTimeout(timer);
+          resolve();
+        };
+        const timer = window.setTimeout(finish, 300);
+        window.addEventListener('popstate', finish);
+      });
     }
     await navigateToTab('/owner/members', undefined, 'owner');
   };
@@ -117,9 +116,9 @@ function useOwnerMemberProfileDisconnect({ petId, dogName, enabled = true }: Use
   };
 
   /** 이미 해제된 원생이면 구성원 목록으로 이동하고 안내 토스트를 보여준다(목록은 mutation이 다시 불러온다) */
-  const handleAlreadyDisconnected = async (closeDialog?: () => void): Promise<'completed'> => {
+  const handleAlreadyDisconnected = async (): Promise<'completed'> => {
     try {
-      await navigateToMembers(closeDialog);
+      await navigateToMembers();
     } catch {
       // 페이지 이동 실패 무시
     }
@@ -133,15 +132,12 @@ function useOwnerMemberProfileDisconnect({ petId, dogName, enabled = true }: Use
    * - `'failed'` 권한 해제 실패 — 프로필 복귀
    * - `'completed'` 권한 해제 성공 또는 이미 해제됨(이후 이동/토스트 실패 포함)
    */
-  const disconnectAndNotify = async (
-    resolvedMemberId: string,
-    closeDialog: () => void
-  ): Promise<'failed' | 'completed'> => {
+  const disconnectAndNotify = async (resolvedMemberId: string): Promise<'failed' | 'completed'> => {
     try {
       await disconnectMutation.mutateAsync(resolvedMemberId);
     } catch (error) {
       if (isDisconnectBlockedError(error)) return handleServerBlocked(resolvedMemberId);
-      if (isAlreadyDisconnectedError(error)) return handleAlreadyDisconnected(closeDialog);
+      if (isAlreadyDisconnectedError(error)) return handleAlreadyDisconnected();
 
       // 서버 원복 가정 — 프론트는 낙관적 미적용이므로 캐시 그대로 + 프로필 복귀
       showFailToast();
@@ -161,7 +157,7 @@ function useOwnerMemberProfileDisconnect({ petId, dogName, enabled = true }: Use
     }
 
     try {
-      await navigateToMembers(closeDialog);
+      await navigateToMembers();
     } catch {
       // 페이지 이동 실패도 해제 완료로 간주
     }
@@ -187,18 +183,21 @@ function useOwnerMemberProfileDisconnect({ petId, dogName, enabled = true }: Use
     ));
   };
 
-  /** 가능 여부 조회 후 true이면 확인 다이얼로그를, false이면 사유 시트를 연다. */
-  const checkAndDisconnect = async () => {
+  /**
+   * 해제 가능 여부를 조회한다.
+   * @returns 해제 확인창을 열어도 되면 원생 연결 ID, 그 외(사유 시트·토스트·이동으로 끝난 경우)는 null
+   */
+  const checkAndDisconnect = async (): Promise<string | null> => {
     let resolvedMemberId: string | null;
     try {
       resolvedMemberId = await resolveMemberId();
     } catch {
       showFailToast();
-      return;
+      return null;
     }
     if (!resolvedMemberId) {
       await handleAlreadyDisconnected();
-      return;
+      return null;
     }
 
     let eligibility: OwnerMemberDisconnectEligibility;
@@ -207,37 +206,83 @@ function useOwnerMemberProfileDisconnect({ petId, dogName, enabled = true }: Use
     } catch (error) {
       if (isAlreadyDisconnectedError(error)) {
         await handleAlreadyDisconnected();
-        return;
+        return null;
       }
       showFailToast();
-      return;
+      return null;
     }
 
-    if (eligibility.canDisconnect) {
-      overlay.open(({ isOpen, close }) => (
-        <OwnerMemberProfileDisconnectDialog
-          isOpen={isOpen}
-          dogName={dogName}
-          close={close}
-          onDisconnect={() => disconnectAndNotify(resolvedMemberId, close)}
-        />
-      ));
-      return;
-    }
+    if (eligibility.canDisconnect) return resolvedMemberId;
 
     openBlockedSheet(eligibility, eligibility.bodyKind ?? 'unknown');
+    return null;
   };
 
-  const handleDisconnectClick = async () => {
+  /** 확인창이 닫힌 뒤 연결 해제를 시작한다. 처리하는 동안 연결 해제 버튼을 잠근다. */
+  const runDisconnect = async (resolvedMemberId: string) => {
     if (isProcessing.current) return;
+
+    const isDisconnectPending = queryClient.isMutating({
+      mutationKey: ownerDisconnectMutationKey(userId),
+      exact: true,
+      predicate: (mutation) => mutation.state.variables === resolvedMemberId,
+    });
+    if (isDisconnectPending) return;
+
     isProcessing.current = true;
     setIsChecking(true);
     try {
-      await checkAndDisconnect();
+      await disconnectAndNotify(resolvedMemberId);
     } finally {
       isProcessing.current = false;
       setIsChecking(false);
     }
+  };
+
+  /**
+   * 해제 확인창을 연다. 앱에서는 앱 확인창을 먼저 시도하고, 쓸 수 없으면 웹 확인창을 띄운다.
+   * 앱 확인창은 답을 기다리는 동안 끝나지 않으므로, 조회 중 잠금이 풀린 뒤에 불러야 한다.
+   */
+  const openDisconnectDialog = async (resolvedMemberId: string) => {
+    const { disconnectDialog } = content;
+    const displayDogName = ellipsisText(dogName, disconnectDialog.nameMaxLength);
+
+    const result = await openConfirmDialog({
+      title: `${displayDogName}${disconnectDialog.titleSuffix}`,
+      titleParts: [{ text: displayDogName, accent: true }, { text: disconnectDialog.titleSuffix }],
+      description: disconnectDialog.description,
+      cancelLabel: disconnectDialog.cancelLabel,
+      confirmLabel: disconnectDialog.confirmLabel,
+    });
+    if (result.status === 'resolved') {
+      if (result.action === 'confirm') await runDisconnect(resolvedMemberId);
+      return;
+    }
+    if (result.status === 'pending') return;
+
+    overlay.open(({ isOpen, close }) => (
+      <OwnerMemberProfileDisconnectDialog
+        isOpen={isOpen}
+        dogName={dogName}
+        close={close}
+        onDisconnect={() => runDisconnect(resolvedMemberId)}
+      />
+    ));
+  };
+
+  const handleDisconnectClick = async () => {
+    if (isProcessing.current) return;
+    let memberIdToDisconnect: string | null = null;
+    isProcessing.current = true;
+    setIsChecking(true);
+    try {
+      memberIdToDisconnect = await checkAndDisconnect();
+    } finally {
+      isProcessing.current = false;
+      setIsChecking(false);
+    }
+
+    if (memberIdToDisconnect) await openDisconnectDialog(memberIdToDisconnect);
   };
 
   return {

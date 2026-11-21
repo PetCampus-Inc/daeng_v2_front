@@ -3,12 +3,9 @@
 import { useEffect } from 'react';
 
 type ErrorReport = {
-  kind: 'window_error' | 'unhandled_rejection' | 'console_error';
+  kind: 'console_error';
   message: string;
   stack?: string;
-  source?: string;
-  line?: number;
-  column?: number;
   url: string;
   userAgent: string;
   timestamp: string;
@@ -59,18 +56,11 @@ function normalizeError(value: unknown): NormalizedError {
   }
 }
 
-function createReport(
-  kind: ErrorReport['kind'],
-  error: NormalizedError,
-  extra?: Partial<ErrorReport>
-): ErrorReport {
+function createReport(error: NormalizedError): ErrorReport {
   return {
-    kind,
+    kind: 'console_error',
     message: error.message || 'Unknown client error',
     stack: error.stack,
-    source: extra?.source,
-    line: extra?.line,
-    column: extra?.column,
     url: window.location.href,
     userAgent: window.navigator.userAgent,
     timestamp: new Date().toISOString(),
@@ -78,7 +68,7 @@ function createReport(
 }
 
 function shouldSend(report: ErrorReport) {
-  const key = [report.kind, report.message, report.source, report.line, report.column].join(':');
+  const key = [report.kind, report.message].join(':');
   const now = Date.now();
   const lastSentAt = recentReports.get(key);
 
@@ -110,6 +100,11 @@ function sendReport(report: ErrorReport) {
   });
 }
 
+function hasError(value: unknown): boolean {
+  if (value instanceof Error) return true;
+  return Array.isArray(value) && value.some((item) => item instanceof Error);
+}
+
 export function ClientErrorReporter() {
   useEffect(() => {
     const isEnabled =
@@ -117,36 +112,18 @@ export function ClientErrorReporter() {
 
     if (!isEnabled) return;
 
-    const onError = (event: ErrorEvent) => {
-      const normalized = normalizeError(event.error || event.message);
-      sendReport(
-        createReport('window_error', normalized, {
-          source: event.filename,
-          line: event.lineno,
-          column: event.colno,
-        })
-      );
-    };
-
-    const onUnhandledRejection = (event: PromiseRejectionEvent) => {
-      sendReport(createReport('unhandled_rejection', normalizeError(event.reason)));
-    };
-
     const originalConsoleError = console.error;
 
     console.error = (...args: unknown[]) => {
       originalConsoleError(...args);
-      const normalized = normalizeError(args.length === 1 ? args[0] : args);
-      sendReport(createReport('console_error', normalized));
-    };
+      if (hasError(args.length === 1 ? args[0] : args)) return;
 
-    window.addEventListener('error', onError);
-    window.addEventListener('unhandledrejection', onUnhandledRejection);
+      const normalized = normalizeError(args.length === 1 ? args[0] : args);
+      sendReport(createReport(normalized));
+    };
 
     return () => {
       console.error = originalConsoleError;
-      window.removeEventListener('error', onError);
-      window.removeEventListener('unhandledrejection', onUnhandledRejection);
     };
   }, []);
 

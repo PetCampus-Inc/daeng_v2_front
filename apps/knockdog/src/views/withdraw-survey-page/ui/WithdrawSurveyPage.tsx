@@ -11,6 +11,7 @@ import { withdraw } from '@shared/lib/auth';
 import { route } from '@shared/constants/route';
 
 import { EXTERNAL_LINKS } from '@shared/constants';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 const REASON_TYPE_PARSER = createParser<WithdrawReasonType>({
   parse: (value: string) => {
@@ -136,7 +137,7 @@ function WithdrawSurveyPage() {
         </RadioGroup>
       </div>
 
-      <div className='shrink-0 flex gap-x-2 px-4 py-5'>
+      <BottomCta className='shrink-0 flex gap-x-2 px-4 pt-5'>
         <ActionButton variant='secondaryLine' size='large' className='w-full' onClick={back}>
           더 둘러보기
         </ActionButton>
@@ -149,7 +150,7 @@ function WithdrawSurveyPage() {
         >
           탈퇴하기
         </ActionButton>
-      </div>
+      </BottomCta>
     </div>
   );
 }

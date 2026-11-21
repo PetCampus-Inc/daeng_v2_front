@@ -25,6 +25,11 @@ type ToastShowParams = {
   icon?: ToastIcon;
   /** true면 아이콘을 text-accent(#ff6e0c)로 렌더 */
   iconAccent?: boolean;
+  /**
+   * 하단 CTA 버튼 윗면까지의 거리(px). 웹뷰 아래 끝 기준이며 탭바 높이는 포함하지 않는다.
+   * 있으면 앱이 (탭바 높이 + bottomOffset + 16)에 토스트를 둔다. 구버전 앱은 무시한다.
+   */
+  bottomOffset?: number;
 };
 type ToastDismissParams = { id?: string };
 type ToastClearParams = {};

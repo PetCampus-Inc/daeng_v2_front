@@ -3,6 +3,7 @@
 import { ActionButton, Checkbox, ProgressBar, ScrollBar } from '@knockdog/ui';
 
 import { Header } from '@widgets/Header';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 import { useGuardianInvitePrivacyConsentPage } from '../model/useGuardianInvitePrivacyConsentPage';
 import { privacyConsentPolicyClosing, privacyConsentPolicyIntro, privacyConsentPolicySections } from '../config/privacyConsentPolicyBody';
@@ -83,7 +84,7 @@ function GuardianInvitePrivacyConsentPage() {
         </section>
       </main>
 
-      <div className='bg-bg-0 px-x4 py-x5'>
+      <BottomCta className='bg-bg-0 px-x4 pt-x5'>
         <ActionButton
           type='button'
           size='large'
@@ -92,7 +93,7 @@ function GuardianInvitePrivacyConsentPage() {
         >
           유치원 등록
         </ActionButton>
-      </div>
+      </BottomCta>
     </div>
   );
 }

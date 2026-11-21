@@ -38,6 +38,7 @@ import { toast } from '@shared/ui/toast';
 import { PageError } from '@shared/ui/page-error';
 import { tokenUtils } from '@shared/utils';
 import { ApiError } from '@shared/api';
+import { BottomCta } from '@shared/ui/bottom-cta';
 import { GuardianInviteAppInstallPage } from '@views/guardian-invite/guardian-info/ui/GuardianInviteAppInstallPage';
 
 const EMPTY_PROFILE_VALUES: GuardianProfileFormValues = {
@@ -308,7 +309,7 @@ function GuardianInviteProfilePage({ token, inviteRedirectPath }: { token: strin
         />
       </main>
 
-      <div className='bg-bg-0 px-x4 py-x5'>
+      <BottomCta className='bg-bg-0 px-x4 pt-x5'>
         <ActionButton
           type='button'
           size='large'
@@ -317,7 +318,7 @@ function GuardianInviteProfilePage({ token, inviteRedirectPath }: { token: strin
         >
           다음
         </ActionButton>
-      </div>
+      </BottomCta>
     </div>
   );
 }

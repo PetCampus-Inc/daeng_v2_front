@@ -4,14 +4,6 @@ import { useState } from 'react';
 
 import {
   ActionButton,
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
   RadioGroup,
   RadioGroupItem,
   Textarea,
@@ -30,8 +22,10 @@ import {
 import { saveReleasePermissionReasonDraft } from '@views/role-conversion/release-permission/lib/releasePermissionReasonDraft';
 
 import { Header } from '@widgets/Header';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { openConfirmDialog, useStackNavigation } from '@shared/lib/bridge';
+import { ConfirmDialog } from '@shared/ui/confirm-dialog';
 import { route } from '@shared/constants/route';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 function ReleasePermissionReasonPage() {
   const { push, replace } = useStackNavigation();
@@ -59,29 +53,34 @@ function ReleasePermissionReasonPage() {
   };
 
   const handleBackPress = () => {
-    overlay.open(({ isOpen, close }) => (
-      <AlertDialog open={isOpen} onOpenChange={close}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{releasePermissionContent.exitModalTitle}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {releasePermissionContent.exitModalDescription}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{releasePermissionContent.exitModalCancelLabel}</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                close();
-                replace({ pathname: route.mypage.root });
-              }}
-            >
-              {releasePermissionContent.exitModalConfirmLabel}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    ));
+    const confirmCopy = {
+      title: releasePermissionContent.exitModalTitle,
+      description: releasePermissionContent.exitModalDescription,
+      cancelLabel: releasePermissionContent.exitModalCancelLabel,
+      confirmLabel: releasePermissionContent.exitModalConfirmLabel,
+    };
+    openConfirmDialog(confirmCopy).then((result) => {
+      if (result.status === 'pending') return;
+
+      if (result.status === 'resolved') {
+        if (result.action === 'confirm') {
+          replace({ pathname: route.mypage.root });
+        }
+        return;
+      }
+
+      overlay.open(({ isOpen, close }) => (
+        <ConfirmDialog
+          {...confirmCopy}
+          isOpen={isOpen}
+          onClose={close}
+          onConfirm={() => {
+            close();
+            replace({ pathname: route.mypage.root });
+          }}
+        />
+      ));
+    });
   };
 
   return (
@@ -127,7 +126,7 @@ function ReleasePermissionReasonPage() {
         </RadioGroup>
       </div>
 
-      <div className='shrink-0 px-4 py-5'>
+      <BottomCta className='shrink-0 px-4 pt-5'>
         <ActionButton
           type='button'
           variant='secondaryFill'
@@ -138,7 +137,7 @@ function ReleasePermissionReasonPage() {
         >
           {releasePermissionContent.nextButtonLabel}
         </ActionButton>
-      </div>
+      </BottomCta>
     </div>
   );
 }

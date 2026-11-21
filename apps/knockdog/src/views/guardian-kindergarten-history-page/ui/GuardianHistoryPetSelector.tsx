@@ -65,7 +65,7 @@ const GuardianHistoryPetSelector = ({
           breed={selectedPet.breed}
           age={formatAge(selectedPet.birthYear)}
           weight={toWeightLabel(selectedPet.weight)}
-          className='rounded-none shadow-none'
+          className='h-[90px] rounded-none py-0 shadow-none'
           onClick={handleCardClick}
         >
           <PetAvatar pet={selectedPet} />

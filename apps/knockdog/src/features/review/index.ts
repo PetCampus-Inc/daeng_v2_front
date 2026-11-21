@@ -34,7 +34,6 @@ export {
   hasKnockdogReviewReport,
   submitKnockdogReviewReport,
 } from './model/knockdogReviewReportStore';
-export { ReviewActionDialog } from './ui/ReviewActionDialog';
 export type { ReviewRatingCounts } from './lib/reviewRating';
 export type { KnockdogReview, KnockdogReviewSort } from './config/knockdogReviewMock';
 export type { MyWrittenReview, MyWrittenReviewSort } from './config/myWrittenReview';

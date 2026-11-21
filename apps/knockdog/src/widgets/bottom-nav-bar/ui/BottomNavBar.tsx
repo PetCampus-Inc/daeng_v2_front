@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Icon } from '@knockdog/ui';
@@ -8,7 +9,7 @@ import { cn } from '@knockdog/ui/lib';
 import { GUARDIAN_NAV_ITEMS, OWNER_NAV_ITEMS } from '@widgets/bottom-nav-bar/config/navitem';
 import { useShowOwnerBottomNav } from '@features/role-conversion';
 import { useRequiredTermsConsentOverlayStore } from '@features/required-terms-consent';
-import { BOTTOM_BAR_HEIGHT } from '@shared/constants';
+import { BOTTOM_NAV_ATTRIBUTE } from '@shared/constants';
 import { isNativeWebView } from '@shared/lib';
 import { useWebBottomNavStore } from '@shared/store';
 
@@ -31,32 +32,24 @@ function BottomNavBarLinks() {
   const isTermsOverlayOpen = useRequiredTermsConsentOverlayStore((state) => state.isBlockingOverlayOpen);
   const isFilterBottomSheetOpen = useWebBottomNavStore((state) => state.isFilterBottomSheetOpen);
   const navItems = showOwnerBottomNav ? OWNER_NAV_ITEMS : GUARDIAN_NAV_ITEMS;
+  const bottomNavMarkerProps = { [BOTTOM_NAV_ATTRIBUTE]: '' };
 
   if (isTermsOverlayOpen || isFilterBottomSheetOpen) {
     return null;
   }
 
   return (
-    <div className='fixed inset-x-0 bottom-0 z-99'>
+    <div className='bg-bg-0 fixed inset-x-0 bottom-0 z-99 mx-auto w-full max-w-120 pb-(--bottom-nav-inset)'>
       <nav
+        {...bottomNavMarkerProps}
         data-testid='bottom-nav'
         data-nav-mode={showOwnerBottomNav ? 'owner' : 'guardian'}
-        style={{ height: `${BOTTOM_BAR_HEIGHT}px` }}
-        className='border-t-line-100 bg-bg-0 mx-auto flex w-full max-w-120 border-t px-3 text-center shadow-[0px_-2px_12px_0px_rgba(0,0,0,0.05)]'
+        className='border-t-line-100 bg-bg-0 relative flex h-(--bottom-nav-content-height) w-full border-t px-3 text-center shadow-[0px_-2px_12px_0px_rgba(0,0,0,0.05)]'
       >
         {navItems.map((item) => {
           const isActive = isActiveNavItem(pathname, item.href);
-          const colorClassName = isActive ? 'text-fill-primary-500' : 'text-text-tertiary';
-          const usesFigmaIcon =
-            !showOwnerBottomNav &&
-            (item.href === '/' ||
-              item.href === '/save' ||
-              item.href === '/reservation' ||
-              item.href === '/kindergarten' ||
-              item.href === '/mypage');
-          const iconColorClassName =
-            !isActive && (showOwnerBottomNav || usesFigmaIcon) ? 'text-text-caption' : colorClassName;
-          const labelColorClassName = colorClassName;
+          const iconColorClassName = isActive ? 'text-fill-primary-500' : 'text-text-caption';
+          const labelColorClassName = isActive ? 'text-fill-primary-500' : 'text-text-tertiary';
 
           return (
             <Link
@@ -69,10 +62,23 @@ function BottomNavBarLinks() {
               )}
             >
               <div className='flex size-6 items-center justify-center'>
-                <Icon
-                  icon={item.icon}
-                  className={`transition-colors duration-100 motion-reduce:transition-none ${iconColorClassName} ${'iconClassName' in item ? item.iconClassName : ''}`}
-                />
+                {'iconSources' in item ? (
+                  <Image
+                    alt=''
+                    width={21}
+                    height={21}
+                    src={isActive ? item.iconSources.active : item.iconSources.inactive}
+                  />
+                ) : (
+                  <Icon
+                    icon={item.icon}
+                    className={cn(
+                      'transition-colors duration-100 motion-reduce:transition-none',
+                      iconColorClassName,
+                      item.iconClassName
+                    )}
+                  />
+                )}
               </div>
               <span className={cn('caption1-semibold leading-[18px] tracking-normal', showOwnerBottomNav && 'tracking-[-0.02em]')}>
                 {item.label}

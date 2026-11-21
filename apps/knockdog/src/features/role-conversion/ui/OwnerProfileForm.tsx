@@ -13,6 +13,8 @@ import {
 import { useOwnerProfileForm } from '../model/useOwnerProfileForm';
 import type { OwnerProfile } from '../model/ownerProfile';
 
+import { BottomCta } from '@shared/ui/bottom-cta';
+
 interface OwnerProfileFormProps {
   defaultValues: OwnerProfile;
   submitButtonText?: string;
@@ -141,11 +143,11 @@ function OwnerProfileForm({
           </div>
         </div>
 
-        <div className='shrink-0 bg-white py-x5'>
-          <ActionButton type='submit' disabled={!isValid || isSubmitting}>
+        <BottomCta className='shrink-0 bg-white pt-x5'>
+          <ActionButton type='submit' className='h-x14' disabled={!isValid || isSubmitting}>
             {submitButtonText}
           </ActionButton>
-        </div>
+        </BottomCta>
       </form>
     </div>
   );

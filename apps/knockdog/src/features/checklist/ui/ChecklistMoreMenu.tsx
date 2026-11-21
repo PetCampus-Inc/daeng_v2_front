@@ -16,20 +16,13 @@ import {
   useRole,
 } from '@floating-ui/react';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
   Icon,
 } from '@knockdog/ui';
 import { RemoveScroll } from 'react-remove-scroll';
 
 import { checklistQueryKeys, type AnswersResponse } from '@entities/checklist';
-import { useNativeBackToClose } from '@shared/lib/bridge';
+import { openConfirmDialog, useNativeBackToClose } from '@shared/lib/bridge';
+import { ConfirmDialog } from '@shared/ui/confirm-dialog';
 import { toast } from '@shared/ui/toast';
 
 import { useDeleteChecklistMutation } from '../api/useChecklistMutate';
@@ -49,7 +42,7 @@ function ChecklistMoreMenu({ targetId, onEdit }: ChecklistMoreMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const queryClient = useQueryClient();
   const queryKey = checklistQueryKeys.answers(targetId);
-  const { mutate: resetChecklist, isPending } = useDeleteChecklistMutation({
+  const { mutateAsync: resetChecklistAsync, isPending } = useDeleteChecklistMutation({
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey });
       const previous = queryClient.getQueryData<AnswersResponse>(queryKey);
@@ -94,6 +87,9 @@ function ChecklistMoreMenu({ targetId, onEdit }: ChecklistMoreMenuProps) {
     },
   });
 
+  /** 실패 안내와 되돌리기는 mutation의 onError가 하므로, 반환된 오류는 무시한다 */
+  const resetChecklist = (variables: Parameters<typeof resetChecklistAsync>[0]) => resetChecklistAsync(variables).catch(() => undefined);
+
   const { refs, floatingStyles, context } = useFloating({
     placement: 'bottom-end',
     open: isOpen,
@@ -123,27 +119,31 @@ function ChecklistMoreMenu({ targetId, onEdit }: ChecklistMoreMenuProps) {
     event.stopPropagation();
     setIsOpen(false);
 
-    overlay.open(({ isOpen: isDialogOpen, close }) => (
-      <AlertDialog open={isDialogOpen} onOpenChange={(open) => !open && close()}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>작성한 내용을 초기화할까요?</AlertDialogTitle>
-            <AlertDialogDescription>작성한 체크와 메모가 모두 삭제됩니다.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>닫기</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                close();
-                resetChecklist({ targetId });
-              }}
-            >
-              초기화하기
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    ));
+    const confirmCopy = {
+      title: '작성한 내용을 초기화할까요?',
+      description: '작성한 체크와 메모가 모두 삭제됩니다.',
+      cancelLabel: '닫기',
+      confirmLabel: '초기화하기',
+    };
+    openConfirmDialog(confirmCopy).then((result) => {
+      if (result.status === 'resolved') {
+        if (result.action === 'confirm') resetChecklist({ targetId });
+        return;
+      }
+      if (result.status === 'pending') return;
+
+      overlay.open(({ isOpen: isDialogOpen, close }) => (
+        <ConfirmDialog
+          {...confirmCopy}
+          isOpen={isDialogOpen}
+          onClose={close}
+          onConfirm={() => {
+            close();
+            resetChecklist({ targetId });
+          }}
+        />
+      ));
+    });
   };
 
   return (

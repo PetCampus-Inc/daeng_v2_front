@@ -1,4 +1,5 @@
 import type WebView from 'react-native-webview';
+import { isFirstPartyWebViewUrl } from './isFirstPartyWebViewUrl';
 import { pathToTab, type TabName } from './tabRoutes';
 
 /** knockdog STORAGE_KEYS.OWNER_DAILY_TAB — Tab/Stack WebView sessionStorage 미공유, localStorage 사용 */
@@ -79,6 +80,21 @@ class PendingTabQueryStore {
 }
 
 export const pendingTabQueryStore = new PendingTabQueryStore();
+
+const queueDiaryTabReturn = (url: string, action: string) => {
+  if (action !== 'GO_BACK' && action !== 'POP' && action !== 'POP_TO_TOP') return;
+  if (!isFirstPartyWebViewUrl(url)) return;
+
+  const { pathname, searchParams } = new URL(url);
+  if (!/^\/kindergarten\/diary\/?$/.test(pathname)) return;
+
+  const diaryReturnDate = searchParams.get('date');
+  if (!diaryReturnDate || !/^\d{4}-\d{2}-\d{2}$/.test(diaryReturnDate)) return;
+
+  pendingTabQueryStore.set('Kindergarten', { diaryReturnDate });
+};
+
+export { queueDiaryTabReturn };
 
 export function resolveTabNameFromUri(uri: string): TabName | null {
   try {

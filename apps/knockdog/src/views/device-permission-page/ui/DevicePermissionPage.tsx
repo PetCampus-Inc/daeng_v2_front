@@ -11,6 +11,7 @@ import { consumePostSignUpRedirect, getInternalRedirect } from '@shared/lib/auth
 import { trackNotificationSettingsChanged } from '@shared/lib/analytics';
 import { route } from '@shared/constants/route';
 import { useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 const PERMISSION_PROMPT_DELAY_MS = 1_000;
 /** 확인 시 권한 브릿지가 hang 되어도 UX가 막히지 않게 하는 상한 */
@@ -115,7 +116,7 @@ function DevicePermissionPage() {
           ))}
         </div>
       </div>
-      <div className='shrink-0 px-4 py-5'>
+      <BottomCta className='shrink-0 px-4 pt-5'>
         <ActionButton
           type='button'
           variant='primaryFill'
@@ -126,7 +127,7 @@ function DevicePermissionPage() {
         >
           {content.confirmLabel}
         </ActionButton>
-      </div>
+      </BottomCta>
     </div>
   );
 }

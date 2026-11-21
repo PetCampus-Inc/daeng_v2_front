@@ -13,7 +13,7 @@ import { Skeleton } from '@shared/ui/skeleton';
 
 interface OwnerKindergartenNewsListItemProps {
   item: OwnerKindergartenNewsListItemView;
-  onDelete: (newsId: string) => void | Promise<void>;
+  onDelete: (newsId: string) => Promise<boolean>;
 }
 
 function OwnerKindergartenNewsListItem({ item, onDelete }: OwnerKindergartenNewsListItemProps) {

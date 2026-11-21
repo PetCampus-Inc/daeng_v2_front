@@ -99,8 +99,9 @@ function OwnerKindergartenNewsDetailPage() {
 
   const handleDelete = useCallback(
     async (id: string) => {
-      await deleteNews(id);
+      if (!(await deleteNews(id))) return false;
       await back();
+      return true;
     },
     [back, deleteNews]
   );

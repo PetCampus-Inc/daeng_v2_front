@@ -55,7 +55,7 @@ function KindergartenMainPageContent() {
   /**
    * 페이지 진입시 위치 권한 확인 및 요청
    * - 현재 위치 모드일 때만 실행
-   * - 권한이 없으면 자동으로 요청
+   * - 권한이 미결정일 때만 자동으로 요청
    * - 권한 획득시 위치 쿼리 갱신
    */
   useEffect(() => {
@@ -65,10 +65,9 @@ function KindergartenMainPageContent() {
       try {
         const status = await getLocationPermission();
 
-        // 이미 허용된 경우 요청 스킵
-        if (status === 'allowed') return;
+        // 최초 권한 요청은 아직 권한을 선택하지 않은 경우에만 실행한다.
+        if (status !== 'undetermined') return;
 
-        // 권한이 없거나 미결정 상태면 요청
         const result = await requestLocationPermission();
 
         // 권한 획득 성공시 위치 쿼리 무효화하여 자동 재실행
@@ -211,7 +210,7 @@ function KindergartenMainPageContent() {
         fabSlot={
           <div className='px-x4 absolute -top-[50px] flex w-full items-center justify-center'>
             <Float placement='top-start' offsetX='x4'>
-              <CurrentLocationFAB />
+              <CurrentLocationFAB onPermissionDenied={() => setSnapIndex(2)} />
             </Float>
             {shouldShowRefresh && <ResearchFAB onClick={handleRefresh} />}
             <div className={shouldShowRefresh ? 'hidden' : 'block'}>

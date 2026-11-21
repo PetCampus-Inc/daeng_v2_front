@@ -6,14 +6,6 @@ import { overlay } from 'overlay-kit';
 
 import {
   ActionButton,
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
   Icon,
   TextField,
   TextFieldInput,
@@ -30,9 +22,11 @@ import { useExpiredNoticeDialog } from '@views/owner-daily-notice-write-page/lib
 
 import { Header } from '@widgets/Header';
 
-import { useStackNavigation } from '@shared/lib/bridge';
+import { openConfirmDialog, useStackNavigation } from '@shared/lib/bridge';
+import { ConfirmDialog } from '@shared/ui/confirm-dialog';
 import { useFocusScrollLock, useKeyboardAwareScrollHeight } from '@shared/lib/device';
 import { toast } from '@shared/ui/toast';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 interface FieldLabelProps {
   label: string;
@@ -126,22 +120,34 @@ function OwnerDailyNoticeTemplateCreatePage() {
       return;
     }
 
-    overlay.open(({ isOpen, close }) => (
-      <AlertDialog open={isOpen} onOpenChange={close}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>저장하지 않고 나갈까요?</AlertDialogTitle>
-            <AlertDialogDescription>
-              지금 나가면 현재까지 쓴 내용이 사라져요.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>닫기</AlertDialogCancel>
-            <AlertDialogAction onClick={() => back()}>나가기</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    ));
+    const confirmCopy = {
+      title: '저장하지 않고 나갈까요?',
+      description: '지금 나가면 현재까지 쓴 내용이 사라져요.',
+      cancelLabel: '닫기',
+      confirmLabel: '나가기',
+    };
+    openConfirmDialog(confirmCopy).then((result) => {
+      if (result.status === 'pending') return;
+
+      if (result.status === 'resolved') {
+        if (result.action === 'confirm') {
+          back();
+        }
+        return;
+      }
+
+      overlay.open(({ isOpen, close }) => (
+        <ConfirmDialog
+          {...confirmCopy}
+          isOpen={isOpen}
+          onClose={close}
+          onConfirm={() => {
+            close();
+            back();
+          }}
+        />
+      ));
+    });
   };
 
   const handleSaveClick = async () => {
@@ -237,8 +243,8 @@ function OwnerDailyNoticeTemplateCreatePage() {
           />
         </section>
 
-        <div className='bg-bg-50 shrink-0'>
-          <div className='py-5'>
+        <BottomCta className='bg-bg-50 shrink-0'>
+          <div className='pt-5'>
             <ActionButton
               type='button'
               variant='secondaryFill'
@@ -250,7 +256,7 @@ function OwnerDailyNoticeTemplateCreatePage() {
               {ownerDailyNoticeTemplateCreateContent.createButtonLabel}
             </ActionButton>
           </div>
-        </div>
+        </BottomCta>
       </div>
     </div>
   );

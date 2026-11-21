@@ -75,6 +75,8 @@ function useOwnerMemberApprovalMutation({ userId }: UseOwnerMemberApprovalMutati
   };
 }
 
+const ownerDisconnectMutationKey = (userId?: string) => ['ownerMemberDisconnect', userId] as const;
+
 /**
  * 원장 구성원 연결 해제.
  * 성공 시 구성원/일과 목록·홈·알림함·원생 프로필 캐시를 갱신한다.
@@ -85,6 +87,7 @@ function useOwnerMemberDisconnectMutation({ userId }: UseOwnerMemberApprovalMuta
   const queryClient = useQueryClient();
 
   return useMutation({
+    mutationKey: ownerDisconnectMutationKey(userId),
     mutationFn: postDisconnectOwnerMember,
     // 이미 해제된 원생이면 목록에 남은 오래된 카드가 사라지도록 구성원 목록을 다시 불러온다
     onError: (error) => {
@@ -130,6 +133,7 @@ function useDisconnectCheckMutation() {
 }
 
 export {
+  ownerDisconnectMutationKey,
   useOwnerMemberApprovalMutation,
   useDisconnectCheckMutation,
   useOwnerMemberDisconnectMutation,

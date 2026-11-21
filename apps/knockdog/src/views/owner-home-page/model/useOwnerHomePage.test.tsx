@@ -64,7 +64,7 @@ describe('등원 현황 카드를 누르면 해당 일과 탭으로 이동', () 
 
     expect(push).toHaveBeenCalledWith({
       pathname: '/owner/daily',
-      query: { tab, focusStatus, from: 'home' },
+      query: { tab, focusStatus },
     });
   });
 
@@ -80,7 +80,7 @@ describe('등원 현황 카드를 누르면 해당 일과 탭으로 이동', () 
 
     expect(push).toHaveBeenCalledWith({
       pathname: '/owner/daily',
-      query: { tab, focusStatus: undefined, from: 'home' },
+      query: { tab, focusStatus: undefined },
     });
   });
 });

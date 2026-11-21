@@ -33,6 +33,7 @@ import { useUserStore } from '@entities/user';
 import { route } from '@shared/constants/route';
 import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 const NOON_MINUTES = 12 * 60;
 
@@ -261,7 +262,7 @@ function GuardianReservationTimePage() {
           ) : null}
         </div>
 
-        <div className='bg-bg-0 px-x4 py-x4 gap-x3 flex shrink-0 flex-col'>
+        <BottomCta className='bg-bg-0 px-x4 pt-x4 gap-x3 flex shrink-0 flex-col'>
           <div className='gap-x3 flex items-center'>
             <RsvDateTime type='date' isFilled={activeDate != null}>
               {activeDate ? formatReserveDay(activeDate) : undefined}
@@ -281,7 +282,7 @@ function GuardianReservationTimePage() {
           >
             {copy.next}
           </ActionButton>
-        </div>
+        </BottomCta>
       </div>
     </ReservationTimeBack>
   );

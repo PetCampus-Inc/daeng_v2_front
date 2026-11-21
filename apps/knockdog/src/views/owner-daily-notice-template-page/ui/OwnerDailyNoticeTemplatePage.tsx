@@ -24,6 +24,7 @@ import { Header } from '@widgets/Header';
 import { route } from '@shared/constants/route';
 import { useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 /**
  * 원장 일과 탭 — 알림장 템플릿 목록
@@ -150,8 +151,8 @@ function OwnerDailyNoticeTemplatePage() {
         </div>
       )}
 
-      <div className='bg-bg-50 shrink-0'>
-        <div className='flex gap-2 px-4 py-5'>
+      <BottomCta className='bg-bg-50 shrink-0'>
+        <div className='flex gap-2 px-4 pt-5'>
           <ActionButton
             type='button'
             variant='secondaryLine'
@@ -178,7 +179,7 @@ function OwnerDailyNoticeTemplatePage() {
             {ownerDailyNoticeTemplateContent.loadTemplateLabel}
           </ActionButton>
         </div>
-      </div>
+      </BottomCta>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 
-import { Divider, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@knockdog/ui';
+import { useLayoutEffect, useRef, useState } from 'react';
+import { Divider } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 import { MypageSectionSkeleton } from '@views/mypage/ui/MypageSectionSkeleton';
 import {
@@ -37,21 +38,46 @@ import { useUserInfoQuery, useUserStore } from '@entities/user';
 import { logout } from '@shared/lib/auth/logout';
 import { NotificationBell } from '@shared/ui/notification-bell';
 import { PrivateAccess } from '@shared/ui/private-access';
-import { openConfirmDialog, useStackNavigation } from '@shared/lib/bridge';
+import { openConfirmDialog, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { isNativeWebView } from '@shared/lib/device';
 import { closeOverlayThenNavigate } from '@shared/lib/navigation/closeOverlayThenNavigate';
+import { toast } from '@shared/ui/toast';
+import { ConfirmDialog } from '@shared/ui/confirm-dialog';
 import {
   route,
   RELEASE_PERMISSION_SOURCE,
   RELEASE_PERMISSION_SOURCE_QUERY_KEY,
 } from '@shared/constants/route';
 
+/** 로그아웃 확인창 문구. 앱 확인창과 웹 확인창이 같이 쓴다. */
+const LOGOUT_DIALOG = {
+  title: '로그아웃 할까요?',
+  cancelLabel: '아니오',
+  confirmLabel: '예',
+};
+
+/** 운영 권한을 해제해야 탈퇴할 수 있다는 안내창. 앱 확인창과 웹 확인창이 같이 쓴다. */
+const WITHDRAW_BLOCKED_DIALOG = {
+  title: `${ownerMypageContent.withdrawBlockedModalTitleLine1}\n${ownerMypageContent.withdrawBlockedModalTitleLine2}`,
+  description: `${ownerMypageContent.withdrawBlockedModalDescriptionLine1}\n${ownerMypageContent.withdrawBlockedModalDescriptionLine2}`,
+  cancelLabel: ownerMypageContent.withdrawBlockedModalCancelLabel,
+  confirmLabel: ownerMypageContent.withdrawBlockedModalConfirmLabel,
+  confirmVariant: 'neutral' as const,
+};
+
 function MypageContent() {
   const { push, reset } = useStackNavigation();
+  const { navigateToTab } = useTabNavigation();
+  const [isSwitchingRole, setIsSwitchingRole] = useState(false);
   const user = useUserStore((state) => state.user);
   const { data: userInfoResponse } = useUserInfoQuery(user?.userId);
   const userInfo = userInfoResponse?.userId === user?.userId ? userInfoResponse : undefined;
   const { isOwner: isOwnerVerified, isResolved: isOwnerRoleResolved } = useOwnerRole();
-  const { isOwnerView, isGuardianView, canToggleRoleView, toggleRoleView } = useMypageRoleView();
+  const { isOwnerView, isGuardianView, canToggleRoleView, setRoleView } = useMypageRoleView();
+  const latestRoleView = useRef({ canToggleRoleView, isOwnerView });
+  useLayoutEffect(() => {
+    latestRoleView.current = { canToggleRoleView, isOwnerView };
+  }, [canToggleRoleView, isOwnerView]);
   const { data: hasUnreadNotification = false } = useHasUnreadNotificationQuery({
     userId: user?.userId,
     audience: isOwnerView ? 'OWNER' : 'GUARDIAN',
@@ -97,10 +123,35 @@ function MypageContent() {
     push({ pathname: route.mypage.kindergarten.root });
   };
 
-  const handleRoleViewToggle = () => {
-    if (isOwnerView) showConvertedToGuardianToast();
-    else showConvertedToOwnerToast();
-    toggleRoleView();
+  const handleRoleViewToggle = async () => {
+    if (!canToggleRoleView || isSwitchingRole) return;
+
+    setIsSwitchingRole(true);
+    const nextMode = isOwnerView ? 'guardian' : 'owner';
+
+    try {
+      if (isNativeWebView()) {
+        await navigateToTab('/mypage', undefined, nextMode);
+
+        const latest = latestRoleView.current;
+        if (!latest.canToggleRoleView) {
+          const currentMode = latest.isOwnerView ? 'owner' : 'guardian';
+          if (currentMode !== nextMode) {
+            await navigateToTab('/mypage', undefined, currentMode);
+          }
+          return;
+        }
+      }
+
+      setRoleView(nextMode);
+      if (nextMode === 'guardian') showConvertedToGuardianToast();
+      else showConvertedToOwnerToast();
+    } catch (error) {
+      console.error('[Mypage] Failed to switch role view', error);
+      toast('화면을 전환하지 못했어요. 잠시 후 다시 시도해 주세요.');
+    } finally {
+      setIsSwitchingRole(false);
+    }
   };
 
   const performLogout = async () => {
@@ -115,40 +166,26 @@ function MypageContent() {
 
   const openWebLogoutDialog = () => {
     overlay.open(({ isOpen, close }) => (
-      <AlertDialog open={isOpen} onOpenChange={close}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>로그아웃 할까요?</AlertDialogTitle>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>아니오</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                close();
-                void performLogout();
-              }}
-            >
-              예
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        {...LOGOUT_DIALOG}
+        isOpen={isOpen}
+        onClose={close}
+        onConfirm={() => {
+          close();
+          void performLogout();
+        }}
+      />
     ));
   };
 
   const handleLogoutClick = async () => {
-    const result = await openConfirmDialog({
-      title: '로그아웃 할까요?',
-      cancelLabel: '아니오',
-      confirmLabel: '예',
-    });
-
-    if (result.status === 'pending') return;
+    const result = await openConfirmDialog(LOGOUT_DIALOG);
 
     if (result.status === 'resolved') {
-      if (result.action === 'confirm') await performLogout();
+      if (result.action === 'confirm') void performLogout();
       return;
     }
+    if (result.status === 'pending') return;
 
     openWebLogoutDialog();
   };
@@ -164,31 +201,12 @@ function MypageContent() {
 
   const openWebWithdrawBlockedDialog = () => {
     overlay.open(({ isOpen, close }) => (
-      <AlertDialog open={isOpen} onOpenChange={close}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {ownerMypageContent.withdrawBlockedModalTitleLine1}
-              <br />
-              {ownerMypageContent.withdrawBlockedModalTitleLine2}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {ownerMypageContent.withdrawBlockedModalDescriptionLine1}
-              <br />
-              {ownerMypageContent.withdrawBlockedModalDescriptionLine2}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{ownerMypageContent.withdrawBlockedModalCancelLabel}</AlertDialogCancel>
-            <AlertDialogAction
-              className='bg-fill-secondary-700 active:bg-fill-secondary-400'
-              onClick={() => closeOverlayThenNavigate(close, goToReleasePermission)}
-            >
-              {ownerMypageContent.withdrawBlockedModalConfirmLabel}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        {...WITHDRAW_BLOCKED_DIALOG}
+        isOpen={isOpen}
+        onClose={close}
+        onConfirm={() => closeOverlayThenNavigate(close, goToReleasePermission)}
+      />
     ));
   };
 
@@ -198,13 +216,7 @@ function MypageContent() {
       return;
     }
 
-    const result = await openConfirmDialog({
-      title: `${ownerMypageContent.withdrawBlockedModalTitleLine1}\n${ownerMypageContent.withdrawBlockedModalTitleLine2}`,
-      description: `${ownerMypageContent.withdrawBlockedModalDescriptionLine1}\n${ownerMypageContent.withdrawBlockedModalDescriptionLine2}`,
-      cancelLabel: ownerMypageContent.withdrawBlockedModalCancelLabel,
-      confirmLabel: ownerMypageContent.withdrawBlockedModalConfirmLabel,
-      confirmVariant: 'neutral',
-    });
+    const result = await openConfirmDialog(WITHDRAW_BLOCKED_DIALOG);
 
     if (result.status === 'pending') return;
 
@@ -232,6 +244,7 @@ function MypageContent() {
         {canToggleRoleView && (
           <RoleConversionButton
             onClick={handleRoleViewToggle}
+            disabled={isSwitchingRole}
             className={isOwnerView ? 'bg-fill-primary-50 text-primitive-orange-400' : undefined}
           >
             {isOwnerView

@@ -1,8 +1,9 @@
 'use client';
 
-import Image from 'next/image';
 import { ActionButton } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
+
+import { PageErrorIllustration } from './PageErrorIllustration';
 
 /**
  * overlay: 헤더까지 덮는 전면 오류 화면
@@ -59,17 +60,7 @@ function PageError({
     <div className={cn(style.root, className)}>
       <main className={style.main}>
         <div className='flex w-full flex-col items-center gap-0'>
-          <div className='relative size-[200px] shrink-0'>
-            <Image
-              src='/images/img_404.webp'
-              alt=''
-              aria-hidden='true'
-              fill
-              className='object-contain'
-              sizes='200px'
-              priority
-            />
-          </div>
+          <PageErrorIllustration />
           <div className='flex w-full flex-col items-center gap-1 text-center'>
             <h1 className='h2-extrabold text-text-primary'>{title}</h1>
             <p className='body1-regular text-text-primary'>{description}</p>
@@ -77,13 +68,7 @@ function PageError({
         </div>
       </main>
       <div className={style.footer}>
-        <ActionButton
-          type='button'
-          variant='primaryFill'
-          size='large'
-          disabled={isRetrying}
-          onClick={handleRetry}
-        >
+        <ActionButton type='button' variant='primaryFill' size='large' disabled={isRetrying} onClick={handleRetry}>
           {retryLabel}
         </ActionButton>
       </div>

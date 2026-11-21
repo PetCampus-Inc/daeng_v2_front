@@ -8,6 +8,7 @@ export type ToastItem = Required<Pick<ToastOptions, 'title' | 'description' | 'd
   type?: 'default' | 'success';
   icon?: ToastIcon;
   iconAccent?: boolean;
+  bottomOffset?: number;
   open: boolean;
   onOpen?: () => void;
   onClose?: () => void;

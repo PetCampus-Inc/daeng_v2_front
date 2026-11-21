@@ -15,6 +15,7 @@ import { route } from '@shared/constants/route';
 import { DelayedLoadingSpinner, InfiniteScrollFooter } from '@shared/ui/loading-spinner';
 import { PageError } from '@shared/ui/page-error';
 import { COMMON_ERROR_TOAST_MESSAGE, toast } from '@shared/ui/toast';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 /** 1:1 문의 내역 목록. 계정의 전체 문의를 최근 활동일시 순으로 보여주고 스크롤하면 이어서 불러온다 */
 function InquiryListPage() {
@@ -122,11 +123,11 @@ function InquiryListPage() {
           )}
 
           {/* 오류·로딩 중에는 콘텐츠 영역 전체를 교체하므로 목록·빈 상태에서만 노출 */}
-          <div className='bg-bg-0 p-x4 shrink-0'>
+          <BottomCta className='bg-bg-0 px-x4 pt-x4 shrink-0'>
             <ActionButton type='button' size='large' onClick={handleWriteInquiry}>
               문의하기
             </ActionButton>
-          </div>
+          </BottomCta>
         </>
       )}
     </div>

@@ -1,13 +1,5 @@
 import { Fragment, useEffect, useRef } from 'react';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
   Float,
   FloatingActionButton,
   Icon,
@@ -40,8 +32,17 @@ import { type BasePointType, useBasePointType } from '@shared/store';
 import { openConfirmDialog, useStackNavigation } from '@shared/lib/bridge';
 import { route } from '@shared/constants/route';
 import { toast } from '@shared/ui/toast';
+import { ConfirmDialog } from '@shared/ui/confirm-dialog';
 import { DelayedLoadingSpinner, LoadingSpinner } from '@shared/ui/loading-spinner';
 import { ellipsisText, tokenUtils } from '@shared/utils';
+
+/** 등록된 집·기타 장소가 없을 때 띄우는 확인창 문구. 앱 확인창과 웹 확인창이 같이 쓴다. */
+const NO_ADDRESS_DIALOG = {
+  title: '등록된 장소가 없어요',
+  description: '장소를 등록하면\n가까운 유치원을 찾을 수 있어요.',
+  cancelLabel: '나중에 하기',
+  confirmLabel: '등록하기',
+};
 
 interface KindergartenListProps {
   region?: string | null;
@@ -124,6 +125,12 @@ export function KindergartenList({ onOpenFilter, onClearFilters, selectedFilters
   const { error: locationError } = useGeolocationQuery({ enabled: selectedBaseType === 'CURRENT' });
   const isPermissionDenied = selectedBaseType === 'CURRENT' && locationError instanceof LocationPermissionError;
 
+  useEffect(() => {
+    if (isPermissionDenied && isFullExtended && containerRef.current) {
+      containerRef.current.scrollTop = 0;
+    }
+  }, [isPermissionDenied, isFullExtended]);
+
   const otherAlias =
     user?.addresses?.find((addr) => addr.type === USER_ADDRESS_TYPE.OTHER)?.alias ||
     USER_ADDRESS_TYPE_KR[USER_ADDRESS_TYPE.OTHER];
@@ -188,12 +195,7 @@ export function KindergartenList({ onOpenFilter, onClearFilters, selectedFilters
   };
 
   const handleOpenAlertDialog = async (type: UserAddressType) => {
-    const result = await openConfirmDialog({
-      title: '등록된 장소가 없어요',
-      description: '장소를 등록하면\n가까운 유치원을 찾을 수 있어요.',
-      cancelLabel: '나중에 하기',
-      confirmLabel: '등록하기',
-    });
+    const result = await openConfirmDialog(NO_ADDRESS_DIALOG);
 
     if (result.status === 'pending') return;
 
@@ -202,35 +204,17 @@ export function KindergartenList({ onOpenFilter, onClearFilters, selectedFilters
       return;
     }
 
-    overlay.open(({ isOpen, close }) => {
-      const closeDialog = () => {
-        close();
-      };
-
-      return (
-        <AlertDialog open={isOpen} onOpenChange={(open) => !open && closeDialog()}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>등록된 장소가 없어요</AlertDialogTitle>
-              <AlertDialogDescription>
-                장소를 등록하면 <br /> 가까운 유치원을 찾을 수 있어요.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>나중에 하기</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={async () => {
-                  closeDialog();
-                  await handleAddressRegistration(type);
-                }}
-              >
-                등록하기
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      );
-    });
+    overlay.open(({ isOpen, close }) => (
+      <ConfirmDialog
+        {...NO_ADDRESS_DIALOG}
+        isOpen={isOpen}
+        onClose={close}
+        onConfirm={async () => {
+          close();
+          await handleAddressRegistration(type);
+        }}
+      />
+    ));
   };
 
   const handleBookmarkClick = (id: string, bookmarked: boolean) => {

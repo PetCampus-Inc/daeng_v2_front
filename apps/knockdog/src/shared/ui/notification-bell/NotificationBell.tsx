@@ -5,13 +5,15 @@ interface NotificationBellProps {
   hasUnread: boolean;
   onClick: () => void;
   inverse?: boolean;
+  className?: string;
 }
 
 /** 헤더에서 사용하는 알림함 이동 버튼. 읽지 않은 알림이 있으면 활성 아이콘을 표시한다. */
-function NotificationBell({ hasUnread, onClick, inverse = false }: NotificationBellProps) {
+function NotificationBell({ hasUnread, onClick, inverse = false, className }: NotificationBellProps) {
   return (
     <button
       type='button'
+      className={className}
       aria-label={hasUnread ? '알림함, 읽지 않은 알림 있음' : '알림함'}
       onClick={onClick}
     >

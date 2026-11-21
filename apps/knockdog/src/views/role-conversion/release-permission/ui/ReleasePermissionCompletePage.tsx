@@ -9,6 +9,7 @@ import { releasePermissionContent } from '@views/role-conversion/release-permiss
 import { Header } from '@widgets/Header';
 import { useStackNavigation } from '@shared/lib/bridge';
 import { route } from '@shared/constants/route';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 function ReleasePermissionCompletePage() {
   const { reset } = useStackNavigation();
@@ -43,7 +44,7 @@ function ReleasePermissionCompletePage() {
         </div>
       </div>
 
-      <div className='shrink-0 px-4 py-5'>
+      <BottomCta className='shrink-0 px-4 pt-5'>
         <ActionButton
           type='button'
           variant='secondaryFill'
@@ -53,7 +54,7 @@ function ReleasePermissionCompletePage() {
         >
           {releasePermissionContent.completeHomeButtonLabel}
         </ActionButton>
-      </div>
+      </BottomCta>
     </div>
   );
 }

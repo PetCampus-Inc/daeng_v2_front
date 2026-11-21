@@ -4,14 +4,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { overlay } from 'overlay-kit';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
   Icon,
 } from '@knockdog/ui';
 import { cn } from '@knockdog/ui/lib';
@@ -25,7 +17,8 @@ import { Header } from '@widgets/Header';
 import { countMemoCharacters, truncateMemoContent } from '@entities/memo';
 
 import { createAnalyticsId, trackSchoolMemoChangeResult, trackSchoolMemoView } from '@shared/lib/analytics';
-import { useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
+import { openConfirmDialog, useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
+import { ConfirmDialog } from '@shared/ui/confirm-dialog';
 import { useImagePicker } from '@shared/lib/media';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { MiniPhotoBox } from '@shared/ui/photo-uploader';
@@ -129,27 +122,37 @@ export function EditMemoPage() {
     if (isExitDialogOpenRef.current) return;
     isExitDialogOpenRef.current = true;
 
-    overlay.open(({ isOpen, close }) => (
-      <AlertDialog
-        open={isOpen}
-        onOpenChange={(open) => {
-          if (open) return;
-          isExitDialogOpenRef.current = false;
-          close();
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{editMemoContent.unsavedExit.title}</AlertDialogTitle>
-            <AlertDialogDescription>{editMemoContent.unsavedExit.description}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{editMemoContent.unsavedExit.cancelLabel}</AlertDialogCancel>
-            <AlertDialogAction onClick={() => back()}>{editMemoContent.unsavedExit.confirmLabel}</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    ));
+    const confirmCopy = {
+      title: editMemoContent.unsavedExit.title,
+      description: editMemoContent.unsavedExit.description,
+      cancelLabel: editMemoContent.unsavedExit.cancelLabel,
+      confirmLabel: editMemoContent.unsavedExit.confirmLabel,
+    };
+    openConfirmDialog(confirmCopy).then((result) => {
+      if (result.status !== 'unavailable') {
+        isExitDialogOpenRef.current = false;
+        if (result.status === 'resolved' && result.action === 'confirm') {
+          back();
+        }
+        return;
+      }
+
+      overlay.open(({ isOpen, close }) => (
+        <ConfirmDialog
+          {...confirmCopy}
+          isOpen={isOpen}
+          onClose={() => {
+            isExitDialogOpenRef.current = false;
+            close();
+          }}
+          onConfirm={() => {
+            isExitDialogOpenRef.current = false;
+            close();
+            back();
+          }}
+        />
+      ));
+    });
   }, [back, isDirty, isSaving]);
 
   useNativeBackHandler(handleBack);
@@ -258,27 +261,31 @@ export function EditMemoPage() {
   };
 
   function openSaveFailedDialog() {
-    overlay.open(({ isOpen, close }) => (
-      <AlertDialog open={isOpen} onOpenChange={(open) => !open && close()}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{editMemoContent.saveFailed.title}</AlertDialogTitle>
-            <AlertDialogDescription>{editMemoContent.saveFailed.description}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{editMemoContent.saveFailed.cancelLabel}</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                close();
-                handleSave();
-              }}
-            >
-              {editMemoContent.saveFailed.retryLabel}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    ));
+    const confirmCopy = {
+      title: editMemoContent.saveFailed.title,
+      description: editMemoContent.saveFailed.description,
+      cancelLabel: editMemoContent.saveFailed.cancelLabel,
+      confirmLabel: editMemoContent.saveFailed.retryLabel,
+    };
+    openConfirmDialog(confirmCopy).then((result) => {
+      if (result.status === 'resolved') {
+        if (result.action === 'confirm') handleSave();
+        return;
+      }
+      if (result.status === 'pending') return;
+
+      overlay.open(({ isOpen, close }) => (
+        <ConfirmDialog
+          {...confirmCopy}
+          isOpen={isOpen}
+          onClose={close}
+          onConfirm={() => {
+            close();
+            handleSave();
+          }}
+        />
+      ));
+    });
   }
 
   if (isLoading) {
@@ -313,7 +320,7 @@ export function EditMemoPage() {
               'label-semibold radius-r1 px-2 py-1 disabled:opacity-100',
               canSave ? 'bg-fill-primary-50 text-text-accent' : 'bg-fill-secondary-100 text-text-caption'
             )}
-            onClick={handleSave}
+            onClick={() => handleSave()}
           >
             {editMemoContent.saveLabel}
           </button>

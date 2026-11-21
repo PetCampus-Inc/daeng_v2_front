@@ -37,9 +37,16 @@ import { Header } from '@widgets/Header';
 import { useOwnerPassTemplatesQuery } from '@entities/owner-pass-template';
 import { useChargePetTicketMutation } from '@entities/owner-pet-ticket';
 
-import { getCurrentTxId, useNativeBackHandler, useNavigationResult, useStackNavigation } from '@shared/lib/bridge';
+import {
+  getCurrentTxId,
+  openConfirmDialog,
+  useNativeBackHandler,
+  useNavigationResult,
+  useStackNavigation,
+} from '@shared/lib/bridge';
 import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGuard';
 import { toast } from '@shared/ui/toast';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 type DurationChoice = 'none' | 'custom' | ChargeMonth | null;
 
@@ -166,7 +173,25 @@ function MemberTicketChargePage() {
       releaseAndLeave(back);
       return;
     }
-    setIsLeaveOpen(true);
+    // 앱에서는 앱 확인창을 먼저 시도하고, 쓸 수 없으면 웹 확인창을 띄운다.
+    const { leave } = memberTicketChargeContent;
+    openConfirmDialog({
+      title: leave.title,
+      description: leave.description,
+      cancelLabel: leave.stay,
+      confirmLabel: leave.exit,
+    })
+      .then((result) => {
+        if (result.status === 'pending') return;
+
+        if (result.status === 'resolved') {
+          if (result.action === 'confirm') releaseAndLeave(back);
+          return;
+        }
+
+        setIsLeaveOpen(true);
+      })
+      .catch(() => setIsLeaveOpen(true));
   }, [back, isDateOpen, isDirty, isLeaveOpen, isPresetOpen, releaseAndLeave]);
 
   const handleNativeBack = useCallback(() => {
@@ -362,7 +387,7 @@ function MemberTicketChargePage() {
         </div>
       </div>
 
-      <div className='shrink-0 bg-white px-4 py-4'>
+      <BottomCta className='shrink-0 bg-white px-4 pt-4'>
         <ActionButton
           type='button'
           variant='primaryFill'
@@ -373,7 +398,7 @@ function MemberTicketChargePage() {
         >
           {content.submit}
         </ActionButton>
-      </div>
+      </BottomCta>
 
       <TicketChargeDateSheet
         isOpen={isDateOpen}

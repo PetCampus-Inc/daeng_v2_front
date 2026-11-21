@@ -5,14 +5,6 @@ import { useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { overlay } from 'overlay-kit';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
   Icon,
 } from '@knockdog/ui';
 
@@ -45,12 +37,14 @@ import {
   useSchoolNewsDraftQuery,
   useSchoolNewsInfiniteQuery,
   useSchoolNewsItem,
+  type SchoolNewsDraft,
   type SchoolNewsImage,
 } from '@entities/school-news';
 import { useUserStore } from '@entities/user';
 
 import { route } from '@shared/constants/route';
-import { useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
+import { openConfirmDialog, useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
+import { ConfirmDialog } from '@shared/ui/confirm-dialog';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { MiniPhotoBox } from '@shared/ui/photo-uploader';
 import { useImagePicker } from '@shared/lib/media';
@@ -275,6 +269,24 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
   });
   const hydratedKeyRef = useRef<string | null>(seed.hydrateKey);
 
+  const applyDraft = useCallback((draft: SchoolNewsDraft) => {
+    const sources = sourcesFromServerDraft(draft.images);
+    const draftImageUrls = sources.map((source) => source.previewUrl);
+    setTitle(draft.title);
+    setBody(draft.body);
+    setImageUrls(draftImageUrls);
+    imageSourcesRef.current = sources;
+    setIsAnnouncement(draft.isAnnouncement);
+    setNotifyGuardiansOnUpload(draft.notifyGuardiansOnUpload);
+    initialSnapshotRef.current = {
+      title: draft.title,
+      body: draft.body,
+      imageUrls: draftImageUrls,
+      isAnnouncement: draft.isAnnouncement,
+      notifyGuardiansOnUpload: draft.notifyGuardiansOnUpload,
+    };
+  }, []);
+
   /** params/스토어 준비 후 드래프트 → 기존 소식 순 hydrate */
   useEffect(() => {
     const hydrateKey = isEditMode
@@ -290,21 +302,7 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
 
       const draft = draftQuery.data;
       if (draft) {
-        const sources = sourcesFromServerDraft(draft.images);
-        const draftImageUrls = sources.map((source) => source.previewUrl);
-        setTitle(draft.title);
-        setBody(draft.body);
-        setImageUrls(draftImageUrls);
-        imageSourcesRef.current = sources;
-        setIsAnnouncement(draft.isAnnouncement);
-        setNotifyGuardiansOnUpload(draft.notifyGuardiansOnUpload);
-        initialSnapshotRef.current = {
-          title: draft.title,
-          body: draft.body,
-          imageUrls: draftImageUrls,
-          isAnnouncement: draft.isAnnouncement,
-          notifyGuardiansOnUpload: draft.notifyGuardiansOnUpload,
-        };
+        applyDraft(draft);
       } else {
         const sources = existingNews.images.map(toKeptNewsImage);
         setTitle(existingNews.title);
@@ -328,26 +326,40 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
 
     if (isHomePending || draftQuery.isLoading) return;
 
-    const draft = draftQuery.data;
-    if (draft) {
-      const sources = sourcesFromServerDraft(draft.images);
-      const draftImageUrls = sources.map((source) => source.previewUrl);
-      setTitle(draft.title);
-      setBody(draft.body);
-      setImageUrls(draftImageUrls);
-      imageSourcesRef.current = sources;
-      setIsAnnouncement(draft.isAnnouncement);
-      setNotifyGuardiansOnUpload(draft.notifyGuardiansOnUpload);
-      initialSnapshotRef.current = {
-        title: draft.title,
-        body: draft.body,
-        imageUrls: draftImageUrls,
-        isAnnouncement: draft.isAnnouncement,
-        notifyGuardiansOnUpload: draft.notifyGuardiansOnUpload,
-      };
-    }
     hydratedKeyRef.current = hydrateKey;
+    const draft = draftQuery.data;
+    if (!draft) return;
+
+    const confirmCopy = {
+      title: write.resumeDraftTitle,
+      description: write.resumeDraftDescription,
+      cancelLabel: write.resumeDraftNewLabel,
+      confirmLabel: write.resumeDraftContinueLabel,
+    };
+    openConfirmDialog(confirmCopy).then((result) => {
+      if (result.status === 'pending') return;
+
+      if (result.status === 'resolved') {
+        if (result.action === 'confirm') {
+          applyDraft(draft);
+        }
+        return;
+      }
+
+      overlay.open(({ isOpen, close }) => (
+        <ConfirmDialog
+          {...confirmCopy}
+          isOpen={isOpen}
+          onClose={close}
+          onConfirm={() => {
+            close();
+            applyDraft(draft);
+          }}
+        />
+      ));
+    });
   }, [
+    applyDraft,
     draftQuery.data,
     draftQuery.isLoading,
     existingNews,
@@ -355,6 +367,7 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
     isHomePending,
     kindergartenKey,
     newsId,
+    write,
   ]);
 
   const canSubmit =
@@ -426,33 +439,45 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
     if (isExitDialogOpenRef.current) return;
     isExitDialogOpenRef.current = true;
 
-    overlay.open(({ isOpen, close }) => (
-      <AlertDialog
-        open={isOpen}
-        onOpenChange={(open) => {
-          if (!open) {
+    const confirmCopy = {
+      title: write.unsavedExitTitle,
+      description: write.unsavedExitDescription,
+      cancelLabel: write.unsavedExitCancelLabel,
+      confirmLabel: write.unsavedExitConfirmLabel,
+    };
+    openConfirmDialog(confirmCopy).then((result) => {
+      if (result.status !== 'unavailable') {
+        isExitDialogOpenRef.current = false;
+        if (result.status === 'resolved' && result.action === 'confirm') {
+          leaveToList();
+        }
+        return;
+      }
+
+      overlay.open(({ isOpen, close }) => (
+        <ConfirmDialog
+          {...confirmCopy}
+          isOpen={isOpen}
+          onClose={() => {
             isExitDialogOpenRef.current = false;
             close();
-          }
-        }}
-      >
-        <AlertDialogContent className='max-w-[min(358px,calc(100%-32px))]'>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{write.unsavedExitTitle}</AlertDialogTitle>
-            <AlertDialogDescription>{write.unsavedExitDescription}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{write.unsavedExitCancelLabel}</AlertDialogCancel>
-            <AlertDialogAction onClick={leaveToList}>{write.unsavedExitConfirmLabel}</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    ));
+          }}
+          onConfirm={() => {
+            isExitDialogOpenRef.current = false;
+            close();
+            leaveToList();
+          }}
+        />
+      ));
+    });
   }, [isDirty, isDraftSaving, isSubmitting, leaveToList, write]);
 
   useNativeBackHandler(handleBack);
 
   const openSettingsSheet = useCallback(() => {
+    const focusedElement = document.activeElement;
+    if (focusedElement instanceof HTMLTextAreaElement) focusedElement.blur();
+
     if (showBanner) {
       dismissOwnerKindergartenNewsSettingsBanner(kindergartenKey);
       setShowBanner(false);
@@ -670,32 +695,31 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
         );
         return;
       }
-      overlay.open(({ isOpen, close }) => (
-        <AlertDialog
-          open={isOpen}
-          onOpenChange={(open) => {
-            if (!open) close();
-          }}
-        >
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>{failedTitle}</AlertDialogTitle>
-              <AlertDialogDescription>{failedDescription}</AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>{failedCloseLabel}</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => {
-                  close();
-                  void submitNews();
-                }}
-              >
-                {failedRetryLabel}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      ));
+      const confirmCopy = {
+        title: failedTitle,
+        description: failedDescription,
+        cancelLabel: failedCloseLabel,
+        confirmLabel: failedRetryLabel,
+      };
+      openConfirmDialog(confirmCopy).then((result) => {
+        if (result.status === 'resolved') {
+          if (result.action === 'confirm') void submitNews();
+          return;
+        }
+        if (result.status === 'pending') return;
+
+        overlay.open(({ isOpen, close }) => (
+          <ConfirmDialog
+            {...confirmCopy}
+            isOpen={isOpen}
+            onClose={close}
+            onConfirm={() => {
+              close();
+              submitNews();
+            }}
+          />
+        ));
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -772,7 +796,7 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
         <Header.LeftSection>
           <Header.BackButton onClick={handleBack} />
         </Header.LeftSection>
-        <Header.RightSection className='gap-x-3'>
+        <Header.RightSection className='ml-auto flex items-center gap-x-3'>
           <button
             type='button'
             className='label-semibold text-text-primary radius-r1 px-2 py-1'

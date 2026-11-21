@@ -1,8 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { HTTPError } from 'ky';
+import * as Sentry from '@sentry/nextjs';
 
 import { ApiError } from '../model/error';
 import { TOKEN_ERROR_CODE } from '../model/constant/authErrorCode';
-import { tokenRefreshInterceptor } from './index';
+import { tokenRefreshInterceptor, transformErrorInterceptor } from './index';
+import { reportCriticalFailure } from '@shared/lib/sentry/reportUnexpectedApiError';
 
 const { getAccessToken, removeAccessToken, setAccessToken, logout, navigateToLogin, retryWithTokenRefresh } = vi.hoisted(() => ({
   getAccessToken: vi.fn<() => string | null>(),
@@ -25,6 +28,7 @@ vi.mock('@shared/utils', () => ({
 vi.mock('@shared/lib/auth', () => ({ logout }));
 vi.mock('@shared/lib/bridge', () => ({ navigateToLogin }));
 vi.mock('./retryWithTokenRefresh', () => ({ retryWithTokenRefresh }));
+vi.mock('@sentry/nextjs', () => ({ captureException: vi.fn() }));
 
 const API_BASE_URL = 'https://api.knockdog.net';
 const ACCESS_TOKEN = 'expired-access-token';
@@ -41,6 +45,34 @@ function unauthorizedResponse(code: string) {
     headers: { 'Content-Type': 'application/json' },
   });
 }
+
+describe('API and critical failure reporting', () => {
+  beforeEach(() => vi.mocked(Sentry.captureException).mockClear());
+
+  it('reports a non-JSON 503 once with login context', async () => {
+    const request = new Request(`${API_BASE_URL}/api/v0/auth/login`);
+    const response = new Response('<h1>Service unavailable</h1>', { status: 503 });
+    const error = new HTTPError(response, request, {} as never);
+
+    await transformErrorInterceptor(error).catch((failure: unknown) => {
+      expect(failure).toMatchObject({ status: 503, code: 'UNKNOWN_ERROR' });
+      reportCriticalFailure('login', 'session', failure);
+    });
+
+    expect(Sentry.captureException).toHaveBeenCalledExactlyOnceWith(expect.any(ApiError), {
+      tags: { feature: 'login', stage: 'session', source: 'api', http_status: '503' },
+    });
+  });
+
+  it('reports a final 429 but ignores an input validation failure', () => {
+    reportCriticalFailure('album_upload', 'upload', new ApiError(422, 'VALIDATION_FAILED', 'invalid'));
+    reportCriticalFailure('album_upload', 'upload', new ApiError(429, 'RATE_LIMITED', 'rate limited'));
+
+    expect(Sentry.captureException).toHaveBeenCalledExactlyOnceWith(expect.any(Error), {
+      tags: { feature: 'album_upload', stage: 'upload', source: 'critical_flow', http_status: '429' },
+    });
+  });
+});
 
 describe('tokenRefreshInterceptor', () => {
   beforeEach(() => {

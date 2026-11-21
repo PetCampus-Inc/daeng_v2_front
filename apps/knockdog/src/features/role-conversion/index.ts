@@ -1,6 +1,7 @@
 export { ownerMypageContent } from './config/ownerMypageContent';
 export { roleConversionButtonContent } from './config/roleConversionButtonContent';
 export { useOwnerRole, type OwnerRoleState } from './model/useOwnerRole';
+export { useManagedKindergarten } from './model/useManagedKindergarten';
 export { useIsOwnerVerified } from './model/useIsOwnerVerified';
 export { useMypageRoleView, useShowOwnerBottomNav } from './model/useMypageRoleView';
 export { useMypageRoleViewStore } from './model/mypageRoleViewStore';
@@ -26,3 +27,4 @@ export {
 } from './ui/OwnerVerificationOnboardingSheet';
 export { RoleConversionButton, type RoleConversionButtonProps } from './ui/RoleConversionButton';
 export { SyncNativeMainTabModeEffect } from './ui/SyncNativeMainTabModeEffect';
+export { SentryUserSync } from './ui/SentryUserSync';

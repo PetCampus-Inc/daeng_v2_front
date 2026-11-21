@@ -12,13 +12,6 @@ import {
   ActionButton,
   TextField,
   TextFieldInput,
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
 } from '@knockdog/ui';
 import { overlay } from 'overlay-kit';
 import NicknameDialog from './NicknameDialog';
@@ -29,6 +22,14 @@ import { useUserInfoQuery, useUserStore, useUserUpdateUserEmailMutation } from '
 import { useSocialUserStore, SOCIAL_PROVIDER_ICONS } from '@entities/social-user';
 import { openConfirmDialog, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { logout } from '@shared/lib/auth/logout';
+import { ConfirmDialog } from '@shared/ui/confirm-dialog';
+
+/** 로그아웃 확인창 문구. 앱 확인창과 웹 확인창이 같이 쓴다. */
+const LOGOUT_DIALOG = {
+  title: '로그아웃 할까요?',
+  cancelLabel: '아니오',
+  confirmLabel: '예',
+};
 
 function MypageProfileManagePage() {
   const { push } = useStackNavigation();
@@ -68,45 +69,40 @@ function MypageProfileManagePage() {
 
   const openWebLogoutDialog = () => {
     overlay.open(({ isOpen, close }) => (
-      <AlertDialog open={isOpen} onOpenChange={close}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>로그아웃 할까요?</AlertDialogTitle>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>아니오</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                close();
-                void performLogout();
-              }}
-            >
-              예
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        {...LOGOUT_DIALOG}
+        isOpen={isOpen}
+        onClose={close}
+        onConfirm={() => {
+          close();
+          void performLogout();
+        }}
+      />
     ));
   };
 
   const handleLogout = async () => {
-    const result = await openConfirmDialog({
-      title: '로그아웃 할까요?',
-      cancelLabel: '아니오',
-      confirmLabel: '예',
-    });
-
-    if (result.status === 'pending') return;
+    const result = await openConfirmDialog(LOGOUT_DIALOG);
 
     if (result.status === 'resolved') {
-      if (result.action === 'confirm') await performLogout();
+      if (result.action === 'confirm') void performLogout();
       return;
     }
+    if (result.status === 'pending') return;
 
     openWebLogoutDialog();
   };
 
-  const handleNicknameClick = () => {
+  /** 닉네임 입력창을 연다. 입력창이 있어 앱 확인창으로 그릴 수 없으므로 항상 웹 모달을 띄운다. */
+  const handleNicknameClick = async () => {
+    const result = await openConfirmDialog({
+      title: '똑독에서 활동할\n사용자 별명을 지어주세요',
+      cancelLabel: '취소',
+      confirmLabel: '확인',
+      webOnly: { reason: '닉네임 입력창이 있어 앱 확인창(제목·설명·버튼)으로 그릴 수 없음' },
+    });
+    if (result.status !== 'unavailable') return;
+
     overlay.open(({ isOpen, close }) => <NicknameDialog isOpen={isOpen} close={close} />);
   };
 

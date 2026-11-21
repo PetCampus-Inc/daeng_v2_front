@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { ActionButton } from '@knockdog/ui';
 import { Header } from '@widgets/Header';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 /**
  * 아이디어 제안 완료 (PRD 7.6).
@@ -27,11 +28,11 @@ function IdeaSuggestionCompletePage() {
         </div>
       </div>
 
-      <div className='bg-bg-0 p-x4 shrink-0'>
+      <BottomCta className='bg-bg-0 px-x4 pt-x4 shrink-0'>
         <ActionButton type='button' size='large' onClick={() => back()}>
           마이로 돌아가기
         </ActionButton>
-      </div>
+      </BottomCta>
     </div>
   );
 }

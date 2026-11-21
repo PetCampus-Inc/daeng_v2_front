@@ -1,24 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
-import { cn } from '@knockdog/ui/lib';
 
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
   ApprovalActionButton,
   ListHeader,
   StudentTicketListItem,
   type SortOption,
 } from '@knockdog/ui';
-import { approvalEmptyContent } from '@views/owner-members-page/config/ownerMembersApprovalEmptyContent';
 import { ownerMembersEmptyContent } from '@views/owner-members-page/config/ownerMembersEmptyContent';
 import { hasListLoadFailed } from '@views/owner-members-page/lib/hasListLoadFailed';
 import { useOwnerRole } from '@features/role-conversion';
@@ -32,11 +21,31 @@ import {
 } from '@entities/owner-member';
 import { useUserStore } from '@entities/user';
 import { route } from '@shared/constants/route';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { openConfirmDialog, useStackNavigation } from '@shared/lib/bridge';
 import { trackConnectionStatus } from '@shared/lib/analytics';
+import { ConfirmDialog } from '@shared/ui/confirm-dialog';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { PageError } from '@shared/ui/page-error';
 import { toast } from '@shared/ui/toast';
+
+import { OwnerMembersEmptyState } from './OwnerMembersEmptyState';
+
+/** 승인 완료 확인창 문구. 앱 확인창과 웹 확인창이 같이 쓴다. */
+const toApprovedDialog = (dogName: string) => ({
+  title: '원생 승인을 완료했어요',
+  description: `${dogName}의 유치원 연결이 완료됐어요.`,
+  cancelLabel: '닫기',
+  confirmLabel: '이용권 충전하기',
+  buttonLayout: 'vertical' as const,
+});
+
+/** 승인 거절 확인창 문구. 앱 확인창과 웹 확인창이 같이 쓴다. */
+const REJECT_DIALOG = {
+  title: '원생 승인을 거절할까요?',
+  description: '거절한 원생은 되돌릴 수 없어요.',
+  cancelLabel: '닫기',
+  confirmLabel: '거절하기',
+};
 
 const SORT_BY_OPTION: Record<SortOption, OwnerPendingSort> = {
   newest: 'LATEST',
@@ -62,33 +71,6 @@ function ApprovalActions({ member, disabled, onApprove, onReject }: ApprovalActi
         disabled={disabled}
         onClick={() => onApprove(member)}
       />
-    </div>
-  );
-}
-
-/** 신청 목록이 비었을 때 일러스트·제목·본문을 탭과 하단 바 사이 영역의 상하 중앙에 보여준다 */
-function ApprovalEmptyState({ isSearchResult }: { isSearchResult: boolean }) {
-  const content = isSearchResult ? ownerMembersEmptyContent.emptySearchResult : approvalEmptyContent;
-
-  return (
-    <div className='flex min-h-full w-full items-center justify-center pb-(--bottom-bar-height)'>
-      <div
-        className={cn('px-x4 flex w-full flex-col items-center text-center', isSearchResult ? 'gap-y-5' : 'gap-y-2')}
-      >
-        <div className={cn('relative', isSearchResult ? 'h-[160px] w-[180px]' : 'h-[200px] w-[237px]')}>
-          <Image
-            src={content.imageSrc}
-            alt={content.imageAlt}
-            fill
-            className='object-contain'
-            sizes={isSearchResult ? '180px' : '237px'}
-          />
-        </div>
-        <div className='flex flex-col items-center gap-y-1'>
-          <p className='h2-extrabold text-text-primary'>{content.title}</p>
-          <p className='body1-regular text-text-secondary'>{content.description}</p>
-        </div>
-      </div>
     </div>
   );
 }
@@ -133,10 +115,35 @@ function OwnerMembersPendingTab({ keyword }: OwnerMembersPendingTabProps) {
           initiated_by: 'owner',
           school_pet_membership_id: member.id,
         });
-        setApprovedMember(member);
+        void openApprovedDialog(member);
       },
       onError: (error) => showActionError(error, '연결 신청 승인에 실패했어요'),
     });
+  };
+
+  /** 승인 완료 확인창을 연다. 앱에서는 앱 확인창을 먼저 시도하고, 쓸 수 없으면 웹 확인창을 띄운다. */
+  const openApprovedDialog = async (member: OwnerMember) => {
+    const result = await openConfirmDialog(toApprovedDialog(member.dogName));
+    if (result.status === 'pending') return;
+
+    if (result.status === 'resolved') {
+      if (result.action === 'confirm') handleOpenTicketCharge(member);
+      return;
+    }
+
+    setApprovedMember(member);
+  };
+
+  /** 거절 확인창을 연다. 앱에서는 앱 확인창을 먼저 시도하고, 쓸 수 없으면 웹 확인창을 띄운다. */
+  const handleRejectClick = async (member: OwnerMember) => {
+    const result = await openConfirmDialog(REJECT_DIALOG);
+    if (result.status === 'resolved') {
+      if (result.action === 'confirm') rejectMember(member);
+      return;
+    }
+    if (result.status === 'pending') return;
+
+    setRejectTarget(member);
   };
 
   const handleConfirmReject = () => {
@@ -144,6 +151,10 @@ function OwnerMembersPendingTab({ keyword }: OwnerMembersPendingTabProps) {
     const target = rejectTarget;
 
     setRejectTarget(null);
+    rejectMember(target);
+  };
+
+  const rejectMember = (target: OwnerMember) => {
     rejectMutation.mutate(target.id, {
       onSuccess: () => {
         trackConnectionStatus({
@@ -161,11 +172,11 @@ function OwnerMembersPendingTab({ keyword }: OwnerMembersPendingTabProps) {
     });
   };
 
-  const handleOpenTicketCharge = () => {
-    if (!approvedMember?.petId) return;
+  const handleOpenTicketCharge = (member: OwnerMember) => {
+    if (!member.petId) return;
 
     void push({
-      pathname: route.owner.members.detail.ticketCharge.root.replace('[id]', approvedMember.petId),
+      pathname: route.owner.members.detail.ticketCharge.root.replace('[id]', member.petId),
     });
   };
 
@@ -179,73 +190,61 @@ function OwnerMembersPendingTab({ keyword }: OwnerMembersPendingTabProps) {
         />
       )}
 
-      <div className='min-h-0 flex-1 overflow-y-auto pb-(--safe-area-inset-bottom,0px)'>
-        {isInitialPending ? (
-          <DelayedLoadingSpinner isLoading={isInitialPending} layout='content' />
-        ) : isLoadFailed ? (
-          <PageError
-            layout='inline'
-            onRetry={() => void pendingMembersQuery.refetch()}
-            isRetrying={pendingMembersQuery.isFetching}
-          />
-        ) : approvalRequests.length === 0 ? (
-          <ApprovalEmptyState isSearchResult={keyword.length > 0} />
-        ) : (
-          approvalRequests.map((member) => (
-            <StudentTicketListItem
-              key={member.id}
-              name={member.dogName}
-              guardian={`${member.guardianName} 보호자`}
-              sex={member.gender}
-              avatarSrc={member.profileImageUrl}
-              avatarAlt={`${member.dogName} 프로필 이미지`}
-              status={null}
-              action={
-                <ApprovalActions
-                  member={member}
-                  disabled={isActionPending}
-                  onApprove={handleApprove}
-                  onReject={setRejectTarget}
-                />
-              }
+      {isLoadFailed ? (
+        <PageError
+          layout='inline'
+          onRetry={() => void pendingMembersQuery.refetch()}
+          isRetrying={pendingMembersQuery.isFetching}
+        />
+      ) : (
+        <div className='min-h-0 flex-1 overflow-y-auto pb-(--safe-area-inset-bottom,0px)'>
+          {isInitialPending ? (
+            <DelayedLoadingSpinner isLoading={isInitialPending} layout='content' />
+          ) : approvalRequests.length === 0 ? (
+            <OwnerMembersEmptyState
+              content={ownerMembersEmptyContent[keyword.length > 0 ? 'emptySearchResult' : 'emptyPending']}
             />
-          ))
-        )}
-      </div>
+          ) : (
+            approvalRequests.map((member) => (
+              <StudentTicketListItem
+                key={member.id}
+                name={member.dogName}
+                guardian={`${member.guardianName} 보호자`}
+                sex={member.gender}
+                avatarSrc={member.profileImageUrl}
+                avatarAlt={`${member.dogName} 프로필 이미지`}
+                status={null}
+                action={
+                  <ApprovalActions
+                    member={member}
+                    disabled={isActionPending}
+                    onApprove={handleApprove}
+                    onReject={handleRejectClick}
+                  />
+                }
+              />
+            ))
+          )}
+        </div>
+      )}
 
-      <AlertDialog open={approvedMember !== null} onOpenChange={(open) => !open && setApprovedMember(null)}>
-        <AlertDialogContent data-testid='owner-members-approved-dialog'>
-          <AlertDialogHeader>
-            <AlertDialogTitle>원생 승인을 완료했어요</AlertDialogTitle>
-            <AlertDialogDescription>
-              {`${approvedMember?.dogName ?? ''}의 유치원 연결이 완료됐어요.`}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className='flex-col'>
-            <AlertDialogCancel className='w-full'>닫기</AlertDialogCancel>
-            <AlertDialogAction
-              className='w-full'
-              data-testid='owner-members-approved-charge'
-              onClick={handleOpenTicketCharge}
-            >
-              이용권 충전하기
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        {...toApprovedDialog(approvedMember?.dogName ?? '')}
+        isOpen={approvedMember !== null}
+        onClose={() => setApprovedMember(null)}
+        onConfirm={() => {
+          const member = approvedMember;
+          setApprovedMember(null);
+          if (member) handleOpenTicketCharge(member);
+        }}
+      />
 
-      <AlertDialog open={rejectTarget !== null} onOpenChange={(open) => !open && setRejectTarget(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>원생 승인을 거절할까요?</AlertDialogTitle>
-            <AlertDialogDescription>거절한 원생은 되돌릴 수 없어요.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>닫기</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmReject}>거절하기</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        {...REJECT_DIALOG}
+        isOpen={rejectTarget !== null}
+        onClose={() => setRejectTarget(null)}
+        onConfirm={handleConfirmReject}
+      />
     </div>
   );
 }

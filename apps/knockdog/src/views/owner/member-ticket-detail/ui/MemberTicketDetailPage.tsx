@@ -28,7 +28,7 @@ import {
 
 import { ApiError } from '@shared/api';
 import { route } from '@shared/constants/route';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { openConfirmDialog, useStackNavigation } from '@shared/lib/bridge';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
 
@@ -107,12 +107,45 @@ function MemberTicketDetailPage() {
     );
   };
 
+  /** 이용권 삭제 확인창을 연다. 앱에서는 앱 확인창을 먼저 시도하고, 쓸 수 없으면 웹 확인창을 띄운다. */
+  const handleDeleteClick = async () => {
+    const result = await openConfirmDialog({
+      title: content.deleteTitle,
+      description: content.deleteDescription,
+      cancelLabel: content.close,
+      confirmLabel: content.deleteConfirm,
+    });
+    if (result.status === 'resolved') {
+      if (result.action === 'confirm') handleConfirmDelete();
+      return;
+    }
+    if (result.status === 'pending') return;
+
+    setIsDeleteOpen(true);
+  };
+
+  /** 홀딩 취소 확인창을 연다. 앱에서는 앱 확인창을 먼저 시도하고, 쓸 수 없으면 웹 확인창을 띄운다. */
+  const handleCancelHoldClick = async () => {
+    const result = await openConfirmDialog({
+      title: content.cancelHoldTitle,
+      description: content.cancelHoldDescription,
+      cancelLabel: content.close,
+      confirmLabel: content.cancelHoldConfirm,
+    });
+    if (result.status === 'resolved') {
+      if (result.action === 'confirm') handleConfirmCancel();
+      return;
+    }
+    if (result.status === 'pending') return;
+
+    setIsCancelOpen(true);
+  };
+
   const handleConfirmCancel = () => {
     if (!petId || !ticketId || cancelHold.isPending) return;
 
     cancelHold.mutate(undefined, {
       onSuccess: () => {
-        setIsCancelOpen(false);
         showToast(content.cancelHoldSuccess, 'success');
       },
       onError: () => {
@@ -126,7 +159,6 @@ function MemberTicketDetailPage() {
 
     deleteTicket.mutate(undefined, {
       onSuccess: () => {
-        setIsDeleteOpen(false);
         showToast(content.deleteSuccess, 'success');
         back()
           .then((wentBack) => {
@@ -160,7 +192,7 @@ function MemberTicketDetailPage() {
         <Header.Title>{detail?.name ?? ''}</Header.Title>
         <Header.RightSection>
           {detail && !isDeleted ? (
-            <button type='button' aria-label={content.deleteLabel} className='text-text-accent' onClick={() => setIsDeleteOpen(true)}>
+            <button type='button' aria-label={content.deleteLabel} className='text-text-accent' onClick={handleDeleteClick}>
               <TrashV4 />
             </button>
           ) : null}
@@ -233,7 +265,7 @@ function MemberTicketDetailPage() {
             }`}
             onClick={() => {
               if (isHoldDisabled) return;
-              if (isCancelAction) setIsCancelOpen(true);
+              if (isCancelAction) handleCancelHoldClick();
               else setIsHoldOpen(true);
             }}
           >
@@ -274,7 +306,10 @@ function MemberTicketDetailPage() {
         description={content.deleteDescription}
         confirmLabel={content.deleteConfirm}
         onClose={() => setIsDeleteOpen(false)}
-        onConfirm={handleConfirmDelete}
+        onConfirm={() => {
+          setIsDeleteOpen(false);
+          handleConfirmDelete();
+        }}
       />
       <TicketConfirmDialog
         isOpen={isCancelOpen}
@@ -282,7 +317,10 @@ function MemberTicketDetailPage() {
         description={content.cancelHoldDescription}
         confirmLabel={content.cancelHoldConfirm}
         onClose={() => setIsCancelOpen(false)}
-        onConfirm={handleConfirmCancel}
+        onConfirm={() => {
+          setIsCancelOpen(false);
+          handleConfirmCancel();
+        }}
       />
       <TicketExpirySheet
         isOpen={isExpiryOpen}

@@ -8,7 +8,6 @@ import { ActionButton, BottomSheet, RsvConfirmedSheet, SelectDogCard, Textarea, 
 
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 import { RESERVATION_CONFIRM_COPY } from '@views/guardian-reservation-page/config/guardianReservationConfirm';
-import { RESERVATION_CONFIRM_TOAST_VIEWPORT } from '@views/guardian-reservation-page/config/guardianReservationToast';
 import {
   clipNote,
   formatConfirmDate,
@@ -32,11 +31,12 @@ import { useUserStore } from '@entities/user';
 
 import { ApiError } from '@shared/api';
 import { route } from '@shared/constants/route';
-import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { openConfirmDialog, useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 import { DogProfileAvatar } from '@shared/ui/dog-profile-avatar';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 const FULL_CODE = 'RESERVATION-409-4';
 
@@ -69,7 +69,6 @@ function showFailedToast(message: string) {
     shape: 'rounded',
     position: 'bottom',
     title: message,
-    viewportClassName: RESERVATION_CONFIRM_TOAST_VIEWPORT,
   });
 }
 
@@ -88,7 +87,6 @@ function showClosedToast() {
         <span className='body1-medium text-text-primary-inverse'>{copy.closedSuffix}</span>
       </>
     ),
-    viewportClassName: RESERVATION_CONFIRM_TOAST_VIEWPORT,
   });
 }
 
@@ -141,6 +139,27 @@ function ReservationConfirmPage() {
     });
   };
 
+  /** 나가기 확인창을 연다. 앱에서는 앱 확인창을 먼저 시도하고, 쓸 수 없으면 웹 확인창을 띄운다. */
+  const openLeaveDialog = async () => {
+    const result = await openConfirmDialog({
+      title: copy.leaveTitle,
+      description: copy.leaveBody,
+      cancelLabel: copy.stay,
+      confirmLabel: copy.leave,
+    });
+    if (result.status === 'pending') return;
+
+    if (result.status === 'resolved') {
+      if (result.action === 'confirm') {
+        setNote('');
+        leaveToTime();
+      }
+      return;
+    }
+
+    setIsLeaveOpen(true);
+  };
+
   const handleBack = () => {
     if (isPending) return;
     if (isConfirmed) {
@@ -152,7 +171,7 @@ function ReservationConfirmPage() {
       return;
     }
     if (isNoteFilled(note)) {
-      setIsLeaveOpen(true);
+      openLeaveDialog();
       return;
     }
     leaveToTime();
@@ -276,7 +295,7 @@ function ReservationConfirmPage() {
         </div>
       </div>
 
-      <div className='bg-bg-0 px-x4 py-x4 shrink-0'>
+      <BottomCta className='bg-bg-0 px-x4 pt-x4 shrink-0'>
         <ActionButton
           type='button'
           variant='primaryFill'
@@ -288,7 +307,7 @@ function ReservationConfirmPage() {
         >
           {copy.book}
         </ActionButton>
-      </div>
+      </BottomCta>
 
       <ReservationLeaveDialog
         isOpen={isLeaveOpen}

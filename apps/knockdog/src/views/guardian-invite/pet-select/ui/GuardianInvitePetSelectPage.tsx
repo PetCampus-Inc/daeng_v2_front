@@ -14,6 +14,7 @@ import {
 import { useUserStore } from '@entities/user';
 import { route } from '@shared/constants/route';
 import { useStackNavigation } from '@shared/lib/bridge';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 const STATUS_LABEL = {
   PENDING: '승인 대기',
@@ -228,7 +229,7 @@ function GuardianInvitePetSelectPage() {
         </section>
       </main>
 
-      <div className='bg-bg-0 px-x4 py-x5'>
+      <BottomCta className='bg-bg-0 px-x4 pt-x5'>
         <ActionButton
           type='button'
           size='large'
@@ -237,7 +238,7 @@ function GuardianInvitePetSelectPage() {
         >
           다음
         </ActionButton>
-      </div>
+      </BottomCta>
     </div>
   );
 }

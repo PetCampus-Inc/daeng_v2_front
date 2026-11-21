@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import {
   useInfiniteQuery,
+  useMutation,
   useQueryClient,
   type InfiniteData,
 } from '@tanstack/react-query';
@@ -88,20 +89,31 @@ function useRemoveSchoolNewsItem(schoolId?: string | number | null) {
 
 function useDeleteSchoolNews(schoolId?: string | number | null) {
   const parsedSchoolId = parseSchoolId(schoolId);
+  const queryClient = useQueryClient();
   const removeNewsItem = useRemoveSchoolNewsItem(schoolId);
+  const mutationKey = ['deleteSchoolNews', parsedSchoolId] as const;
+  const { mutateAsync } = useMutation({
+    mutationKey,
+    mutationFn: deleteSchoolNews,
+    onSuccess: (_data, { newsId }) => removeNewsItem(String(newsId)),
+  });
 
-  return useCallback(
-    async (newsId: string) => {
-      const parsedNewsId = parseSchoolId(newsId);
-      if (parsedSchoolId == null || parsedNewsId == null) {
-        throw new Error('소식 삭제에 필요한 id가 없습니다.');
-      }
+  return async (newsId: string) => {
+    const parsedNewsId = parseSchoolId(newsId);
+    if (parsedSchoolId == null || parsedNewsId == null) {
+      throw new Error('소식 삭제에 필요한 id가 없습니다.');
+    }
 
-      await deleteSchoolNews({ schoolId: parsedSchoolId, newsId: parsedNewsId });
-      removeNewsItem(newsId);
-    },
-    [parsedSchoolId, removeNewsItem]
-  );
+    const isDeleting = queryClient.isMutating({
+      mutationKey,
+      exact: true,
+      predicate: (mutation) => (mutation.state.variables as { newsId: number } | undefined)?.newsId === parsedNewsId,
+    });
+    if (isDeleting) return false;
+
+    await mutateAsync({ schoolId: parsedSchoolId, newsId: parsedNewsId });
+    return true;
+  };
 }
 
 interface UseSchoolNewsItemOptions {

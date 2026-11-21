@@ -3,7 +3,8 @@ import GuardianLogActiveIcon from '@/assets/icons/guardian_log_active.svg';
 import GuardianLogInactiveIcon from '@/assets/icons/guardian_log_inactive.svg';
 import GuardianMapIcon from '@/assets/icons/guardian_map.svg';
 import GuardianMyIcon from '@/assets/icons/guardian_my.svg';
-import GuardianReserveIcon from '@/assets/icons/guardian_reserve.svg';
+import GuardianReserveActiveIcon from '@/assets/icons/guardian_reserve_active.svg';
+import GuardianReserveInactiveIcon from '@/assets/icons/guardian_reserve_inactive.svg';
 import OwnerAlbumIcon from '@/assets/icons/owner_album.svg';
 import OwnerDailyIcon from '@/assets/icons/owner_daily.svg';
 import OwnerHomeIcon from '@/assets/icons/owner_home.svg';
@@ -28,40 +29,25 @@ import { StyleSheet, View, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAndroidTabBack } from './useAndroidTabBack';
-import {
-  BOTTOM_TAB_BAR_DIM_HEIGHT,
-  ANDROID_TAB_BAR_CONTENT_HEIGHT,
-  getAndroidTabBarBottomInset,
-} from './bottomTabBarHeight';
+import { TAB_BAR_CONTENT_HEIGHT, getBottomTabBarHeight, getTabBarBottomInset } from './bottomTabBarHeight';
 
 const Tab = createBottomTabNavigator();
 
 const OWNER_TAB_NAMES = new Set(['OwnerHome', 'OwnerDaily', 'OwnerAlbum', 'OwnerMembers']);
 const GUARDIAN_TAB_NAMES = new Set(['Explore', 'Save', 'Reserve', 'Kindergarten']);
 
-function getTabBarStyle(isTabBarVisible: boolean, bottom: number) {
+const getTabBarStyle = (isTabBarVisible: boolean, bottom: number) => {
   if (!isTabBarVisible) {
     return { display: 'none' as const };
   }
 
-  if (Platform.OS === 'android') {
-    const tabBarBottomInset = getAndroidTabBarBottomInset(bottom);
-
-    return {
-      height: ANDROID_TAB_BAR_CONTENT_HEIGHT + tabBarBottomInset,
-      paddingBottom: tabBarBottomInset,
-      paddingTop: 6,
-      paddingLeft: 12,
-      paddingRight: 12,
-    };
-  }
-
   return {
-    paddingBottom: bottom,
+    height: getBottomTabBarHeight(bottom),
+    paddingBottom: getTabBarBottomInset(bottom),
     paddingLeft: 12,
     paddingRight: 12,
   };
-}
+};
 
 /** v7: tabBarButton null만으론 flex 공간이 남아 탭이 한쪽으로 쏠림 */
 const HIDDEN_TAB_OPTIONS = {
@@ -86,7 +72,6 @@ function notifyCurrentTabWillBlur(tabName: TabName) {
 
 export default function TabNavigator() {
   const { bottom } = useSafeAreaInsets();
-  const androidTabBarBottomInset = getAndroidTabBarBottomInset(bottom);
   const mode = useMainTabModeStore((state) => state.mode);
   const isOwnerMode = mode === 'owner';
   const isTabBarVisible = useBottomTabBarVisibilityStore((state) => state.visible);
@@ -120,32 +105,28 @@ export default function TabNavigator() {
                 case 'Explore':
                   return (
                     <View style={styles.guardianIcon}>
-                      <GuardianMapIcon width={20} height={20} color={focused ? '#FF6E0C' : '#B4B4BB'} />
+                      <GuardianMapIcon color={focused ? '#FF6E0C' : '#B4B4BB'} />
                     </View>
                   );
                 case 'Save':
                   return (
                     <View style={styles.guardianIcon}>
-                      <GuardianArchiveIcon width={20} height={20} color={focused ? '#FF6E0C' : '#B4B4BB'} />
+                      <GuardianArchiveIcon color={focused ? '#FF6E0C' : '#B4B4BB'} />
                     </View>
                   );
                 case 'Reserve':
                   return (
                     <View style={styles.guardianIcon}>
-                      <GuardianReserveIcon
-                        width={20}
-                        height={20}
-                        color={focused ? '#FF6E0C' : '#B4B4BB'}
-                      />
+                      {focused ? <GuardianReserveActiveIcon /> : <GuardianReserveInactiveIcon />}
                     </View>
                   );
                 case 'Kindergarten':
                   return (
                     <View style={styles.guardianIcon}>
                       {focused ? (
-                        <GuardianLogActiveIcon width={24} height={24} preserveAspectRatio='xMidYMid meet' />
+                        <GuardianLogActiveIcon />
                       ) : (
-                        <GuardianLogInactiveIcon width={24} height={24} preserveAspectRatio='xMidYMid meet' />
+                        <GuardianLogInactiveIcon />
                       )}
                     </View>
                   );
@@ -162,7 +143,7 @@ export default function TabNavigator() {
                     <OwnerMypageIcon width={21} height={21} {...strokeIconProps} />
                   ) : (
                     <View style={styles.guardianIcon}>
-                      <GuardianMyIcon width={21} height={21} color={focused ? '#FF6E0C' : '#B4B4BB'} />
+                      <GuardianMyIcon color={focused ? '#FF6E0C' : '#B4B4BB'} />
                     </View>
                   );
                 default:
@@ -174,11 +155,14 @@ export default function TabNavigator() {
             tabBarInactiveTintColor: '#70727C',
             ...(Platform.OS === 'android' ? { tabBarAllowFontScaling: false } : {}),
             tabBarStyle: getTabBarStyle(isTabBarVisible, bottom),
+            tabBarLabelPosition: 'below-icon',
+            tabBarIconStyle: styles.tabIcon,
             tabBarLabelStyle: {
               fontSize: 12,
               fontFamily: 'SUIT-SemiBold',
               lineHeight: 18,
               marginTop: 4,
+              includeFontPadding: false,
               ...(isOwnerMode
                 ? {
                     letterSpacing: -0.24,
@@ -204,11 +188,10 @@ export default function TabNavigator() {
         <View
           pointerEvents='auto'
           style={[
-            styles.bottomTabBarDim,
+            styles.dimOverlay,
             {
-              height:
-                BOTTOM_TAB_BAR_DIM_HEIGHT +
-                (Platform.OS === 'android' ? androidTabBarBottomInset : bottom),
+              bottom: getTabBarBottomInset(bottom),
+              height: TAB_BAR_CONTENT_HEIGHT,
             },
           ]}
         />
@@ -218,6 +201,12 @@ export default function TabNavigator() {
 }
 
 const styles = StyleSheet.create({
+  tabIcon: {
+    // 기본 탭 버튼의 위쪽 패딩(5)에 더해 아이콘·라벨 묶음을 68 영역의 중앙에 맞춘다.
+    marginTop: 6,
+    width: 24,
+    height: 24,
+  },
   guardianIcon: {
     width: 24,
     height: 24,
@@ -227,13 +216,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  bottomTabBarDim: {
+  dimOverlay: {
     position: 'absolute',
-    bottom: 0,
     left: 0,
     right: 0,
     zIndex: 20,
     elevation: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
 });

@@ -8,7 +8,6 @@ import { ActionButton, Divider, StatusFilterChip, Tabs, TabsList, TabsTrigger } 
 import { cn } from '@knockdog/ui/lib';
 
 import { RESERVATION_LIST_COPY } from '@views/guardian-reservation-page/config/guardianReservationList';
-import { RESERVATION_ACTION_TOAST_VIEWPORT } from '@views/guardian-reservation-page/config/guardianReservationToast';
 import { leaveReservationTab } from '@views/guardian-reservation-page/lib/leaveReservationTab';
 import {
   LIST_STATUS,
@@ -31,6 +30,7 @@ import { route } from '@shared/constants/route';
 import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 const PAST_FILTERS = [
   { id: 'one', label: RESERVATION_LIST_COPY.oneMonth },
@@ -89,7 +89,6 @@ function showCancelToast(startsAt: string) {
         <span className='body1-medium text-text-primary-inverse'>{suffix}</span>
       </>
     ),
-    viewportClassName: RESERVATION_ACTION_TOAST_VIEWPORT,
   });
 }
 
@@ -248,7 +247,7 @@ function GuardianReservationListPage() {
         </div>
       </Tabs>
 
-      <div className='bg-bg-0 px-x4 pt-x4 pb-x8 shrink-0'>
+      <BottomCta className='bg-bg-0 px-x4 pt-x4 shrink-0'>
         <ActionButton
           type='button'
           variant='primaryFill'
@@ -259,7 +258,7 @@ function GuardianReservationListPage() {
           <Plus className='size-5' />
           {copy.newReservation}
         </ActionButton>
-      </div>
+      </BottomCta>
     </div>
   );
 }

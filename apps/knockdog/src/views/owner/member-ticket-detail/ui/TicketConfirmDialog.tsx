@@ -1,17 +1,8 @@
 'use client';
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@knockdog/ui';
-
 import { memberTicketDetailContent } from '@views/owner/member-ticket-detail/config/memberTicketDetailContent';
+
+import { ConfirmDialog } from '@shared/ui/confirm-dialog';
 
 interface TicketConfirmDialogProps {
   isOpen: boolean;
@@ -22,35 +13,18 @@ interface TicketConfirmDialogProps {
   onConfirm: () => void;
 }
 
+/** 이용권 삭제·홀딩 취소를 묻는 웹 확인창 */
 function TicketConfirmDialog({ isOpen, title, description, confirmLabel, onClose, onConfirm }: TicketConfirmDialogProps) {
-  const content = memberTicketDetailContent;
-
   return (
-    <AlertDialog
-      open={isOpen}
-      onOpenChange={(open) => {
-        if (!open) onClose();
-      }}
-    >
-      <AlertDialogContent>
-        <AlertDialogHeader className='px-x4'>
-          <AlertDialogTitle>{title}</AlertDialogTitle>
-          <AlertDialogDescription>{description}</AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter className='px-x4'>
-          <AlertDialogCancel className='body1-bold text-text-secondary'>{content.close}</AlertDialogCancel>
-          <AlertDialogAction
-            className='body1-bold text-text-primary-inverse'
-            onClick={(event) => {
-              event.preventDefault();
-              onConfirm();
-            }}
-          >
-            {confirmLabel}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <ConfirmDialog
+      isOpen={isOpen}
+      title={title}
+      description={description}
+      cancelLabel={memberTicketDetailContent.close}
+      confirmLabel={confirmLabel}
+      onClose={onClose}
+      onConfirm={onConfirm}
+    />
   );
 }
 

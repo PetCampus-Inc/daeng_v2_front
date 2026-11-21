@@ -15,7 +15,10 @@ import {
 } from '@views/guardian-reservation-page/lib/guardianReservationMain';
 import type { TicketHistory } from '@views/guardian-reservation-page/lib/guardianTicketHistory';
 import { toCardState } from '@views/guardian-reservation-page/ui/ticketCardState';
-import { GuardianTicketDeleteDialog } from '@views/guardian-reservation-page/ui/GuardianTicketDeleteDialog';
+import {
+  GuardianTicketDeleteDialog,
+  TICKET_DELETE_DIALOG,
+} from '@views/guardian-reservation-page/ui/GuardianTicketDeleteDialog';
 import { GuardianTicketHistoryList } from '@views/guardian-reservation-page/ui/GuardianTicketHistoryList';
 import { Header } from '@widgets/Header';
 
@@ -23,7 +26,7 @@ import { useDeleteTicketMutation, useGuardianTicketDetailQuery, type GuardianTic
 
 import { ApiError } from '@shared/api';
 import { route } from '@shared/constants/route';
-import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { openConfirmDialog, useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
 
@@ -87,38 +90,49 @@ function GuardianTicketDetailPage() {
 
   useNativeBackHandler(handleBack);
 
-  const handleConfirmDelete = () => {
+  /** 삭제 확인창을 연다. 앱에서는 앱 확인창을 먼저 시도하고, 쓸 수 없으면 웹 확인창을 띄운다. */
+  const handleDeleteClick = async () => {
+    const result = await openConfirmDialog(TICKET_DELETE_DIALOG);
+    if (result.status === 'resolved') {
+      if (result.action === 'confirm') void handleConfirmDelete();
+      return;
+    }
+    if (result.status === 'pending') return;
+
+    setIsDeleteOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
     if (!ticket || !petId || deleteTicket.isPending) return;
 
-    deleteTicket.mutate(undefined, {
-      onSuccess: () => {
-        setIsDeleteOpen(false);
-        toast({
-          type: 'success',
-          shape: 'rounded',
-          position: 'bottom',
-          title: '이용권이 삭제되었어요',
-          nativeTitle: '이용권이 삭제되었어요',
-        });
-        back()
-          .then((wentBack) => {
-            if (wentBack) return;
-            return push({ pathname: route.reservation.tickets.root, query: { dogId: petId } });
-          })
-          .catch(() => push({ pathname: route.reservation.tickets.root, query: { dogId: petId } }))
-          .catch(() => undefined);
-      },
-      onError: (error) => {
-        const message = error instanceof ApiError && error.message ? error.message : '이용권을 삭제하지 못했어요';
-        toast({
-          type: 'default',
-          shape: 'rounded',
-          position: 'bottom',
-          title: message,
-          nativeTitle: message,
-        });
-      },
+    try {
+      await deleteTicket.mutateAsync();
+    } catch (error) {
+      const message = error instanceof ApiError && error.message ? error.message : '이용권을 삭제하지 못했어요';
+      toast({
+        type: 'default',
+        shape: 'rounded',
+        position: 'bottom',
+        title: message,
+        nativeTitle: message,
+      });
+      return;
+    }
+
+    toast({
+      type: 'success',
+      shape: 'rounded',
+      position: 'bottom',
+      title: '이용권이 삭제되었어요',
+      nativeTitle: '이용권이 삭제되었어요',
     });
+    back()
+      .then((wentBack) => {
+        if (wentBack) return;
+        return push({ pathname: route.reservation.tickets.root, query: { dogId: petId } });
+      })
+      .catch(() => push({ pathname: route.reservation.tickets.root, query: { dogId: petId } }))
+      .catch(() => undefined);
   };
 
   if (!petId || !ticketId) {
@@ -172,7 +186,7 @@ function GuardianTicketDetailPage() {
             className='rounded-none'
             icon={
               isExpired ? (
-                <button type='button' aria-label='이용권 삭제' className='shrink-0' onClick={() => setIsDeleteOpen(true)}>
+                <button type='button' aria-label='이용권 삭제' className='shrink-0' onClick={handleDeleteClick}>
                   <TrashV4 className='text-fill-secondary-500' />
                 </button>
               ) : undefined
@@ -200,7 +214,10 @@ function GuardianTicketDetailPage() {
       <GuardianTicketDeleteDialog
         isOpen={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}
-        onConfirm={handleConfirmDelete}
+        onConfirm={() => {
+          setIsDeleteOpen(false);
+          void handleConfirmDelete();
+        }}
       />
     </div>
   );

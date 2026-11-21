@@ -13,6 +13,7 @@ import { openUnsavedExitDialog } from '@shared/lib/openUnsavedExitDialog';
 import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGuard';
 import { ActionLoadingOverlay, ACTION_SPINNER_DELAY_MS } from '@shared/ui/loading-spinner';
 import { COMMON_ERROR_TOAST_MESSAGE, toast } from '@shared/ui/toast';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 /** 아이디어 제안 작성. 사용자 유형과 내용만 받는다 (PRD 7.5) */
 function IdeaSuggestionWritePage() {
@@ -128,11 +129,11 @@ function IdeaSuggestionWritePage() {
         </div>
       </div>
 
-      <div className='bg-bg-0 p-x4 shrink-0'>
+      <BottomCta className='bg-bg-0 px-x4 pt-x4 shrink-0'>
         <ActionButton type='button' size='large' disabled={!canSubmit} onClick={handleSubmit}>
           제안하기
         </ActionButton>
-      </div>
+      </BottomCta>
 
       <ActionLoadingOverlay isPending={submitSuggestion.isPending || isLeaving} delayMs={ACTION_SPINNER_DELAY_MS} />
     </div>

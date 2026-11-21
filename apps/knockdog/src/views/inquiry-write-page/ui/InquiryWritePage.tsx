@@ -22,6 +22,7 @@ import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGuard';
 import { ActionLoadingOverlay, ACTION_SPINNER_DELAY_MS } from '@shared/ui/loading-spinner';
 import { COMMON_ERROR_TOAST_MESSAGE, toast } from '@shared/ui/toast';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 /** 1:1 문의 작성. 등록에 성공하면 문의 내역 목록으로 돌아가 `문의를 접수했어요` 토스트를 띄운다 (PRD 차이 C-9) */
 function InquiryWritePage() {
@@ -166,11 +167,11 @@ function InquiryWritePage() {
         />
       </div>
 
-      <div className='bg-bg-0 p-x4 shrink-0'>
+      <BottomCta className='bg-bg-0 px-x4 pt-x4 shrink-0'>
         <ActionButton type='button' size='large' disabled={!canSubmit} onClick={handleSubmit}>
           등록하기
         </ActionButton>
-      </div>
+      </BottomCta>
 
       <ActionLoadingOverlay isPending={createInquiry.isPending || isLeaving} delayMs={ACTION_SPINNER_DELAY_MS} />
     </div>

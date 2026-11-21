@@ -15,6 +15,7 @@ function isToastOptions(value: unknown): value is ToastOptions {
       'titleParts' in value ||
       'icon' in value ||
       'iconAccent' in value ||
+      'bottomOffset' in value ||
       'duration' in value ||
       'className' in value ||
       'variant' in value || // 존재 체크만 (RN에서 사용 안 함)
@@ -24,6 +25,11 @@ function isToastOptions(value: unknown): value is ToastOptions {
       'type' in value ||
       'shape' in value)
   );
+}
+
+/** 웹에서 온 값이 0 이상 유한한 숫자일 때만 쓴다. 그 외(NaN, 음수, 문자열 등)는 무시해 기본 위치로 둔다. */
+function toValidBottomOffset(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : undefined;
 }
 
 function showToast(titleOrOptions: string | ToastOptions, options?: ToastOptions): string {
@@ -54,6 +60,7 @@ function showToast(titleOrOptions: string | ToastOptions, options?: ToastOptions
     type: resolvedOptions.type ?? (defaults as any).type ?? 'default',
     icon: resolvedOptions.icon,
     iconAccent: resolvedOptions.iconAccent,
+    bottomOffset: toValidBottomOffset(resolvedOptions.bottomOffset),
     open: true,
     onOpen: resolvedOptions.onOpen,
     onClose: resolvedOptions.onClose,

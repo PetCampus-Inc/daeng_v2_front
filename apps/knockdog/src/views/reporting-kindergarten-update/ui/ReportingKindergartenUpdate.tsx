@@ -10,6 +10,7 @@ import { ReportOptionCard } from '@entities/reporting';
 import { useKindergartenBasicQuery } from '@features/kindergarten-basic';
 import { Header } from '@widgets/Header';
 import { useMoveImageMutation } from '@shared/lib/media';
+import { BottomCta } from '@shared/ui/bottom-cta';
 import { AddressSelectMapSheet } from './AddressSelectMapSheet';
 import { AddressChangeSection } from './AddressChangeSection';
 import { checkOptions } from '../model/checkOptions';
@@ -241,11 +242,11 @@ function ReportingKindergartenUpdate() {
         </div>
       </div>
 
-      <div className='flex w-full shrink-0 items-center gap-1 bg-white p-4'>
-        <ActionButton disabled={!isFormValid || isPending} onClick={handleSubmit}>
+      <BottomCta className='flex w-full shrink-0 items-center gap-1 bg-white px-4 pt-4'>
+        <ActionButton className='h-x14' disabled={!isFormValid || isPending} onClick={handleSubmit}>
           정보 수정 제보하기
         </ActionButton>
-      </div>
+      </BottomCta>
     </div>
   );
 }

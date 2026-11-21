@@ -45,6 +45,7 @@ export * from './disconnect-ticket';
 export * from './disconnect-sheet';
 export * from './rsv-confirmed-sheet';
 export * from './diary-top-bar';
+export * from './ai-written-badge';
 export * from './diary-calendar-banner';
 export * from './diary-note-banner';
 export * from './diary-import-banner';

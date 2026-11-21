@@ -99,6 +99,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ],
   },
   plugins: [
+    [
+      '@sentry/react-native/expo',
+      {
+        url: 'https://sentry.io/',
+        organization: 'petcampus',
+        project: 'knockdog-mobile',
+      },
+    ],
     'expo-font',
     'expo-router',
     'expo-apple-authentication',
@@ -109,6 +117,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     './plugins/rnfirebase-modular-headers',
     './plugins/naver-map-queries',
     './plugins/disable-android-backup',
+    './plugins/withOptionalPortrait',
     './plugins/disable-android-predictive-back',
     './plugins/with-fmt-xcode26-fix',
     [

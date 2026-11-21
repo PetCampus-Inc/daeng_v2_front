@@ -122,10 +122,10 @@ function removeDiaryRecord(dateKey: string, petId?: string | null) {
   writeDiaryRecords(readDiaryRecords().filter((record) => !isSameDiary(record, matched.dateKey, matched.petId)));
 }
 
-function saveDiaryHomeReturn(dateKey: string) {
+function saveDiaryHomeReturn(dateKey: string, { notify = true }: { notify?: boolean } = {}) {
   if (typeof window === 'undefined') return;
   window.sessionStorage.setItem(DIARY_HOME_RETURN_KEY, dateKey);
-  window.dispatchEvent(new Event(DIARY_RECORD_EVENT));
+  if (notify) window.dispatchEvent(new Event(DIARY_RECORD_EVENT));
 }
 
 function peekDiaryHomeReturn() {

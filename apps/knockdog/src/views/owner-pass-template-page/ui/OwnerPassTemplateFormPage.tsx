@@ -4,14 +4,6 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, typ
 import { useParams } from 'next/navigation';
 import {
   ActionButton,
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
   CustomDurationChip,
   DurationChip,
   DurationUnitField,
@@ -40,13 +32,15 @@ import {
 
 import { ApiError } from '@shared/api';
 import { route } from '@shared/constants/route';
-import { useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
+import { openConfirmDialog, useNativeBackHandler, useStackNavigation } from '@shared/lib/bridge';
+import { ConfirmDialog } from '@shared/ui/confirm-dialog';
 import { closeOverlayThenNavigate } from '@shared/lib/navigation/closeOverlayThenNavigate';
 import { openUnsavedExitDialog } from '@shared/lib/openUnsavedExitDialog';
 import { useUnsavedBrowserBackGuard } from '@shared/lib/useUnsavedBrowserBackGuard';
 import { ACTION_SPINNER_DELAY_MS, ActionLoadingOverlay, DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { PageError } from '@shared/ui/page-error';
 import { toast } from '@shared/ui/toast';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 type OwnerPassTemplateFormMode = 'create' | 'edit';
 type DurationOption = PassTemplateDurationOption;
@@ -219,11 +213,12 @@ function OwnerPassTemplateFormPage({ mode }: OwnerPassTemplateFormPageProps) {
   }, [isDirty, releaseAndLeave, replace]);
 
   /**
-   * 삭제 모달을 닫은 뒤 목록으로 이동한다. 삭제 확인은 미저장 변경까지 버리는 명시적 결정이라,
+   * 삭제 모달이 닫힌 뒤 목록으로 이동한다. 삭제 확인은 미저장 변경까지 버리는 명시적 결정이라,
    * 수정 중이면 이탈 방지용 history 칸을 먼저 풀고 이동한다.
+   * 모달은 확인을 누를 때 이미 닫혔으므로 닫는 함수는 비워 두고, 닫힘 처리가 끝나기를 기다린 뒤 이동한다.
    */
-  const closeDeleteDialogAndMoveToList = (close: () => void) => {
-    closeOverlayThenNavigate(close, () => {
+  const moveToListAfterDelete = () => {
+    closeOverlayThenNavigate(() => undefined, () => {
       releaseAndLeave(() => {
         void replace({ pathname: route.mypage.passTemplate.root });
       });
@@ -268,49 +263,56 @@ function OwnerPassTemplateFormPage({ mode }: OwnerPassTemplateFormPageProps) {
   const openDeleteDialog = () => {
     if (!templateId || isPending) return;
 
-    overlay.open(({ isOpen, close }) => (
-      <AlertDialog open={isOpen} onOpenChange={(open) => !open && close()}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{ownerPassTemplateContent.deleteTitle}</AlertDialogTitle>
-            <AlertDialogDescription>{ownerPassTemplateContent.deleteDescription}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>닫기</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={async (event) => {
-                event.preventDefault();
-                if (isDeletingRef.current) return;
-                isDeletingRef.current = true;
-                try {
-                  await deleteMutation.mutateAsync(templateId);
-                  closeDeleteDialogAndMoveToList(close);
-                  toast({ title: '이용권을 삭제했어요', nativeTitle: '이용권을 삭제했어요', type: 'success' });
-                } catch (error) {
-                  // 다른 기기에서 이미 삭제된 이용권이면 삭제 성공처럼 목록으로 보낸다.
-                  // isDeletingRef를 그대로 두어 목록 갱신 뒤 `찾을 수 없어요` 토스트가 겹쳐 뜨지 않게 한다.
-                  if (isTemplateAlreadyDeletedError(error)) {
-                    void listQuery.refetch();
-                    closeDeleteDialogAndMoveToList(close);
-                    toast({
-                      title: ownerPassTemplateContent.alreadyDeletedToast,
-                      nativeTitle: ownerPassTemplateContent.alreadyDeletedToast,
-                    });
-                    return;
-                  }
+    const confirmCopy = {
+      title: ownerPassTemplateContent.deleteTitle,
+      description: ownerPassTemplateContent.deleteDescription,
+      cancelLabel: '닫기',
+      confirmLabel: '삭제하기',
+    };
+    // 확인창은 확인을 누르면 바로 닫히고, 삭제가 성공하면 목록으로 이동한다.
+    const deleteTemplate = async () => {
+      if (isDeletingRef.current) return;
+      isDeletingRef.current = true;
+      try {
+        await deleteMutation.mutateAsync(templateId);
+        moveToListAfterDelete();
+        toast({ title: '이용권을 삭제했어요', nativeTitle: '이용권을 삭제했어요', type: 'success' });
+      } catch (error) {
+        // 다른 기기에서 이미 삭제된 이용권이면 삭제 성공처럼 목록으로 보낸다.
+        // isDeletingRef를 그대로 두어 목록 갱신 뒤 `찾을 수 없어요` 토스트가 겹쳐 뜨지 않게 한다.
+        if (isTemplateAlreadyDeletedError(error)) {
+          void listQuery.refetch();
+          moveToListAfterDelete();
+          toast({
+            title: ownerPassTemplateContent.alreadyDeletedToast,
+            nativeTitle: ownerPassTemplateContent.alreadyDeletedToast,
+          });
+          return;
+        }
 
-                  isDeletingRef.current = false;
-                  close();
-                  toast({ title: '이용권을 삭제하지 못했어요', nativeTitle: '이용권을 삭제하지 못했어요' });
-                }
-              }}
-            >
-              삭제하기
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    ));
+        isDeletingRef.current = false;
+        toast({ title: '이용권을 삭제하지 못했어요', nativeTitle: '이용권을 삭제하지 못했어요' });
+      }
+    };
+    openConfirmDialog(confirmCopy).then((result) => {
+      if (result.status === 'resolved') {
+        if (result.action === 'confirm') void deleteTemplate();
+        return;
+      }
+      if (result.status === 'pending') return;
+
+      overlay.open(({ isOpen, close }) => (
+        <ConfirmDialog
+          {...confirmCopy}
+          isOpen={isOpen}
+          onClose={close}
+          onConfirm={() => {
+            close();
+            void deleteTemplate();
+          }}
+        />
+      ));
+    });
   };
 
   // 이미 불러온 목록은 재조회가 실패해도 유지한다. 오류 화면은 처음 불러오기에 실패했을 때만 보여 준다.
@@ -439,7 +441,7 @@ function OwnerPassTemplateFormPage({ mode }: OwnerPassTemplateFormPageProps) {
         </div>
       </div>
 
-      <div className='bg-bg-0 shrink-0 px-4 pt-4 pb-[calc(1rem+max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px)))]'>
+      <BottomCta className='bg-bg-0 shrink-0 px-4 pt-4'>
         <ActionButton
           type='button'
           size='large'
@@ -451,7 +453,7 @@ function OwnerPassTemplateFormPage({ mode }: OwnerPassTemplateFormPageProps) {
         >
           {ownerPassTemplateContent.submitButtonLabel}
         </ActionButton>
-      </div>
+      </BottomCta>
 
       <ActionLoadingOverlay isPending={isPending} delayMs={ACTION_SPINNER_DELAY_MS} />
     </div>

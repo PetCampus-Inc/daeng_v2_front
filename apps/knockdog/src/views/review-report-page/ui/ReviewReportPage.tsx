@@ -8,7 +8,6 @@ import { Header } from '@widgets/Header';
 import { useKindergartenMainQuery } from '@features/kindergarten-main';
 import {
   DUPLICATE_KNOCKDOG_REVIEW_REPORT_MESSAGE,
-  ReviewActionDialog,
   submitKnockdogReviewReport,
   useKnockdogReviews,
   useReportSchoolReview,
@@ -17,10 +16,12 @@ import {
 import { parseSchoolId, type SchoolReviewReportReason } from '@entities/review';
 import { useBasePoint, useUserStore } from '@entities/user';
 import { ApiError } from '@shared/api';
-import { useStackNavigation } from '@shared/lib/bridge';
+import { openConfirmDialog, useStackNavigation } from '@shared/lib/bridge';
+import { ConfirmDialog } from '@shared/ui/confirm-dialog';
 import { ActionLoadingOverlay } from '@shared/ui/loading-spinner';
 import { PageError } from '@shared/ui/page-error';
 import { toast } from '@shared/ui/toast';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 const REPORT_REASONS = [
   '유치원과 관련 없는 내용이에요',
@@ -56,6 +57,16 @@ function isDuplicateReportError(error: unknown) {
 const DETAIL_PLACEHOLDER = '신고하는 상세 이유를 입력하세요. 신고 사유 중 기타 선택 시 필수로 입력해 주세요.';
 const DETAIL_LIMIT_MESSAGE = '최대 1,000자까지 작성할 수 있어요.';
 const REPORT_SUBMITTED_MESSAGE = '신고가 접수됐어요. 검토 후 조치할게요.';
+/** 신고 실패 안내창 문구. 앱 확인창과 웹 확인창이 같이 쓴다. */
+const REPORT_FAILURE_COPY = {
+  title: '신고를 접수하지 못했어요',
+  description: '잠시 후 다시 시도해 주세요.',
+  cancelLabel: '닫기',
+  confirmLabel: '다시 시도',
+};
+
+/** 제출 결과. skipped: 조건이 안 맞아 요청을 보내지 않음. done: 접수됐거나 이미 신고한 리뷰라 화면을 떠남 */
+type SubmitOutcome = 'skipped' | 'done' | 'failed';
 
 function formatReviewDate(createdAt: string) {
   const [datePart] = createdAt.split('T');
@@ -151,13 +162,13 @@ function ReviewReportPage() {
   };
 
   const handleCloseFailure = () => {
-    if (isSubmittingRef.current) return;
     setIsFailureOpen(false);
   };
 
-  const handleSubmit = async () => {
-    if (!review || reason === '' || isSubmittingRef.current) return;
-    if (isEtcReason && detail.trim().length === 0) return;
+  /** 신고 요청을 보낸다. 실패 안내는 호출한 쪽이 맡는다. */
+  const submitReport = async (): Promise<SubmitOutcome> => {
+    if (!review || reason === '' || isSubmittingRef.current) return 'skipped';
+    if (isEtcReason && detail.trim().length === 0) return 'skipped';
 
     isSubmittingRef.current = true;
     setIsSubmitting(true);
@@ -191,6 +202,7 @@ function ReviewReportPage() {
         position: 'bottom',
       });
       back();
+      return 'done';
     } catch (error) {
       if (isDuplicateReportError(error)) {
         toast({
@@ -199,13 +211,34 @@ function ReviewReportPage() {
           position: 'bottom',
         });
         back();
-        return;
+        return 'done';
       }
 
       isSubmittingRef.current = false;
       setIsSubmitting(false);
-      setIsFailureOpen(true);
+      return 'failed';
     }
+  };
+
+  /**
+   * 신고 실패 안내창을 연다. 앱에서는 앱 확인창을 먼저 시도하고, 쓸 수 없으면 웹 확인창을 띄운다.
+   * `다시 시도`를 누르면 안내창이 바로 닫히고 신고 요청이 다시 시작된다. 또 실패하면 다시 안내한다.
+   */
+  const showFailure = async () => {
+    const result = await openConfirmDialog(REPORT_FAILURE_COPY);
+    if (result.status === 'pending') return;
+
+    if (result.status === 'unavailable') {
+      setIsFailureOpen(true);
+      return;
+    }
+
+    if (result.action === 'confirm') await handleSubmit();
+  };
+
+  const handleSubmit = async () => {
+    const outcome = await submitReport();
+    if (outcome === 'failed') await showFailure();
   };
 
   if (!review) {
@@ -253,7 +286,7 @@ function ReviewReportPage() {
               </span>
               <span className='body2-regular text-text-tertiary'>{formatReviewDate(review.createdAt)}</span>
             </div>
-            <p className='body1-regular text-text-primary line-clamp-3'>{review.content}</p>
+            <p className='body1-regular text-text-primary line-clamp-3 whitespace-pre-wrap'>{review.content}</p>
           </div>
         </section>
 
@@ -313,7 +346,7 @@ function ReviewReportPage() {
         </section>
       </div>
 
-      <div className='bg-bg-0 shrink-0 p-4'>
+      <BottomCta className='bg-bg-0 shrink-0 px-4 pt-4'>
         <ActionButton
           type='button'
           size='large'
@@ -324,17 +357,14 @@ function ReviewReportPage() {
         >
           신고 접수
         </ActionButton>
-      </div>
+      </BottomCta>
       <ActionLoadingOverlay isPending={isSubmitting && !isFailureOpen} />
-      <ReviewActionDialog
+      <ConfirmDialog
         isOpen={isFailureOpen}
-        isSubmitting={isSubmitting}
-        title='신고를 접수하지 못했어요'
-        description='잠시 후 다시 시도해 주세요.'
-        cancelLabel='닫기'
-        confirmLabel='다시 시도'
+        {...REPORT_FAILURE_COPY}
         onClose={handleCloseFailure}
         onConfirm={() => {
+          setIsFailureOpen(false);
           handleSubmit();
         }}
       />

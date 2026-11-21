@@ -9,7 +9,6 @@ import { ActionButton, Icon } from '@knockdog/ui';
 
 import { useGuardianSelectedPet } from '@views/guardian-kindergarten-page/model/useGuardianSelectedPet';
 import { RESERVATION_DETAIL_COPY } from '@views/guardian-reservation-page/config/guardianReservationDetail';
-import { RESERVATION_ACTION_TOAST_VIEWPORT } from '@views/guardian-reservation-page/config/guardianReservationToast';
 import { leaveReservationTab } from '@views/guardian-reservation-page/lib/leaveReservationTab';
 import { isNoteFilled } from '@views/guardian-reservation-page/lib/guardianReservationConfirm';
 import {
@@ -28,10 +27,11 @@ import { guardianTicketQueryKeys } from '@entities/guardian-ticket';
 
 import { ApiError } from '@shared/api';
 import { route } from '@shared/constants/route';
-import { useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
+import { openConfirmDialog, useNativeBackHandler, useStackNavigation, useTabNavigation } from '@shared/lib/bridge';
 import { syncWebViewQuery } from '@shared/lib/sync-webview-query';
 import { DelayedLoadingSpinner } from '@shared/ui/loading-spinner';
 import { toast } from '@shared/ui/toast';
+import { BottomCta } from '@shared/ui/bottom-cta';
 
 function DetailInfoRow({ label, value }: { label: string; value: string }) {
   return (
@@ -110,10 +110,23 @@ function GuardianReservationDetailPage() {
           position: 'bottom',
           title: copy.phoneCopied,
           nativeTitle: copy.phoneCopied,
-          viewportClassName: RESERVATION_ACTION_TOAST_VIEWPORT,
         });
       })
       .catch(() => undefined);
+  };
+
+  /** 취소 확인창을 연다. 예약 일시 박스가 있어 앱 확인창으로는 그릴 수 없으므로 항상 웹 모달을 띄운다. */
+  const handleCancelClick = async () => {
+    const result = await openConfirmDialog({
+      title: copy.cancelTitle,
+      description: copy.cancelBody,
+      cancelLabel: copy.close,
+      confirmLabel: copy.cancel,
+      webOnly: { reason: '예약 일시·요약 박스가 있어 앱 확인창(제목·설명·버튼)으로 그릴 수 없음' },
+    });
+    if (result.status === 'pending') return;
+
+    if (result.status === 'unavailable') setIsCancelOpen(true);
   };
 
   const handleConfirmCancel = () => {
@@ -142,7 +155,6 @@ function GuardianReservationDetailPage() {
             position: 'bottom',
             title: message,
             nativeTitle: message,
-            viewportClassName: RESERVATION_ACTION_TOAST_VIEWPORT,
           });
         },
       }
@@ -232,18 +244,18 @@ function GuardianReservationDetailPage() {
         </section>
       </div>
 
-      <div className='bg-bg-0 p-x4 shrink-0'>
+      <BottomCta className='bg-bg-0 px-x4 pt-x4 shrink-0'>
         <ActionButton
           type='button'
           variant={canCancel ? 'secondaryLine' : 'primaryFill'}
           size='large'
           className='body1-bold'
           disabled={!canCancel || isCancelling}
-          onClick={() => setIsCancelOpen(true)}
+          onClick={handleCancelClick}
         >
           {copy.cancel}
         </ActionButton>
-      </div>
+      </BottomCta>
 
       <ReservationCancelDialog
         isOpen={isCancelOpen}
