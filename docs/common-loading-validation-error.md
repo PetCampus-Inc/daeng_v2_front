@@ -306,7 +306,7 @@ if (query.isError) {
 }
 ```
 
-- 이미지: `/images/img_404.webp`
+- 이미지: 오프라인에서도 별도 요청 없이 표시하는 인라인 SVG (`PageErrorIllustration`)
 - 제목: `정보를 불러오지 못했어요`
 - 설명: `잠시 후 다시 시도해 주세요.`
 - CTA: `다시 시도하기`
