@@ -117,6 +117,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     './plugins/rnfirebase-modular-headers',
     './plugins/naver-map-queries',
     './plugins/disable-android-backup',
+    './plugins/withOptionalPortrait',
     './plugins/disable-android-predictive-back',
     './plugins/with-fmt-xcode26-fix',
     [
