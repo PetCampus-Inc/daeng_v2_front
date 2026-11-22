@@ -29,28 +29,27 @@ export function SearchHeader({ query }: SearchHeaderProps) {
   };
 
   return (
-    <Header
-      className='bg-fill-secondary-0 absolute top-0 z-50 h-fit w-full pt-(--safe-area-inset-top,0px)'
-      innerClassName='gap-2'
-    >
+    <Header className='bg-fill-secondary-0 absolute top-0 z-50 h-[calc(var(--top-bar-height)+var(--safe-area-inset-top,0px))] w-full pt-(--safe-area-inset-top,0px)'>
       <Header.LeftSection>
         <Header.BackButton onClick={handleGoSearch} />
       </Header.LeftSection>
 
-      <TextField
-        prefix={<Icon icon='Search' className='size-x6 text-fill-secondary-700' />}
-        className='bg-fill-secondary-50 h-x12 border-0'
-        onClick={handleGoSearch}
-      >
-        <TextFieldInput
-          type='search'
-          placeholder='업체 또는 주소를 검색하세요'
-          aria-label='검색어 입력'
-          autoFocus
-          value={query}
-          readOnly
-        />
-      </TextField>
+      <div className='relative mx-2 min-w-0 flex-1'>
+        <TextField
+          prefix={<Icon icon='Search' className='size-x6 text-fill-secondary-700' />}
+          className='bg-fill-secondary-50 h-x12 min-w-0 border-0'
+          onClick={handleGoSearch}
+        >
+          <TextFieldInput
+            type='search'
+            placeholder='업체 또는 주소를 검색하세요'
+            aria-label='검색어 입력'
+            autoFocus
+            value={query}
+            readOnly
+          />
+        </TextField>
+      </div>
 
       <Header.RightSection>
         <Header.CloseButton onClick={handleClearQuery} aria-label='검색어 삭제' />
