@@ -8,6 +8,7 @@ import { type Bounds } from '@shared/types';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { useWebBottomNavStore } from '@shared/store';
 import { isNativeWebView } from '@shared/lib/device';
+import { waitForOverlayHistoryPop } from '@shared/lib/overlay-history';
 import { filterQueries } from '../api/filterQueries';
 import { FILTER_CONFIG, type FilterCategory, type FilterOption } from '@entities/kindergarten';
 
@@ -85,9 +86,10 @@ export function FilterBottomSheet({
   }, [filterResultData, localFilters.length]);
 
   /** 필터 적용 핸들러 */
-  const handleApply = () => {
-    applyFilters();
+  const handleApply = async () => {
     close();
+    await waitForOverlayHistoryPop();
+    applyFilters();
   };
 
   const getApplyButtonText = () => {

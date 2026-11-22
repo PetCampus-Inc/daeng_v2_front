@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { overlay, OverlayProvider as OverClientProvider, useCurrentOverlay } from 'overlay-kit';
 
 import { UNSAVED_EXIT_OVERLAY_ID } from '@shared/lib/openUnsavedExitDialog';
+import { finishOverlayHistoryPop, startOverlayHistoryPop } from '@shared/lib/overlay-history';
 
 const OVERLAY_HISTORY_KEY = '__knockdogOverlayId';
 const NATIVE_BACK_EVENT = 'knockdog:native-back';
@@ -29,6 +30,7 @@ function OverlayBackDismissHandler() {
         window.history.state?.[OVERLAY_HISTORY_KEY] === previousOverlayId
       ) {
         isRestoringPreviousOverlayRef.current = true;
+        startOverlayHistoryPop();
         window.history.back();
       }
     }
@@ -80,6 +82,7 @@ function OverlayBackDismissHandler() {
             window.location.href
           );
         }
+        finishOverlayHistoryPop();
         return;
       }
 
