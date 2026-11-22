@@ -88,7 +88,6 @@ export function FilterBottomSheet({
   /** 필터 적용 핸들러 */
   const handleApply = async () => {
     close();
-    // 시트가 쌓은 방문 기록을 지운 뒤 적용해야, 적용한 필터가 주소에서 되돌려지지 않는다.
     await waitForOverlayHistoryPop();
     applyFilters();
   };
