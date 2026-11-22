@@ -8,3 +8,4 @@ export * from './utils';
 export * from './embla';
 export * from './geolocation';
 export * from './uploader'
+export * from './overlay-history';
