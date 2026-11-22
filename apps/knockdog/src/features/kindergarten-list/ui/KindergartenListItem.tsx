@@ -24,6 +24,7 @@ export function KindergartenListItem({
   rating,
   reviewCount,
   verified,
+  attending,
   memo,
   bookmarked = false,
   onBookmarkClick,
@@ -46,7 +47,7 @@ export function KindergartenListItem({
         <BannerImageSlider id={id} name={title} slides={banner} />
         <CardBtnClipDefs id={id} />
         <div className='absolute top-2 left-2 z-10'>
-          <KindergartenFeatureBadges verified={verified} />
+          <KindergartenFeatureBadges verified={verified} resident={attending} />
         </div>
         {/* 북마크 버튼 */}
         <button
