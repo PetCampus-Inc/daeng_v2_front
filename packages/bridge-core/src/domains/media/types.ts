@@ -6,6 +6,8 @@ type PickImageParams = {
    * 이미지 소스
    */
   source?: ImageSource;
+  /** 앱에서 사진 보관함과 시스템 파일 선택기 중 선택할 수 있게 한다. */
+  allowsFileSelection?: boolean;
   /**
    * 이미지 편집 허용 여부 default: false
    */

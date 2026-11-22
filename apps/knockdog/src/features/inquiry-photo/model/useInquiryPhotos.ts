@@ -16,7 +16,7 @@ function revokePreview(photo: InquiryPhoto) {
   if (photo.previewUrl.startsWith('blob:')) URL.revokeObjectURL(photo.previewUrl);
 }
 
-/** 문의 사진 상태: 앨범에서 고르면 바로 업로드하고, 업로드한 사진만 목록에 남긴다 (최대 5장) */
+/** 문의 사진을 고르면 바로 업로드하고, 성공한 사진만 목록에 남긴다 (최대 5장) */
 function useInquiryPhotos() {
   const { pickImage } = useImagePicker();
   const [photos, setPhotos] = useState<InquiryPhoto[]>([]);
@@ -34,15 +34,18 @@ function useInquiryPhotos() {
     isBusyRef.current = true;
 
     try {
-      // 남은 장수까지만 고를 수 있게 제한한다 (PRD OQ-X2)
-      const result = await pickImage({
-        source: 'library',
-        mediaTypes: 'images',
-        allowsMultipleSelection: true,
-        orderedSelection: true,
-        selectionLimit: remainingCount,
-        skipUpload: true,
-      });
+      const result = await pickImage(
+        {
+          source: 'library',
+          allowsFileSelection: true,
+          mediaTypes: 'images',
+          allowsMultipleSelection: true,
+          orderedSelection: true,
+          selectionLimit: remainingCount,
+          skipUpload: true,
+        },
+        { onUploading: setUploadingCount }
+      );
       if (result.cancelled) return;
 
       const skippedCount =
@@ -52,6 +55,7 @@ function useInquiryPhotos() {
       // Android 사진 선택기는 selectionLimit을 넘겨 고를 수 있어 앱이 앞에서부터 남은 장수만 남긴다. 빠진 사진이 있다고 알린다
       if (result.exceededLimit) toast(MAX_PHOTO_COUNT_MESSAGE);
       else if (skippedCount > 0) toast(INVALID_PHOTO_MESSAGE);
+      else if (result.failure === 'network') toast(COMMON_ERROR_TOAST_MESSAGE);
 
       const assets = (result.assets ?? []).slice(0, remainingCount) as InquiryPickAsset[];
       if (assets.length === 0) return;

@@ -506,6 +506,7 @@ function useImagePicker() {
 
         bridge.emit('media.pickImage', {
           source: params?.source,
+          allowsFileSelection: params?.allowsFileSelection,
           requestId,
           mediaTypes: params?.mediaTypes,
           allowsEditing: params?.allowsEditing,
