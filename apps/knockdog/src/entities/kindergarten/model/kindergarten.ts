@@ -25,6 +25,7 @@ export interface Kindergarten {
   reviewCount: number;
   rating?: number;
   verified?: boolean;
+  attending?: boolean;
   serviceTags: (keyof typeof SERVICE_TAGS)[];
   pickupType: keyof typeof PICKUP;
   banner: string[];

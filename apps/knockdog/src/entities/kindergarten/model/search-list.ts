@@ -40,6 +40,7 @@ export interface KindergartenListItemDto {
   pickupType: keyof typeof PICKUP;
   phoneNumber: string;
   verified?: boolean;
+  attending?: boolean;
 }
 
 export interface Aggregation {
