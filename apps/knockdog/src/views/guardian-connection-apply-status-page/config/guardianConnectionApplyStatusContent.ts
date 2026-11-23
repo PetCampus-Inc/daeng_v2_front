@@ -1,3 +1,5 @@
+import { formatDogName } from '@knockdog/ui/lib';
+
 const guardianConnectionApplyStatusContent = {
   pageTitle: '연결 신청 현황',
   /** 초대 신청 완료 CTA로 진입한 경우 뒤로가기 분기용 */
@@ -26,7 +28,7 @@ const guardianConnectionApplyStatusContent = {
   /** 원장 알림(퍼블리싱: 실제 전송은 API 연동 시) */
   directorCancelNotification: {
     title: '보호자가 등록 신청을 취소했어요',
-    body: (petName: string) => `${petName}가 승인 대기 목록에서 제외됐어요.`,
+    body: (petName: string) => `${formatDogName(petName, '가')} 승인 대기 목록에서 제외됐어요.`,
   },
 } as const;
 

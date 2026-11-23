@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 
-import { cn } from '@knockdog/ui/lib';
+import { cn, formatDogName } from '@knockdog/ui/lib';
 
 import { DiarySampleCard, type DiarySampleCardProps } from '../diary-sample-card';
 
@@ -91,7 +91,7 @@ function DiaryOnboardingSheet({
         ))}
       </div>
       <div className='gap-x1 px-x4 pt-x6 pb-x2 flex flex-col items-center text-center'>
-        <h2 className='h2-extrabold text-text-primary'>{dogName}의 목소리로 일기를 남겨보세요</h2>
+        <h2 className='h2-extrabold text-text-primary'>{formatDogName(dogName, '의')} 목소리로 일기를 남겨보세요</h2>
         <p className='body2-regular text-text-secondary whitespace-pre-line'>
           {description ?? formatDiaryOnboardingDescription(dogName)}
         </p>

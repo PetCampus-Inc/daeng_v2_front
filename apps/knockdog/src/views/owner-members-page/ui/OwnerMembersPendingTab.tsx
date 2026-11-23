@@ -8,6 +8,7 @@ import {
   StudentTicketListItem,
   type SortOption,
 } from '@knockdog/ui';
+import { formatDogName } from '@knockdog/ui/lib';
 import { ownerMembersEmptyContent } from '@views/owner-members-page/config/ownerMembersEmptyContent';
 import { hasListLoadFailed } from '@views/owner-members-page/lib/hasListLoadFailed';
 import { useOwnerRole } from '@features/role-conversion';
@@ -33,7 +34,7 @@ import { OwnerMembersEmptyState } from './OwnerMembersEmptyState';
 /** 승인 완료 확인창 문구. 앱 확인창과 웹 확인창이 같이 쓴다. */
 const toApprovedDialog = (dogName: string) => ({
   title: '원생 승인을 완료했어요',
-  description: `${dogName}의 유치원 연결이 완료됐어요.`,
+  description: `${formatDogName(dogName, '의')} 유치원 연결이 완료됐어요.`,
   cancelLabel: '닫기',
   confirmLabel: '이용권 충전하기',
   buttonLayout: 'vertical' as const,

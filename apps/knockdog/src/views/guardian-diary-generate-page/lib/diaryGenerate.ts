@@ -1,4 +1,5 @@
 import { formatDiaryDogSubject } from '@knockdog/ui';
+import { getDogNameSuffix } from '@knockdog/ui/lib';
 
 const DIARY_GENERATE_DELAY_MS = 1600;
 const DIARY_WORD_INTERVAL_MS = 80;
@@ -45,7 +46,7 @@ function getDiaryDialogCopy(dialog: DiaryGenerateDialog) {
 }
 
 function getDiarySaveToast(dogName: string) {
-  const suffix = '의 일기를 저장했어요';
+  const suffix = `${getDogNameSuffix(dogName, '의')} 일기를 저장했어요`;
   return { name: dogName, suffix, nativeTitle: `${dogName}${suffix}` };
 }
 

@@ -13,6 +13,7 @@ import {
   TextField,
   TextFieldInput,
 } from '@knockdog/ui';
+import { formatDogName } from '@knockdog/ui/lib';
 import { overlay } from 'overlay-kit';
 import NicknameDialog from './NicknameDialog';
 import { Header } from '@widgets/Header';
@@ -51,7 +52,7 @@ function MypageProfileManagePage() {
 
   const nickname =
     isRepresentativePet && representativePet
-      ? `${representativePet.name}의 ${representativePet.relationshipText}`
+      ? `${formatDogName(representativePet.name, '의')} ${representativePet.relationshipText}`
       : user?.nickname || '';
 
   useEffect(() => {

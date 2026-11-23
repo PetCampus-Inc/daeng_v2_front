@@ -1,3 +1,5 @@
+import { getDogNameSuffix } from '@knockdog/ui/lib';
+
 import { overlay } from 'overlay-kit';
 
 import { OWNER_DAILY_CANCEL_CONTENT, type OwnerDailyCancelKind } from '@views/owner-daily-page/config/ownerDailyContent';
@@ -36,9 +38,10 @@ const useOwnerDailyCancelDialog = ({
   const openCancelDialog = async (kind: OwnerDailyCancelKind, member: CancelDialogMember) => {
     const { target, description } = OWNER_DAILY_CANCEL_CONTENT[kind];
     const displayName = ellipsisText(member.name, 8);
+    const particle = getDogNameSuffix(member.name, '의');
     const result = await openConfirmDialog({
-      title: `${displayName}의 ${target}을 취소할까요?`,
-      titleParts: [{ text: displayName, accent: true }, { text: '의' }, { text: ` ${target}을 취소할까요?` }],
+      title: `${displayName}${particle} ${target}을 취소할까요?`,
+      titleParts: [{ text: displayName, accent: true }, { text: particle }, { text: ` ${target}을 취소할까요?` }],
       titleLineBreakAfterPartIndex: 1,
       description,
       cancelLabel: '닫기',

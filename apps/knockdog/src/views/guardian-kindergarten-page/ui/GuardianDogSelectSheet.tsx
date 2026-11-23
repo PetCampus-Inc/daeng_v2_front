@@ -3,7 +3,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { useQueries } from '@tanstack/react-query';
 import { Divider, Icon } from '@knockdog/ui';
-import { cn } from '@knockdog/ui/lib';
+import { cn, getDogNameSuffix } from '@knockdog/ui/lib';
 
 import {
   getGuardianSchoolHome,
@@ -82,19 +82,20 @@ function GuardianDogSelectSheet({
     onSelect(dog.id);
     close();
 
-    const toastTitle = `${dog.name}${guardianDogSelectContent.toastSuffix}`;
+    const suffix = `${getDogNameSuffix(dog.name, '로')}${guardianDogSelectContent.toastSuffix}`;
+    const toastTitle = `${dog.name}${suffix}`;
     toast({
       type: 'success',
       nativeTitle: toastTitle,
       titleParts: [
         { text: dog.name, bold: true },
-        { text: guardianDogSelectContent.toastSuffix },
+        { text: suffix },
       ],
       title: (
         <>
           <span className='body1-bold text-text-primary-inverse'>{dog.name}</span>
           <span className='body1-medium text-text-primary-inverse'>
-            {guardianDogSelectContent.toastSuffix}
+            {suffix}
           </span>
         </>
       ),

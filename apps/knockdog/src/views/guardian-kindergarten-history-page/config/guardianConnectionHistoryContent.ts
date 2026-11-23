@@ -1,3 +1,5 @@
+import { formatDogName } from '@knockdog/ui/lib';
+
 const guardianConnectionHistoryContent = {
   pageTitle: '유치원 연결 내역',
   titleSuffix: '다녔던 유치원들이에요',
@@ -21,7 +23,7 @@ const guardianConnectionHistoryContent = {
   disconnectDialog: {
     titleSuffix: '과의\n연결을 해제할까요?',
     descriptionPrefix: '연결을 해제하면 ',
-    descriptionSuffix: '의\n유치원 소식을 더 이상 받을 수 없어요.\n지난 알림장과 앨범은 계속 볼 수 있어요.',
+    descriptionSuffix: '\n유치원 소식을 더 이상 받을 수 없어요.\n지난 알림장과 앨범은 계속 볼 수 있어요.',
     cancelLabel: '닫기',
     confirmLabel: '연결 해제하기',
     /** 유치원명 10자 초과 시 말줄임 */
@@ -50,7 +52,7 @@ const guardianConnectionHistoryContent = {
   /** 원장 알림(푸시+알림함) — 실제 전송은 disconnect API 성공 시 서버 */
   directorDisconnectNotification: {
     title: '보호자가 유치원과의 연결을 해제했어요',
-    body: (petName: string) => `${petName}가 구성원 목록에서 제외됐어요.`,
+    body: (petName: string) => `${formatDogName(petName, '가')} 구성원 목록에서 제외됐어요.`,
   },
 } as const;
 

@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { Divider, Avatar, AvatarImage, AvatarFallback, Icon } from '@knockdog/ui';
+import { getDogNameSuffix } from '@knockdog/ui/lib';
 import { usePetUpdateRepresentativeMutation, type Pet } from '@entities/pet';
 import { BottomSheet } from '@shared/ui/bottom-sheet';
 import { useNativeBackToClose } from '@shared/lib/bridge';
 import { toast } from '@shared/ui/toast';
-import { pickRoEuro } from '../lib/josa';
 
 interface DogSelectSheetProps {
   isOpen: boolean;
@@ -59,19 +59,19 @@ export const DogSelectSheet = ({ isOpen, close, dogs }: DogSelectSheetProps) => 
     try {
       await updatePetRepresentative(Number(dog.id));
 
-      const josa = pickRoEuro(dog.name);
+      const particle = getDogNameSuffix(dog.name, '로');
       toast({
         type: 'success',
         shape: 'rounded',
-        nativeTitle: `${dog.name}${josa} 변경되었습니다`,
+        nativeTitle: `${dog.name}${particle} 변경되었습니다`,
         titleParts: [
           { text: dog.name, bold: true },
-          { text: `${josa} 변경되었습니다` },
+          { text: `${particle} 변경되었습니다` },
         ],
         title: (
           <>
             <span className='body1-bold text-text-primary-inverse'>{dog.name}</span>
-            {`${josa} 변경되었습니다`}
+            {`${particle} 변경되었습니다`}
           </>
         ),
       });

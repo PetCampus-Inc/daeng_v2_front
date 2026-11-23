@@ -18,6 +18,6 @@ describe('shouldShowDiaryNoteBanner', () => {
 describe('formatDiaryDogSubject', () => {
   test('이름 받침에 맞춰 조사를 붙인다', () => {
     expect(formatDiaryDogSubject('콩이')).toBe('콩이가');
-    expect(formatDiaryDogSubject('봄')).toBe('봄이');
+    expect(formatDiaryDogSubject('봄')).toBe('봄이가');
   });
 });
