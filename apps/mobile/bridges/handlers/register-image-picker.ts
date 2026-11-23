@@ -1,5 +1,6 @@
 import type { ImagePickerOptions, ImagePickerPayload } from '@/types/image-picker';
-import { Platform } from 'react-native';
+import { ActionSheetIOS, Alert, Platform } from 'react-native';
+import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import { uploadImage } from '../api/image';
@@ -13,13 +14,42 @@ const ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/jpg', 'image/png', 'ima
 
 type SkipReason = 'invalid_spec' | 'oversized' | 'unreadable';
 
+interface PickedImage {
+  uri: string;
+  fileName?: string | null;
+  mimeType?: string;
+  fileSize?: number;
+}
+
+const selectImageSource = () =>
+  new Promise<'library' | 'files' | null>((resolve) => {
+    if (Platform.OS === 'android') {
+      Alert.alert(
+        '사진 추가',
+        undefined,
+        [
+          { text: '취소', style: 'cancel', onPress: () => resolve(null) },
+          { text: '사진 보관함', onPress: () => resolve('library') },
+          { text: '파일 찾아보기', onPress: () => resolve('files') },
+        ],
+        { cancelable: true, onDismiss: () => resolve(null) }
+      );
+      return;
+    }
+
+    ActionSheetIOS.showActionSheetWithOptions(
+      { options: ['사진 보관함', '파일 찾아보기', '취소'], cancelButtonIndex: 2 },
+      (index) => resolve(index === 0 ? 'library' : index === 1 ? 'files' : null)
+    );
+  });
+
 function getExtension(fileName?: string | null) {
   if (!fileName) return null;
   const match = fileName.toLowerCase().match(/\.([a-z0-9]+)$/);
   return match?.[1] ?? null;
 }
 
-function isAllowedFormat(asset: ImagePicker.ImagePickerAsset) {
+function isAllowedFormat(asset: PickedImage) {
   const mimeType = asset.mimeType?.toLowerCase();
   if (mimeType && ALLOWED_MIME_TYPES.has(mimeType)) return true;
 
@@ -30,7 +60,7 @@ function isAllowedFormat(asset: ImagePicker.ImagePickerAsset) {
   return false;
 }
 
-async function getAssetSizeBytes(asset: ImagePicker.ImagePickerAsset) {
+async function getAssetSizeBytes(asset: PickedImage) {
   if (typeof asset.fileSize === 'number' && asset.fileSize > 0) return asset.fileSize;
 
   try {
@@ -43,7 +73,7 @@ async function getAssetSizeBytes(asset: ImagePicker.ImagePickerAsset) {
   return null;
 }
 
-async function validateAsset(asset: ImagePicker.ImagePickerAsset): Promise<SkipReason | null> {
+async function validateAsset(asset: PickedImage): Promise<SkipReason | null> {
   if (!isAllowedFormat(asset)) return 'invalid_spec';
 
   const size = await getAssetSizeBytes(asset);
@@ -65,7 +95,7 @@ function isNetworkError(error: unknown) {
   );
 }
 
-async function compressForUpload(asset: ImagePicker.ImagePickerAsset, targetSizeBytes?: number) {
+async function compressForUpload(asset: PickedImage, targetSizeBytes?: number) {
   if (!targetSizeBytes) {
     const manipulated = await ImageManipulator.manipulateAsync(asset.uri, [{ resize: { width: 1600 } }], {
       compress: 0.75,
@@ -106,8 +136,8 @@ async function compressForUpload(asset: ImagePicker.ImagePickerAsset, targetSize
   };
 }
 
-/** skipUpload용 — content:// 원본 직접 PUT 시 Android 네이티브 크래시 방지 */
-async function prepareSkipUploadAsset(asset: ImagePicker.ImagePickerAsset, maxBytes?: number) {
+/** 렌더링한 JPEG만 반환해 원본 EXIF가 전달되지 않게 하고, Android content:// 직접 PUT을 피한다. */
+async function prepareSkipUploadAsset(asset: PickedImage, maxBytes?: number) {
   const compressed = await compressForUpload(asset, maxBytes);
   const info = await FileSystem.getInfoAsync(compressed.uri, { size: true });
   const fileSize = info.exists && typeof info.size === 'number' ? info.size : undefined;
@@ -127,7 +157,7 @@ async function prepareSkipUploadAsset(asset: ImagePicker.ImagePickerAsset, maxBy
 
 async function uploadToS3(
   preSignedUrl: string,
-  asset: ImagePicker.ImagePickerAsset,
+  asset: PickedImage,
   resizeThresholdBytes?: number
 ) {
   const fileSize = await getAssetSizeBytes(asset);
@@ -167,9 +197,18 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
       orderedSelection,
       selectionLimit,
       skipUpload = false,
+      allowsFileSelection = false,
     } = payload;
 
+    let documentUris: string[] = [];
     try {
+      const canSelectFiles = source === 'library' && allowsFileSelection && skipUpload;
+      const selectedSource = canSelectFiles ? await selectImageSource() : source;
+      if (selectedSource === null) {
+        sendEvent('media.pickImage.result', { requestId, cancelled: true });
+        return;
+      }
+
       if (source === 'camera') {
         const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
         if (permissionResult.status !== 'granted') {
@@ -179,7 +218,7 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
           });
           return;
         }
-      } else if (Platform.OS === 'ios') {
+      } else if (Platform.OS === 'ios' && selectedSource === 'library') {
         const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
         const hasLibraryAccess =
           permissionResult.status === 'granted' ||
@@ -198,24 +237,43 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
 
       const maxSelection =
         typeof selectionLimit === 'number' && selectionLimit > 0 ? selectionLimit : DEFAULT_MAX_SELECTION;
+      const maxPreparedBytes = resizeThresholdBytes ?? (canSelectFiles ? MAX_FILE_SIZE_BYTES : undefined);
+      const shouldKeepOriginal = canSelectFiles && Platform.OS === 'ios';
 
       // 최대 초과 토스트를 위해 피커에서는 제한하지 않고, 이후 잘라냄
       const pickerOptions: ImagePicker.ImagePickerOptions = {
         mediaTypes: ['images'],
         allowsEditing: allowsEditing ?? false,
-        quality: quality ?? 0.8,
+        quality: shouldKeepOriginal ? 1 : (quality ?? 0.8),
+        preferredAssetRepresentationMode: shouldKeepOriginal
+          ? ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Current
+          : undefined,
         aspect,
         allowsMultipleSelection: source === 'camera' ? false : (allowsMultipleSelection ?? false),
         orderedSelection: orderedSelection ?? false,
         selectionLimit: 0,
       };
 
-      const result =
-        source === 'library'
-          ? await ImagePicker.launchImageLibraryAsync(pickerOptions)
-          : await ImagePicker.launchCameraAsync(pickerOptions);
+      let pickedAssets: PickedImage[] | null;
+      if (selectedSource === 'files') {
+        const result = await DocumentPicker.getDocumentAsync({
+          type: [...ALLOWED_MIME_TYPES],
+          multiple: allowsMultipleSelection ?? false,
+          copyToCacheDirectory: true,
+        });
+        documentUris = result.assets?.map((asset) => asset.uri) ?? [];
+        pickedAssets = result.canceled
+          ? null
+          : result.assets.map(({ uri, name, size, mimeType }) => ({ uri, fileName: name, fileSize: size, mimeType }));
+      } else {
+        const result =
+          selectedSource === 'library'
+            ? await ImagePicker.launchImageLibraryAsync(pickerOptions)
+            : await ImagePicker.launchCameraAsync(pickerOptions);
+        pickedAssets = result.canceled ? null : (result.assets ?? []);
+      }
 
-      if (result.canceled) {
+      if (pickedAssets === null) {
         sendEvent('media.pickImage.result', {
           requestId,
           cancelled: true,
@@ -223,7 +281,6 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
         return;
       }
 
-      const pickedAssets = result.assets ?? [];
       if (pickedAssets.length === 0) {
         sendEvent('media.pickImage.result', {
           requestId,
@@ -278,7 +335,7 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
               unreadableCount += 1;
               continue;
             }
-            if (resizeThresholdBytes && prepared.fileSize > resizeThresholdBytes) {
+            if (maxPreparedBytes && prepared.fileSize > maxPreparedBytes) {
               oversizedCount += 1;
               continue;
             }
@@ -348,6 +405,8 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
         assets: [],
         failure: 'network',
       });
+    } finally {
+      await Promise.allSettled(documentUris.map((uri) => FileSystem.deleteAsync(uri, { idempotent: true })));
     }
   };
 
