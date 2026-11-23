@@ -269,6 +269,7 @@ function OwnerKindergartenImageBanner({
                 fill
                 sizes='100vw'
                 className='object-cover'
+                draggable={false}
                 priority={index === 0}
               />
             </button>

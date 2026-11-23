@@ -38,6 +38,10 @@ const SwiperRoot = React.forwardRef<HTMLDivElement, SwiperRootProps>((props, ref
           onPointerDown={gestureApi.handlePointerDown}
           onPointerMove={gestureApi.handlePointerMove}
           onPointerUp={gestureApi.handlePointerUp}
+          onPointerCancel={gestureApi.handlePointerCancel}
+          onLostPointerCapture={gestureApi.handleLostPointerCapture}
+          onPointerLeave={gestureApi.handlePointerCancel}
+          onClickCapture={gestureApi.handleClickCapture}
         >
           {...api.slides}
         </div>
