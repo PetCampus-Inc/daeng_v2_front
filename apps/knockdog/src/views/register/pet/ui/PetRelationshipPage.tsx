@@ -1,6 +1,7 @@
 'use client';
 
 import { TextField, TextFieldInput, ActionButton } from '@knockdog/ui';
+import { formatDogName } from '@knockdog/ui/lib';
 import { useSearchParams } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -51,7 +52,7 @@ function PetRelationshipPage() {
     <div className='flex h-full flex-col'>
       <div className='flex-1'>
         <h1 className='h1-extrabold'>
-          {petName}와 어떤 <span className='text-text-accent'>관계</span>인가요?
+          {formatDogName(petName, '와')} 어떤 <span className='text-text-accent'>관계</span>인가요?
         </h1>
 
         <div className='mt-10 grid grid-cols-2 items-end gap-2'>

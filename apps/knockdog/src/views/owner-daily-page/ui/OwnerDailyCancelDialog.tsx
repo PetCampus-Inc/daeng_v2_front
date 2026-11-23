@@ -1,3 +1,5 @@
+import { getDogNameSuffix } from '@knockdog/ui/lib';
+
 import { OWNER_DAILY_CANCEL_CONTENT, type OwnerDailyCancelKind } from '@views/owner-daily-page/config/ownerDailyContent';
 
 import type { AttendanceCheckinoutCandidate } from '@entities/owner-attendance-checkinout';
@@ -30,7 +32,8 @@ const OwnerDailyCancelDialog = ({ kind, member, open, onOpenChange, onCancel }: 
       isOpen={open}
       title={
         <>
-          <span className='text-text-accent'>{ellipsisText(member.name, 8)}</span>의 {target}을 취소할까요?
+          <span className='text-text-accent'>{ellipsisText(member.name, 8)}</span>
+          {getDogNameSuffix(member.name, '의')} {target}을 취소할까요?
         </>
       }
       description={description}

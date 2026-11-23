@@ -79,7 +79,7 @@ describe('일기장 온보딩 바텀시트', () => {
     const onWrite = vi.fn();
     render(<DiaryOnboardingNoteBanner dogName='봄' onWrite={onWrite} />);
 
-    fireEvent.click(screen.getByRole('button', { name: /봄이 일기를 써본대요!/ }));
+    fireEvent.click(screen.getByRole('button', { name: /봄이가 일기를 써본대요!/ }));
     openAfterDelay();
     fireEvent.click(screen.getByRole('button', { name: '첫 일기 남기기' }));
 

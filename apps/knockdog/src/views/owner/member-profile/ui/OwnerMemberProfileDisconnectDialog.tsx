@@ -1,5 +1,7 @@
 'use client';
 
+import { getDogNameSuffix } from '@knockdog/ui/lib';
+
 import { ConfirmDialog } from '@shared/ui/confirm-dialog';
 import { ellipsisText } from '@shared/utils';
 import { ownerMemberProfileContent } from '@views/owner/member-profile/config/ownerMemberProfileContent';
@@ -33,6 +35,7 @@ function OwnerMemberProfileDisconnectDialog({
       title={
         <>
           <span className='text-text-accent'>{displayDogName}</span>
+          {getDogNameSuffix(dogName, '의')}
           {disconnectDialog.titleSuffix}
         </>
       }

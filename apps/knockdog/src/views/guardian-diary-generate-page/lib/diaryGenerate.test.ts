@@ -6,7 +6,7 @@ describe('일기 생성 문구', () => {
   test('생성 중 버튼은 강아지 이름과 이탈 여부에 맞춘다', () => {
     expect(getGenerateButtonLabel('콩이', false)).toBe('콩이가 열심히 일기를 쓰고 있어요');
     expect(getGenerateButtonLabel('콩이', true)).toBe('콩이가 아직 일기를 쓰고 있어요');
-    expect(getGenerateButtonLabel('봄', false)).toBe('봄이 열심히 일기를 쓰고 있어요');
+    expect(getGenerateButtonLabel('봄', false)).toBe('봄이가 열심히 일기를 쓰고 있어요');
   });
 
   test('생성 중 이탈은 토스트 문구만 둔다', () => {

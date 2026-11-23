@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { overlay } from 'overlay-kit';
+import { formatDogName, getDogNameSuffix } from '@knockdog/ui/lib';
 
 import { useOwnerRole } from '@features/role-conversion';
 import {
@@ -61,7 +62,7 @@ function useOwnerMemberProfileDisconnect({ petId, dogName, enabled = true }: Use
 
   const showSuccessToast = () => {
     // 성공 토스트는 이름에 강조색을 쓰지 않는다 (Figma `36:16665`)
-    const successTitle = `${dogName}${content.disconnectSuccessToastSuffix}`;
+    const successTitle = `${formatDogName(dogName, '의')}${content.disconnectSuccessToastSuffix}`;
 
     toast({ type: 'success', title: successTitle, nativeTitle: successTitle });
   };
@@ -246,10 +247,11 @@ function useOwnerMemberProfileDisconnect({ petId, dogName, enabled = true }: Use
   const openDisconnectDialog = async (resolvedMemberId: string) => {
     const { disconnectDialog } = content;
     const displayDogName = ellipsisText(dogName, disconnectDialog.nameMaxLength);
+    const titleSuffix = `${getDogNameSuffix(dogName, '의')}${disconnectDialog.titleSuffix}`;
 
     const result = await openConfirmDialog({
-      title: `${displayDogName}${disconnectDialog.titleSuffix}`,
-      titleParts: [{ text: displayDogName, accent: true }, { text: disconnectDialog.titleSuffix }],
+      title: `${displayDogName}${titleSuffix}`,
+      titleParts: [{ text: displayDogName, accent: true }, { text: titleSuffix }],
       description: disconnectDialog.description,
       cancelLabel: disconnectDialog.cancelLabel,
       confirmLabel: disconnectDialog.confirmLabel,

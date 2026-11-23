@@ -1,6 +1,6 @@
 import { ChevronRight, Paw } from '@knockdog/icons';
 
-import { cn } from '@knockdog/ui/lib';
+import { cn, formatDogName } from '@knockdog/ui/lib';
 
 interface DiaryNoteBannerProps {
   dogName?: string;
@@ -8,23 +8,9 @@ interface DiaryNoteBannerProps {
   onClick?: () => void;
 }
 
-function hasBatchim(dogName: string) {
-  const lastChar = dogName.at(-1);
-  if (!lastChar) return false;
+const formatDiaryDogSubject = (dogName: string) => formatDogName(dogName, '가');
 
-  const code = lastChar.charCodeAt(0);
-  return code >= 0xac00 && code <= 0xd7a3 && (code - 0xac00) % 28 !== 0;
-}
-
-function formatDiaryDogSubject(dogName: string) {
-  if (!dogName) return dogName;
-  return `${dogName}${hasBatchim(dogName) ? '이가' : '가'}`;
-}
-
-function formatDiaryDogPossessive(dogName: string) {
-  if (!dogName) return dogName;
-  return `${dogName}${hasBatchim(dogName) ? '이의' : '의'}`;
-}
+const formatDiaryDogPossessive = (dogName: string) => formatDogName(dogName, '의');
 
 /** V4 / Dog Diary / Kindergarten Note Banner */
 function DiaryNoteBanner({ dogName = '콩이', className, onClick }: DiaryNoteBannerProps) {

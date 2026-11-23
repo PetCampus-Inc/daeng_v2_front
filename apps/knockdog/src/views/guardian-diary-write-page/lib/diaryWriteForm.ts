@@ -1,4 +1,4 @@
-import { formatDiaryDogSubject } from '@knockdog/ui';
+import { formatDogName } from '@knockdog/ui/lib';
 
 import { startOfDay, isSameDay } from '@shared/lib/calendar-date';
 
@@ -20,27 +20,10 @@ interface DiaryWriteNotice {
   body?: string;
 }
 
-function hasBatchim(name: string) {
-  const lastChar = name.at(-1);
-  if (!lastChar) return false;
-  const code = lastChar.charCodeAt(0);
-  return code >= 0xac00 && code <= 0xd7a3 && (code - 0xac00) % 28 !== 0;
-}
-
-function formatDiaryObject(dogName: string) {
-  if (!dogName) return dogName;
-  return `${dogName}${hasBatchim(dogName) ? '을' : '를'}`;
-}
-
-function formatDiaryTopic(dogName: string) {
-  if (!dogName) return dogName;
-  return `${dogName}${hasBatchim(dogName) ? '은' : '는'}`;
-}
-
 function buildDiaryPrompts(dogName: string) {
-  const subject = formatDiaryDogSubject(dogName);
-  const objectName = formatDiaryObject(dogName);
-  const topic = formatDiaryTopic(dogName);
+  const subject = formatDogName(dogName, '가');
+  const objectName = formatDogName(dogName, '를');
+  const topic = formatDogName(dogName, '는');
 
   return [
     `${subject} 오늘 가장 기뻐했던 순간은 무엇인가요?`,
@@ -125,8 +108,6 @@ export {
   isDiaryImportVisible,
   isDiaryOpenedFromNotice,
   formatDiaryNoticeDate,
-  formatDiaryObject,
-  formatDiaryTopic,
   getDiaryImportSheetCopy,
   hasMockArrivedNotice,
   parseDiaryDate,

@@ -4,6 +4,7 @@ import { cloneElement } from 'react';
 import { Controller } from 'react-hook-form';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ActionButton, ProgressBar } from '@knockdog/ui';
+import { formatDogName } from '@knockdog/ui/lib';
 import { Header } from '@widgets/Header';
 import { PetDetailForm, usePetDetail } from '../model/usePetDetail';
 import { petDetailFields } from '../model/petDetailFields';
@@ -44,7 +45,7 @@ function PetDetailPage() {
 
           {/* 타이틀 */}
           <h1 className='h1-extrabold'>
-            {petName}의 <span className='text-text-accent'>{currentField?.label}</span>
+            {formatDogName(petName, '의')} <span className='text-text-accent'>{currentField?.label}</span>
             {currentField?.prefix}
             <br />
             알려주세요

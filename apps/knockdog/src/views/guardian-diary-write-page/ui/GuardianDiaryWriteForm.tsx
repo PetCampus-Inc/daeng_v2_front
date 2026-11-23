@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
 import { ActionButton, DiaryImportBanner, DiaryKindergartenNote, DiaryPhotoAdd, DiaryTopBar } from '@knockdog/ui';
+import { formatDogName } from '@knockdog/ui/lib';
 
 import {
   DIARY_PHOTO_LIMIT,
@@ -133,7 +134,8 @@ function GuardianDiaryWriteForm({
 }: GuardianDiaryWriteFormProps) {
   const prompt = useDiaryPrompt(dogName);
   const canSubmit = canSubmitDiary(photos.length, text, isTextRequired);
-  const textLabel = `오늘 ${dogName}의 하루는 어땠나요?`;
+  const possessive = formatDogName(dogName, '의');
+  const textLabel = `오늘 ${possessive} 하루는 어땠나요?`;
 
   function handleTextChange(event: ChangeEvent<HTMLTextAreaElement>) {
     onTextChange(event.target.value.slice(0, DIARY_TEXT_LIMIT));
@@ -144,7 +146,7 @@ function GuardianDiaryWriteForm({
       <DiaryTopBar mode='plain' title='일기 쓰기' onBack={onBack} />
       <div className='px-x4 pt-x6 gap-x10 flex min-h-0 flex-1 flex-col overflow-y-auto'>
         <section className='flex flex-col gap-3'>
-          <DiaryFieldLabel>{`${dogName}의 하루가 담긴 사진을 올려주세요`}</DiaryFieldLabel>
+          <DiaryFieldLabel>{`${possessive} 하루가 담긴 사진을 올려주세요`}</DiaryFieldLabel>
           <div className='flex gap-4'>
             {photos.map((photo) => (
               <DiaryPhotoAdd

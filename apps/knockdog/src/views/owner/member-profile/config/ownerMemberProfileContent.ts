@@ -52,7 +52,7 @@ const ownerMemberProfileContent = {
   profileErrorText: '원생 프로필을 불러오지 못했어요',
   emptyValue: '-',
   disconnectDialog: {
-    titleSuffix: '의 연결을 해제할까요?',
+    titleSuffix: ' 연결을 해제할까요?',
     description: '연결 해제 시 원생과 보호자 정보를 볼 수 없어요.',
     cancelLabel: '닫기',
     confirmLabel: '해제하기',
@@ -71,7 +71,7 @@ const ownerMemberProfileContent = {
     reservationDescriptionSuffix: ' 등원 예정',
     reservationStatusLabel: '등원전',
   },
-  disconnectSuccessToastSuffix: '의 유치원 연결이 해제되었어요',
+  disconnectSuccessToastSuffix: ' 유치원 연결이 해제되었어요',
   /** 해제 요청이 실패하거나 해제 가능 여부 조회가 실패했을 때 — 프로필 유지 */
   disconnectFailToast: '연결 해제를 완료하지 못했어요',
   /** 이미 해제된 원생일 때 */

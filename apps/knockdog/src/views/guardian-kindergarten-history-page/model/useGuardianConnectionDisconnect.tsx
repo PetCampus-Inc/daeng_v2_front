@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react';
 import { overlay } from 'overlay-kit';
 import type { DisconnectTicketProps } from '@knockdog/ui';
+import { formatDogName } from '@knockdog/ui/lib';
 
 import {
   getDisconnectEligibility,
@@ -131,7 +132,7 @@ function useGuardianConnectionDisconnect({
     const displayName = ellipsisText(kindergartenName, disconnectDialog.nameMaxLength);
     const dialog = {
       title: `${displayName}${disconnectDialog.titleSuffix}`,
-      description: `${disconnectDialog.descriptionPrefix}${petName}${disconnectDialog.descriptionSuffix}`,
+      description: `${disconnectDialog.descriptionPrefix}${formatDogName(petName, '의')}${disconnectDialog.descriptionSuffix}`,
       cancelLabel: disconnectDialog.cancelLabel,
       confirmLabel: disconnectDialog.confirmLabel,
     };

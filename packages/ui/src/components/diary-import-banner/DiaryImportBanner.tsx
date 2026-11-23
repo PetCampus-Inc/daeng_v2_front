@@ -1,6 +1,6 @@
 import { Close, Paw } from '@knockdog/icons';
 
-import { cn } from '@knockdog/ui/lib';
+import { cn, formatDogName } from '@knockdog/ui/lib';
 
 interface DiaryImportBannerProps {
   dogName?: string;
@@ -18,7 +18,9 @@ function DiaryImportBanner({ dogName = '강아지', className, onImport, onDismi
       </button>
       <div className='gap-x1_5 pr-x8 flex w-full flex-col'>
         <h2 className='h3-semibold text-text-primary'>오늘의 알림장을 불러올까요?</h2>
-        <p className='body2-regular text-fill-secondary-500'>AI가 오늘의 알림장을 읽고 {dogName}의 일기를 써줘요.</p>
+        <p className='body2-regular text-fill-secondary-500'>
+          AI가 오늘의 알림장을 읽고 {formatDogName(dogName, '의')} 일기를 써줘요.
+        </p>
       </div>
       <div className='flex w-full justify-end'>
         <button
