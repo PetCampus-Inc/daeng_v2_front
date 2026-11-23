@@ -1,14 +1,54 @@
+'use client';
+
 import Image from 'next/image';
+import { overlay } from 'overlay-kit';
 
 import { formatInquiryDateTime, InquiryImageScroller, type InquiryDetailMessageDto } from '@entities/inquiry';
+import { useNativeBackToClose } from '@shared/lib/bridge';
+import { ImageGalleryViewer } from '@shared/ui/image-gallery-viewer';
 
 interface InquiryMessageItemProps {
   message: InquiryDetailMessageDto;
 }
 
+interface InquiryPhotoViewerProps {
+  isOpen: boolean;
+  close: () => void;
+  images: string[];
+  initialIndex: number;
+}
+
+/** 사진 보기가 열려 있는 동안 안드로이드 뒤로가기로 사진 보기만 닫는다. 공용 뷰어는 건드리지 않는다 */
+const InquiryPhotoViewer = ({ isOpen, close, images, initialIndex }: InquiryPhotoViewerProps) => {
+  useNativeBackToClose(isOpen, close);
+
+  return (
+    <ImageGalleryViewer
+      isOpen={isOpen}
+      close={close}
+      images={images}
+      initialIndex={initialIndex}
+      ariaLabel='문의 첨부 사진 보기'
+      native
+      originalRatio
+    />
+  );
+};
+
 /** 사용자 문의: 내용, 첨부 사진(가로 나열), 작성 일시 */
 function InquiryUserMessage({ message }: InquiryMessageItemProps) {
   const images = [...message.images].sort((first, second) => first.displayOrder - second.displayOrder);
+
+  const openPhotoViewer = (initialIndex: number) => {
+    overlay.open(({ isOpen, close }) => (
+      <InquiryPhotoViewer
+        isOpen={isOpen}
+        close={close}
+        images={images.map((image) => image.imageUrl)}
+        initialIndex={initialIndex}
+      />
+    ));
+  };
 
   return (
     <div className='gap-x3 px-x4 py-x3 flex flex-col'>
@@ -16,15 +56,17 @@ function InquiryUserMessage({ message }: InquiryMessageItemProps) {
         <p className='body1-regular text-text-primary break-words whitespace-pre-wrap'>{message.body}</p>
         {images.length > 0 ? (
           <InquiryImageScroller>
-            {images.map((image) => (
-              // eslint-disable-next-line @next/next/no-img-element -- 서버 사진 미리보기. 확대 보기는 범위 밖 (PRD 7.2)
-              <img
+            {images.map((image, index) => (
+              <button
                 key={image.id}
-                src={image.imageUrl}
-                alt=''
-                draggable={false}
-                className='radius-r3 bg-line-200 size-24 shrink-0 object-cover'
-              />
+                type='button'
+                aria-label={`${index + 1}번째 첨부 사진 크게 보기`}
+                className='radius-r3 bg-line-200 size-24 shrink-0 overflow-hidden'
+                onClick={() => openPhotoViewer(index)}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element -- 서버에서 받은 첨부 사진 URL을 직접 표시한다 */}
+                <img src={image.imageUrl} alt='' draggable={false} className='size-full object-cover' />
+              </button>
             ))}
           </InquiryImageScroller>
         ) : null}

@@ -125,7 +125,7 @@ function ImageGalleryViewer({
           type='button'
           onClick={close}
           aria-label='사진 보기 닫기'
-          className='text-text-primary-inverse absolute top-5 left-4 z-10 flex size-10 items-center justify-center'
+          className='text-text-primary-inverse absolute top-5 left-4 z-10 mt-[max(var(--safe-area-inset-top,0px),env(safe-area-inset-top,0px))] flex size-10 items-center justify-center'
         >
           <Icon icon='Close' className='size-6' />
         </button>
@@ -190,7 +190,7 @@ function ImageGalleryViewer({
           </span>
         </div>
 
-        <div className='scrollbar-hide absolute bottom-[env(safe-area-inset-bottom)] flex h-[100px] w-full items-center gap-2 overflow-x-auto px-4 py-5'>
+        <div className='scrollbar-hide absolute bottom-[max(var(--safe-area-inset-bottom,0px),env(safe-area-inset-bottom,0px))] flex h-[100px] w-full items-center gap-2 overflow-x-auto px-4 py-5'>
           {images.map((image, index) => (
             <button
               key={`${image}-${index}`}
