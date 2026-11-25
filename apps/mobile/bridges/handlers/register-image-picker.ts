@@ -1,4 +1,5 @@
 import type { ImagePickerOptions, ImagePickerPayload } from '@/types/image-picker';
+import type { ImageAsset } from '@knockdog/bridge-core';
 import { ActionSheetIOS, Alert, Platform } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
@@ -105,6 +106,8 @@ async function compressForUpload(asset: PickedImage, targetSizeBytes?: number) {
     return {
       uri: manipulated.uri,
       mimeType: 'image/jpeg',
+      width: manipulated.width,
+      height: manipulated.height,
     };
   }
 
@@ -133,17 +136,31 @@ async function compressForUpload(asset: PickedImage, targetSizeBytes?: number) {
   return {
     uri: manipulated.uri,
     mimeType: 'image/jpeg',
+    width: manipulated.width,
+    height: manipulated.height,
   };
 }
 
 /** 렌더링한 JPEG만 반환해 원본 EXIF가 전달되지 않게 하고, Android content:// 직접 PUT을 피한다. */
-async function prepareSkipUploadAsset(asset: PickedImage, maxBytes?: number) {
+async function prepareSkipUploadAsset(asset: PickedImage, maxBytes?: number, includePreview = false): Promise<ImageAsset> {
   const compressed = await compressForUpload(asset, maxBytes);
   const info = await FileSystem.getInfoAsync(compressed.uri, { size: true });
   const fileSize = info.exists && typeof info.size === 'number' ? info.size : undefined;
 
   const originalName = asset.fileName ?? `album-${Date.now()}.jpg`;
   const baseName = originalName.replace(/\.[^.]+$/, '') || `album-${Date.now()}`;
+
+  let previewUrl: string | undefined;
+  if (includePreview) {
+    const resize = compressed.width >= compressed.height ? { width: 240 } : { height: 240 };
+    const thumbnail = await ImageManipulator.manipulateAsync(compressed.uri, [{ resize }], {
+      compress: 0.7,
+      format: ImageManipulator.SaveFormat.JPEG,
+      base64: true,
+    });
+    if (!thumbnail.base64) throw new Error('Could not generate image preview');
+    previewUrl = `data:image/jpeg;base64,${thumbnail.base64}`;
+  }
 
   return {
     key: '',
@@ -152,6 +169,7 @@ async function prepareSkipUploadAsset(asset: PickedImage, maxBytes?: number) {
     fileName: `${baseName}.jpg`,
     mimeType: 'image/jpeg' as const,
     fileSize,
+    previewUrl,
   };
 }
 
@@ -197,6 +215,7 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
       orderedSelection,
       selectionLimit,
       skipUpload = false,
+      includePreview = false,
       allowsFileSelection = false,
     } = payload;
 
@@ -300,14 +319,7 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
         count: assetsToUpload.length,
       });
 
-      const uploadedAssets: Array<{
-        key: string;
-        preSignedUrl: string;
-        uri?: string;
-        fileName?: string;
-        mimeType?: string;
-        fileSize?: number;
-      }> = [];
+      const uploadedAssets: ImageAsset[] = [];
       let invalidSpecCount = 0;
       let oversizedCount = 0;
       let unreadableCount = 0;
@@ -330,7 +342,7 @@ export function registerImagePickerHandlers(options: ImagePickerOptions) {
 
         if (skipUpload) {
           try {
-            const prepared = await prepareSkipUploadAsset(pickedAsset, resizeThresholdBytes);
+            const prepared = await prepareSkipUploadAsset(pickedAsset, resizeThresholdBytes, includePreview);
             if (!prepared.fileSize || prepared.fileSize <= 0) {
               unreadableCount += 1;
               continue;
