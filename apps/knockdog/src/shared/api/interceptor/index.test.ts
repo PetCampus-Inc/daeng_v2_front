@@ -109,4 +109,26 @@ describe('tokenRefreshInterceptor', () => {
     expect(logout).toHaveBeenCalledWith({ notifyServer: false });
     expect(navigateToLogin).toHaveBeenCalledOnce();
   });
+
+  it('refresh가 HTTP 400 REFRESH_TOKEN_MISSING으로 실패하면 로그아웃한다', async () => {
+    const response = unauthorizedResponse(TOKEN_ERROR_CODE.EXPIRED_TOKEN);
+    retryWithTokenRefresh.mockRejectedValueOnce(
+      new ApiError(400, TOKEN_ERROR_CODE.REFRESH_TOKEN_MISSING, '리프레시 토큰이 없습니다.')
+    );
+
+    await tokenRefreshInterceptor(expiredTokenRequest(), {} as never, response);
+
+    expect(logout).toHaveBeenCalledWith({ notifyServer: false });
+    expect(navigateToLogin).toHaveBeenCalledOnce();
+  });
+
+  it('REFRESH_TOKEN_MISSING 외의 세션 코드는 HTTP 400이면 로그아웃하지 않는다', async () => {
+    const response = unauthorizedResponse(TOKEN_ERROR_CODE.EXPIRED_TOKEN);
+    retryWithTokenRefresh.mockRejectedValueOnce(new ApiError(400, TOKEN_ERROR_CODE.INVALID_TOKEN, '유효하지 않은 토큰'));
+
+    await tokenRefreshInterceptor(expiredTokenRequest(), {} as never, response);
+
+    expect(logout).not.toHaveBeenCalled();
+    expect(navigateToLogin).not.toHaveBeenCalled();
+  });
 });

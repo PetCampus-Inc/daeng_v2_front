@@ -1,5 +1,3 @@
-import { ApiError } from '../model/error';
-import { TOKEN_ERROR_CODE } from '../model/constant/authErrorCode';
 import { postTokenReissue } from '../endpoint/auth';
 
 import { tokenUtils } from '@shared/utils';
@@ -12,8 +10,8 @@ const getApi = () => import('../client/kyClient').then((mod) => mod.default);
 
 let isTokenRefreshing = false;
 
-/** 요청 대기열 (액세스 토큰 갱신 완료 시 호출될 콜백 함수 목록) */
-let subscribers: ((token?: string) => void)[] = [];
+/** 요청 대기열 (액세스 토큰 갱신 완료 시 호출될 콜백 함수 목록. 갱신이 실패하면 토큰 없이 실패 원인을 받는다) */
+let subscribers: ((token?: string, error?: unknown) => void)[] = [];
 
 /** 토큰 갱신 처리 함수 */
 const retryWithTokenRefresh = async (request: Request): Promise<Response> => {
@@ -35,8 +33,8 @@ const retryWithTokenRefresh = async (request: Request): Promise<Response> => {
 
     return api(authRequest);
   } catch (error) {
-    // 리프레시 중 오류 발생 시, 대기열에 추가된 요청들 rejected 처리
-    subscribers.forEach((cb) => cb());
+    // 리프레시 중 오류 발생 시, 대기열에 추가된 요청들도 같은 오류로 rejected 처리
+    subscribers.forEach((cb) => cb(undefined, error));
 
     throw error;
   } finally {
@@ -69,7 +67,7 @@ const refreshAccessToken = async (): Promise<string> => {
 };
 
 /** 대기열 추가 함수 */
-const addSubscriber = (cb: (token?: string) => void) => subscribers.push(cb);
+const addSubscriber = (cb: (token?: string, error?: unknown) => void) => subscribers.push(cb);
 
 /**
  * 요청을 토큰 갱신 대기열에 추가하는 함수
@@ -79,9 +77,10 @@ const addSubscriber = (cb: (token?: string) => void) => subscribers.push(cb);
  */
 const enqueueRequest = async (request: Request): Promise<Response> => {
   return new Promise((resolve, reject) => {
-    addSubscriber(async (newToken?: string) => {
+    addSubscriber(async (newToken?: string, error?: unknown) => {
       if (!newToken) {
-        reject(new ApiError(401, TOKEN_ERROR_CODE.INVALID_TOKEN, '액세스 토큰이 만료되었습니다.'));
+        // 갱신이 실제로 던진 오류를 그대로 전달한다 (앱이 만든 오류로 바꾸지 않는다)
+        reject(error);
         return;
       }
 

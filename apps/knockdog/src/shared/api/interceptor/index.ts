@@ -21,12 +21,20 @@ const LOGOUT_PATH_PATTERN = /\/auth\/logout$/;
 const INVALID_SESSION_CODES = new Set<string>([
   TOKEN_ERROR_CODE.EXPIRED_REFRESH_TOKEN,
   TOKEN_ERROR_CODE.INVALID_TOKEN,
+  TOKEN_ERROR_CODE.REFRESH_TOKEN_MISSING,
   TOKEN_ERROR_CODE.UNAUTHORIZED_REQUEST,
   TOKEN_ERROR_CODE.TOKEN_VERIFICATION_FAILED,
 ]);
 
+/**
+ * 세션을 끝내야 하는 오류인지 확인한다.
+ * 서버가 `REFRESH_TOKEN_MISSING`은 HTTP 400으로 내려주므로 이 코드만 400도 인정하고,
+ * 나머지 코드는 401만 인정한다.
+ */
 const isInvalidSessionError = (error: unknown): error is ApiError => {
-  return error instanceof ApiError && error.status === 401 && INVALID_SESSION_CODES.has(error.code);
+  if (!(error instanceof ApiError) || !INVALID_SESSION_CODES.has(error.code)) return false;
+
+  return error.status === 401 || (error.status === 400 && error.code === TOKEN_ERROR_CODE.REFRESH_TOKEN_MISSING);
 };
 
 const logoutInvalidSession = async () => {
