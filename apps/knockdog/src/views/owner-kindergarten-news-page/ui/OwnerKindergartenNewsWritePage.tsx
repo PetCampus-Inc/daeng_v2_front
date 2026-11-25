@@ -514,6 +514,7 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
         orderedSelection: true,
         selectionLimit: MAX_PHOTO_COUNT,
         skipUpload: true,
+        includePreview: true,
       });
 
       if (result.cancelled) return;
@@ -854,7 +855,7 @@ function OwnerKindergartenNewsComposer({ mode, newsId }: OwnerKindergartenNewsCo
             <div className='scrollbar-hide flex gap-2 overflow-x-auto overflow-y-visible px-0.5 py-1'>
               {imageUrls.map((url, index) => (
                 <MiniPhotoBox
-                  key={`${url}-${index}`}
+                  key={`${imageSourcesRef.current[index]?.uri ?? url}-${index}`}
                   imageUrl={url}
                   onRemove={() => handleRemoveImage(index)}
                 />

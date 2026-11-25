@@ -45,6 +45,8 @@ type PickImageParams = {
    * true면 S3 업로드 없이 로컬 메타만 반환 (도메인별 presigned 업로드용)
    */
   skipUpload?: boolean;
+  /** skipUpload 시 WebView에서 표시할 썸네일을 함께 반환한다. */
+  includePreview?: boolean;
 }
 
 interface ImageAsset  {
@@ -58,6 +60,7 @@ interface ImageAsset  {
   key: string;
   /** skipUpload 시 로컬 파일 URI (네이티브) */
   uri?: string;
+  previewUrl?: string;
   fileName?: string;
   mimeType?: string;
   fileSize?: number;

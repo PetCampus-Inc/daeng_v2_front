@@ -62,7 +62,7 @@ function toNewsImageSource(asset: ImageAsset & { file?: File }, index: number): 
   const fileName = asset.file?.name?.trim() || asset.fileName?.trim() || `news-${Date.now()}-${index}.jpg`;
   const contentType = normalizeContentType(asset.file?.type || asset.mimeType || 'image/jpeg');
   const size = asset.file?.size || asset.fileSize || 0;
-  const previewUrl = asset.uri || asset.preSignedUrl;
+  const previewUrl = asset.previewUrl || asset.uri || asset.preSignedUrl;
 
   return {
     previewUrl,

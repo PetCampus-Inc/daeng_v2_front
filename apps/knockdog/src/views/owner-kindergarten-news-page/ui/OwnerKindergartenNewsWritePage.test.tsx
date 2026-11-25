@@ -7,6 +7,8 @@ import { afterEach, expect, test, vi } from 'vitest';
 
 import { OwnerKindergartenNewsComposer } from './OwnerKindergartenNewsWritePage';
 
+const { pickImage } = vi.hoisted(() => ({ pickImage: vi.fn() }));
+
 vi.mock('next/navigation', () => ({ useSearchParams: () => new URLSearchParams() }));
 vi.mock('@entities/owner-home', () => ({
   useOwnerHomeQuery: () => ({ data: { school: { schoolId: '1' } }, isPending: false }),
@@ -36,7 +38,7 @@ vi.mock('./OwnerKindergartenNewsWriteSettingsSheet', () => ({
   OwnerKindergartenNewsWriteSettingsSheet: ({ isOpen }: { isOpen: boolean }) =>
     isOpen ? <div role='dialog' /> : null,
 }));
-vi.mock('@shared/lib/media', () => ({ useImagePicker: () => ({ pickImage: vi.fn() }) }));
+vi.mock('@shared/lib/media', () => ({ useImagePicker: () => ({ pickImage }) }));
 vi.mock('@widgets/Header', () => {
   const Header = ({ children }: { children: React.ReactNode }) => <header>{children}</header>;
   return { Header: Object.assign(Header, { LeftSection: Header, RightSection: Header, BackButton: () => null }) };
@@ -79,4 +81,20 @@ test('본문 입력 중 설정 버튼을 누르면 입력 포커스를 해제하
 
   expect(document.activeElement).not.toBe(body);
   expect(await screen.findByRole('dialog')).toBeTruthy();
+});
+
+test('앱에서 첨부한 사진을 WebView에서 표시할 수 있는 썸네일로 보여준다', async () => {
+  const uri = 'file:///cache/news.jpg';
+  const previewUrl = 'data:image/jpeg;base64,dGh1bWJuYWls';
+  pickImage.mockResolvedValueOnce({
+    cancelled: false,
+    assets: [{ key: '', preSignedUrl: uri, uri, previewUrl, fileSize: 1024 }],
+  });
+  renderComposer();
+  const draftDialog = await screen.findByRole('alertdialog');
+  await userEvent.click(within(draftDialog).getByRole('button', { name: '새로 쓰기' }));
+  await userEvent.click(screen.getByRole('button', { name: '사진' }));
+
+  expect(pickImage).toHaveBeenCalledWith(expect.objectContaining({ skipUpload: true, includePreview: true }));
+  expect((await screen.findByRole('img', { name: '사진' })).getAttribute('src')).toBe(previewUrl);
 });

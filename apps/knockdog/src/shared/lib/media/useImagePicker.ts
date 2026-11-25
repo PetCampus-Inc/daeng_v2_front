@@ -517,6 +517,7 @@ function useImagePicker() {
           orderedSelection: params?.orderedSelection,
           selectionLimit: params?.selectionLimit,
           skipUpload: params?.skipUpload,
+          includePreview: params?.includePreview,
         });
       });
     },
