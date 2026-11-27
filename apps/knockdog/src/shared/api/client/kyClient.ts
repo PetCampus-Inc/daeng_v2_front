@@ -1,3 +1,5 @@
+import './polyfillObjectHasOwn';
+
 import ky from 'ky';
 
 import { API_TIMEOUT_MS } from '../config/timeouts';
@@ -11,15 +13,6 @@ import {
 if (!process.env.NEXT_PUBLIC_API_BASE_URL) throw new Error('NEXT_PUBLIC_API_BASE_URL is not defined');
 
 const baseUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v0`;
-
-// Ky merges hooks using Object.hasOwn, which Android WebView 90 lacks.
-if (typeof Object.hasOwn !== 'function') {
-  Object.defineProperty(Object, 'hasOwn', {
-    configurable: true,
-    writable: true,
-    value: (object: object, property: PropertyKey) => Object.prototype.hasOwnProperty.call(object, property),
-  });
-}
 
 const api = ky.create({
   prefixUrl: baseUrl,
