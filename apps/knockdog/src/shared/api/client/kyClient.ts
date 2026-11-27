@@ -12,6 +12,15 @@ if (!process.env.NEXT_PUBLIC_API_BASE_URL) throw new Error('NEXT_PUBLIC_API_BASE
 
 const baseUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v0`;
 
+// Ky merges hooks using Object.hasOwn, which Android WebView 90 lacks.
+if (typeof Object.hasOwn !== 'function') {
+  Object.defineProperty(Object, 'hasOwn', {
+    configurable: true,
+    writable: true,
+    value: (object: object, property: PropertyKey) => Object.prototype.hasOwnProperty.call(object, property),
+  });
+}
+
 const api = ky.create({
   prefixUrl: baseUrl,
   credentials: 'include',

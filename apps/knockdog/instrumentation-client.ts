@@ -25,7 +25,12 @@ Sentry.init({
     cookies: { deny: ["forwarded", "-ip", "remote-", "via", "-user"] },
     urlQueryParams: { deny: ["forwarded", "-ip", "remote-", "via", "-user"] },
   },
-  beforeSend: filterSentryEvent,
+  beforeSend: (event, hint) => {
+    const hasOwnError = event.exception?.values?.some(
+      (exception) => exception.type === "TypeError" && exception.value === "Object.hasOwn is not a function",
+    );
+    return hasOwnError ? null : filterSentryEvent(event, hint);
+  },
   beforeBreadcrumb: filterSentryBreadcrumb,
 });
 
