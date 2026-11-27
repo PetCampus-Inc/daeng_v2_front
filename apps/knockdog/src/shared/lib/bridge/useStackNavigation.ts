@@ -7,6 +7,8 @@ import { isNativeWebView } from '@shared/lib/device';
 import { METHODS, makeId, BridgeEventMap } from '@knockdog/bridge-core';
 import { buildHref, buildNativeFullPath, type Query } from './queryUtils';
 
+const USER_BACK_CANCEL_REASON = 'Navigation cancelled: User navigated back without providing result';
+
 type Params = Record<string, unknown>;
 
 type PushOptions = {
@@ -212,101 +214,104 @@ function useStackNavigation() {
    * });
    */
   const pushForResult = useCallback(
-    async <T>(options: Omit<PushOptions, 'replace'>, timeoutMs = 30_000): Promise<T> => {
+    async <T>(options: Omit<PushOptions, 'replace'>, timeoutMs = 30_000): Promise<T | undefined> => {
       const txId = makeId();
 
-      const waitWithWebFallback = (): Promise<T> =>
-        new Promise<T>((resolve, reject) => {
-          let settled = false;
+      return new Promise<T | undefined>((resolve, reject) => {
+        let settled = false;
 
-          const resolveFromStorage = () => {
-            try {
-              const raw = sessionStorage.getItem(`nav_result_${txId}`);
-              if (!raw) return false;
-              const parsed = JSON.parse(raw);
-              sessionStorage.removeItem(`nav_result_${txId}`);
-              if (!settled) {
+        const settleCancellation = (reason?: string) => {
+          settled = true;
+          cleanup();
+          if (reason === USER_BACK_CANCEL_REASON) {
+            resolve(undefined);
+          } else {
+            reject(new Error(reason || 'Navigation cancelled'));
+          }
+        };
+
+        const resolveFromStorage = () => {
+          try {
+            const raw = sessionStorage.getItem(`nav_result_${txId}`);
+            if (!raw) return false;
+            const parsed = JSON.parse(raw);
+            sessionStorage.removeItem(`nav_result_${txId}`);
+            if (!settled) {
+              if (parsed?.ok) {
                 settled = true;
                 cleanup();
-                if (parsed?.ok) {
-                  resolve(parsed.result as T);
-                } else {
-                  reject(new Error(parsed?.reason || 'Navigation cancelled'));
-                }
+                resolve(parsed.result as T);
+              } else {
+                settleCancellation(parsed?.reason);
               }
-              return true;
-            } catch (e) {
-              console.error('[pushForResult] Error in resolveFromStorage:', e);
-              return false;
             }
-          };
+            return true;
+          } catch (e) {
+            console.error('[pushForResult] Error in resolveFromStorage:', e);
+            return false;
+          }
+        };
 
-          // 네이티브/브리지 이벤트(모바일)에 의존한 기존 경로
-          const offResult = bridge.on('nav.result', (p: BridgeEventMap['nav.result']) => {
-            if (settled || p.txId !== txId) return;
-            settled = true;
-            cleanup();
-            resolve(p.result as T);
-          });
-          const offCancel = bridge.on('nav.cancel', (p: BridgeEventMap['nav.cancel']) => {
-            if (settled || p.txId !== txId) return;
-            settled = true;
-            cleanup();
-            reject(new Error(p.reason || 'Navigation cancelled'));
-          });
-
-          // 웹 전용 경로: 뒤로 돌아왔을 때 sessionStorage에서 복구
-          const onPop = () => {
-            // 부모 화면으로 돌아온 경우 URL에는 _txId가 없을 수 있어 먼저 결과를 확인한다.
-            if (resolveFromStorage()) {
-              return;
-            }
-
-            // 결과 없이 back → 즉시 cancel로 settle 
-            if (!settled) {
-              settled = true;
-              cleanup();
-              reject(new Error('Navigation cancelled: User navigated back without providing result'));
-            }
-          };
-          const onShow = () => {
-            resolveFromStorage();
-          };
-
-          window.addEventListener('popstate', onPop);
-          window.addEventListener('pageshow', onShow);
-
-          const timer = setTimeout(() => {
-            if (!settled) {
-              settled = true;
-              cleanup();
-              console.error(`[pushForResult] timeout ${timeoutMs}ms (txId=${txId})`);
-              reject(new Error(`[pushForResult] timeout ${timeoutMs}ms (txId=${txId})`));
-            }
-          }, timeoutMs);
-
-          const cleanup = () => {
-            try {
-              offResult?.();
-              offCancel?.();
-            } catch {}
-            clearTimeout(timer);
-            window.removeEventListener('popstate', onPop);
-            window.removeEventListener('pageshow', onShow);
-          };
-
-          // 혹시 이미 저장돼 있으면(매우 드묾) 즉시 처리
-          resolveFromStorage();
+        // 네이티브/브리지 이벤트(모바일)에 의존한 기존 경로
+        const offResult = bridge.on('nav.result', (p: BridgeEventMap['nav.result']) => {
+          if (settled || p.txId !== txId) return;
+          settled = true;
+          cleanup();
+          resolve(p.result as T);
+        });
+        const offCancel = bridge.on('nav.cancel', (p: BridgeEventMap['nav.cancel']) => {
+          if (settled || p.txId !== txId) return;
+          settleCancellation(p.reason);
         });
 
-      // 1) 먼저 대기 시작 (레이스 방지)
-      const waiter = waitWithWebFallback();
+        // 웹 전용 경로: 뒤로 돌아왔을 때 sessionStorage에서 복구
+        const onPop = () => {
+          // 부모 화면으로 돌아온 경우 URL에는 _txId가 없을 수 있어 먼저 결과를 확인한다.
+          if (resolveFromStorage()) {
+            return;
+          }
 
-      // 2) txId를 강제 주입해 이동
-      await executeNavigation(METHODS.navPush, options, txId);
+          // 결과 없이 back → 즉시 cancel로 settle
+          if (!settled) {
+            settleCancellation(USER_BACK_CANCEL_REASON);
+          }
+        };
+        const onShow = () => {
+          resolveFromStorage();
+        };
 
-      // 3) 결과 대기
-      return waiter;
+        window.addEventListener('popstate', onPop);
+        window.addEventListener('pageshow', onShow);
+
+        const timer = setTimeout(() => {
+          if (!settled) {
+            settled = true;
+            cleanup();
+            console.error(`[pushForResult] timeout ${timeoutMs}ms (txId=${txId})`);
+            reject(new Error(`[pushForResult] timeout ${timeoutMs}ms (txId=${txId})`));
+          }
+        }, timeoutMs);
+
+        const cleanup = () => {
+          try {
+            offResult?.();
+            offCancel?.();
+          } catch {}
+          clearTimeout(timer);
+          window.removeEventListener('popstate', onPop);
+          window.removeEventListener('pageshow', onShow);
+        };
+
+        // 혹시 이미 저장돼 있으면(매우 드묾) 즉시 처리
+        resolveFromStorage();
+        // 결과 리스너를 먼저 등록하고, 이동 실패 시 같은 Promise를 종료한다.
+        void executeNavigation(METHODS.navPush, options, txId).catch((error: unknown) => {
+          if (settled) return;
+          settled = true;
+          cleanup();
+          reject(error);
+        });
+      });
     },
     [executeNavigation, bridge]
   );
