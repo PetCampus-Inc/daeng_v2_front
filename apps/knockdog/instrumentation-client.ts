@@ -11,6 +11,15 @@ Sentry.init({
   environment: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT ?? "development",
   enabled: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT === "production",
   tracesSampleRate: 0,
+  integrations: [
+    Sentry.replayIntegration({
+      maskAllText: false,
+      maskAllInputs: false,
+      blockAllMedia: false,
+    }),
+  ],
+  replaysSessionSampleRate: 0,
+  replaysOnErrorSampleRate: 0.05,
 
   // Turns off collection of data that could identify users. Adjust per category:
   // https://docs.sentry.io/platforms/javascript/configuration/options/#dataCollection
