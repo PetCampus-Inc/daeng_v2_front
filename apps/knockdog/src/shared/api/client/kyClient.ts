@@ -1,3 +1,5 @@
+import './polyfillObjectHasOwn';
+
 import ky from 'ky';
 
 import { API_TIMEOUT_MS } from '../config/timeouts';

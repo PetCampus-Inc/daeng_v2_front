@@ -11,6 +11,9 @@ Sentry.init({
   enabled: process.env.EXPO_PUBLIC_SENTRY_ENVIRONMENT === 'production',
   sendDefaultPii: false,
   tracesSampleRate: 0,
+  integrations: [Sentry.mobileReplayIntegration()],
+  replaysSessionSampleRate: 0,
+  replaysOnErrorSampleRate: 0.05,
   beforeSend: (event) => filterSentryData(event),
   beforeBreadcrumb: (breadcrumb) => filterSentryData(breadcrumb),
 });
